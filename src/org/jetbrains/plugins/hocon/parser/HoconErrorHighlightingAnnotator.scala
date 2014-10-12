@@ -5,8 +5,11 @@ import com.intellij.lang.annotation.{AnnotationHolder, Annotator}
 import com.intellij.lexer.StringLiteralLexer
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.{PsiElement, StringEscapesTokenTypes, TokenType}
+<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/parser/HoconErrorHighlightingAnnotator.scala
 
 import scala.annotation.tailrec
+=======
+>>>>>>> ecf1b15... HOCON: reformat code, organize imports:intellij-hocon/src/main/scala/intellijhocon/parser/HoconErrorHighlightingAnnotator.scala
 
 import annotation.tailrec
 

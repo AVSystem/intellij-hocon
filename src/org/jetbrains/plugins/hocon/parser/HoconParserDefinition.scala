@@ -6,8 +6,13 @@ import com.intellij.lexer.Lexer
 import com.intellij.openapi.project.Project
 import com.intellij.psi.tree.{IFileElementType, TokenSet}
 import com.intellij.psi.{FileViewProvider, PsiElement, PsiFile}
+<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/parser/HoconParserDefinition.scala
 import org.jetbrains.plugins.hocon.lexer.{HoconLexer, HoconTokenSets}
 import org.jetbrains.plugins.hocon.psi.{HoconPsiCreator, HoconPsiFile}
+=======
+import intellijhocon.lexer.{HoconLexer, HoconTokenSets}
+import intellijhocon.psi.{HoconPsiElement, HoconPsiFile}
+>>>>>>> ecf1b15... HOCON: reformat code, organize imports:intellij-hocon/src/main/scala/intellijhocon/parser/HoconParserDefinition.scala
 
 class HoconParserDefinition extends ParserDefinition {
 
