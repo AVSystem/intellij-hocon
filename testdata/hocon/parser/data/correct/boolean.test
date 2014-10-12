@@ -15,7 +15,11 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HBoolean(BOOLEAN)
+=======
+        HoconPsiElement(BOOLEAN)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
           PsiElement(UNQUOTED_CHARS)('true')
     PsiWhiteSpace('\n')
     HObjectField(OBJECT_FIELD)
@@ -28,7 +32,11 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HBoolean(BOOLEAN)
+=======
+        HoconPsiElement(BOOLEAN)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
           PsiElement(UNQUOTED_CHARS)('false')
     PsiWhiteSpace('\n')
     HObjectField(OBJECT_FIELD)
@@ -41,6 +49,7 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HString(STRING)
           HUnquotedString(UNQUOTED_STRING)
             PsiElement(UNQUOTED_CHARS)('true')
@@ -49,6 +58,15 @@ HOCON_FILE
             PsiElement(PERIOD)('.')
             PsiElement(PERIOD)('.')
             PsiElement(UNQUOTED_CHARS)('not')
+=======
+        HoconPsiElement(UNQUOTED_STRING)
+          PsiElement(UNQUOTED_CHARS)('true')
+          PsiWhiteSpace(' ')
+          PsiElement(PERIOD)('.')
+          PsiElement(PERIOD)('.')
+          PsiElement(PERIOD)('.')
+          PsiElement(UNQUOTED_CHARS)('not')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
     PsiWhiteSpace('\n')
     HObjectField(OBJECT_FIELD)
       HBareObjectField(BARE_OBJECT_FIELD)
@@ -60,8 +78,15 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HString(STRING)
           HUnquotedString(UNQUOTED_STRING)
             PsiElement(UNQUOTED_CHARS)('not')
             PsiWhiteSpace(' ')
             PsiElement(UNQUOTED_CHARS)('true')
+=======
+        HoconPsiElement(UNQUOTED_STRING)
+          PsiElement(UNQUOTED_CHARS)('not')
+          PsiWhiteSpace(' ')
+          PsiElement(UNQUOTED_CHARS)('true')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node

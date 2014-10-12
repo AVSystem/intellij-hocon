@@ -14,9 +14,14 @@ HOCON_FILE
           PsiWhiteSpace(' ')
           PsiElement(EQUALS)('=')
           PsiWhiteSpace(' ')
+<<<<<<< HEAD
           HString(STRING)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('b')
+=======
+          HoconPsiElement(UNQUOTED_STRING)
+            PsiElement(UNQUOTED_CHARS)('b')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
       PsiElement(COMMA)(',')
       PsiErrorElement:expected object field, include or '}'
         PsiElement(COMMA)(',')

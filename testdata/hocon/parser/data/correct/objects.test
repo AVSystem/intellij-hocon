@@ -29,9 +29,14 @@ HOCON_FILE
                 PsiWhiteSpace(' ')
                 PsiElement(EQUALS)('=')
                 PsiWhiteSpace(' ')
+<<<<<<< HEAD
                 HString(STRING)
                   HUnquotedString(UNQUOTED_STRING)
                     PsiElement(UNQUOTED_CHARS)('value')
+=======
+                HoconPsiElement(UNQUOTED_STRING)
+                  PsiElement(UNQUOTED_CHARS)('value')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
             PsiWhiteSpace('\n  ')
             HObjectField(OBJECT_FIELD)
               HBareObjectField(BARE_OBJECT_FIELD)
@@ -43,6 +48,7 @@ HOCON_FILE
                 PsiWhiteSpace(' ')
                 PsiElement(EQUALS)('=')
                 PsiWhiteSpace(' ')
+<<<<<<< HEAD
                 HObject(OBJECT)
                   PsiElement(LBRACE)('{')
                   HObjectEntries(OBJECT_ENTRIES)
@@ -60,6 +66,23 @@ HOCON_FILE
                         HString(STRING)
                           HUnquotedString(UNQUOTED_STRING)
                             PsiElement(UNQUOTED_CHARS)('value')
+=======
+                HoconPsiElement(OBJECT)
+                  PsiElement(LBRACE)('{')
+                  HoconPsiElement(OBJECT_ENTRIES)
+                    PsiWhiteSpace('\n    ')
+                    HoconPsiElement(OBJECT_FIELD)
+                      HoconPsiElement(BARE_OBJECT_FIELD)
+                        HoconPsiElement(FIELD_PATH)
+                          HoconPsiElement(KEY)
+                            HoconPsiElement(UNQUOTED_STRING)
+                              PsiElement(UNQUOTED_CHARS)('key')
+                        PsiWhiteSpace(' ')
+                        PsiElement(EQUALS)('=')
+                        PsiWhiteSpace(' ')
+                        HoconPsiElement(UNQUOTED_STRING)
+                          PsiElement(UNQUOTED_CHARS)('value')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
                     PsiWhiteSpace('\n  ')
                   PsiElement(RBRACE)('}')
             PsiWhiteSpace('\n')

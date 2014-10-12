@@ -14,9 +14,15 @@ HOCON_FILE
           PsiWhiteSpace(' ')
           PsiElement(EQUALS)('=')
           PsiWhiteSpace(' ')
+<<<<<<< HEAD
           HArray(ARRAY)
             PsiElement(LBRACKET)('[')
             HNumber(NUMBER)
+=======
+          HoconPsiElement(ARRAY)
+            PsiElement(LBRACKET)('[')
+            HoconPsiElement(NUMBER)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
               PsiElement(UNQUOTED_CHARS)('1')
             PsiErrorElement:expected ']'
               <empty list>

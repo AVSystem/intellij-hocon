@@ -19,7 +19,11 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HNumber(NUMBER)
+=======
+        HoconPsiElement(NUMBER)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
           PsiElement(UNQUOTED_CHARS)('42')
     PsiWhiteSpace('\n')
     HObjectField(OBJECT_FIELD)
@@ -32,7 +36,11 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HNumber(NUMBER)
+=======
+        HoconPsiElement(NUMBER)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
           PsiElement(UNQUOTED_CHARS)('-123')
     PsiWhiteSpace('\n')
     HObjectField(OBJECT_FIELD)
@@ -45,11 +53,18 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HString(STRING)
           HUnquotedString(UNQUOTED_STRING)
             PsiElement(UNQUOTED_CHARS)('42')
             PsiWhiteSpace(' ')
             PsiElement(UNQUOTED_CHARS)('a')
+=======
+        HoconPsiElement(UNQUOTED_STRING)
+          PsiElement(UNQUOTED_CHARS)('42')
+          PsiWhiteSpace(' ')
+          PsiElement(UNQUOTED_CHARS)('a')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
     PsiWhiteSpace('\n')
     HObjectField(OBJECT_FIELD)
       HBareObjectField(BARE_OBJECT_FIELD)
@@ -61,9 +76,14 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HString(STRING)
           HUnquotedString(UNQUOTED_STRING)
             PsiElement(UNQUOTED_CHARS)('10000000000000000000000')
+=======
+        HoconPsiElement(UNQUOTED_STRING)
+          PsiElement(UNQUOTED_CHARS)('10000000000000000000000')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
     PsiWhiteSpace('\n')
     HObjectField(OBJECT_FIELD)
       HBareObjectField(BARE_OBJECT_FIELD)
@@ -75,7 +95,11 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HNumber(NUMBER)
+=======
+        HoconPsiElement(NUMBER)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
           PsiElement(UNQUOTED_CHARS)('3')
           PsiElement(PERIOD)('.')
           PsiElement(UNQUOTED_CHARS)('14')
@@ -90,7 +114,11 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HNumber(NUMBER)
+=======
+        HoconPsiElement(NUMBER)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
           PsiElement(UNQUOTED_CHARS)('3')
           PsiElement(PERIOD)('.')
           PsiElement(UNQUOTED_CHARS)('7e14')
@@ -105,12 +133,20 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HString(STRING)
           HUnquotedString(UNQUOTED_STRING)
             PsiElement(UNQUOTED_CHARS)('3')
             PsiWhiteSpace(' ')
             PsiElement(PERIOD)('.')
             PsiElement(UNQUOTED_CHARS)('14')
+=======
+        HoconPsiElement(UNQUOTED_STRING)
+          PsiElement(UNQUOTED_CHARS)('3')
+          PsiWhiteSpace(' ')
+          PsiElement(PERIOD)('.')
+          PsiElement(UNQUOTED_CHARS)('14')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
     PsiWhiteSpace('\n')
     HObjectField(OBJECT_FIELD)
       HBareObjectField(BARE_OBJECT_FIELD)
@@ -122,6 +158,10 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HNumber(NUMBER)
+=======
+        HoconPsiElement(NUMBER)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
           PsiElement(UNQUOTED_CHARS)('1')
           PsiElement(PERIOD)('.')

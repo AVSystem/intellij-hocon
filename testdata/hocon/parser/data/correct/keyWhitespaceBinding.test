@@ -29,5 +29,9 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HNumber(NUMBER)
+=======
+        HoconPsiElement(NUMBER)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
           PsiElement(UNQUOTED_CHARS)('1')

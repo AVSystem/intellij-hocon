@@ -14,6 +14,7 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HSubstitution(SUBSTITUTION)
           PsiElement(DOLLAR)('$')
           PsiElement(SUB_LBRACE)('{')
@@ -28,6 +29,20 @@ HOCON_FILE
               HString(STRING)
                 HUnquotedString(UNQUOTED_STRING)
                   PsiElement(UNQUOTED_CHARS)('path')
+=======
+        HoconPsiElement(SUBSTITUTION)
+          PsiElement(DOLLAR)('$')
+          PsiElement(SUB_LBRACE)('{')
+          HoconPsiElement(SUBSTITUTION_PATH)
+            HoconPsiElement(SUBSTITUTION_PATH)
+              HoconPsiElement(KEY)
+                HoconPsiElement(UNQUOTED_STRING)
+                  PsiElement(UNQUOTED_CHARS)('some')
+            PsiElement(PERIOD)('.')
+            HoconPsiElement(KEY)
+              HoconPsiElement(UNQUOTED_STRING)
+                PsiElement(UNQUOTED_CHARS)('path')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
           PsiElement(SUB_RBRACE)('}')
     PsiWhiteSpace('\n')
     HObjectField(OBJECT_FIELD)
@@ -40,6 +55,7 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HSubstitution(SUBSTITUTION)
           PsiElement(DOLLAR)('$')
           PsiElement(SUB_LBRACE)('{')
@@ -55,6 +71,21 @@ HOCON_FILE
               HString(STRING)
                 HUnquotedString(UNQUOTED_STRING)
                   PsiElement(UNQUOTED_CHARS)('path')
+=======
+        HoconPsiElement(SUBSTITUTION)
+          PsiElement(DOLLAR)('$')
+          PsiElement(SUB_LBRACE)('{')
+          PsiElement(QMARK)('?')
+          HoconPsiElement(SUBSTITUTION_PATH)
+            HoconPsiElement(SUBSTITUTION_PATH)
+              HoconPsiElement(KEY)
+                HoconPsiElement(UNQUOTED_STRING)
+                  PsiElement(UNQUOTED_CHARS)('some')
+            PsiElement(PERIOD)('.')
+            HoconPsiElement(KEY)
+              HoconPsiElement(UNQUOTED_STRING)
+                PsiElement(UNQUOTED_CHARS)('path')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
           PsiElement(SUB_RBRACE)('}')
     PsiWhiteSpace('\n')
     HObjectField(OBJECT_FIELD)
@@ -67,8 +98,13 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HConcatenation(CONCATENATION)
           HSubstitution(SUBSTITUTION)
+=======
+        HoconPsiElement(CONCATENATION)
+          HoconPsiElement(SUBSTITUTION)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
             PsiElement(DOLLAR)('$')
             PsiElement(SUB_LBRACE)('{')
             HPath(SUBSTITUTION_PATH)

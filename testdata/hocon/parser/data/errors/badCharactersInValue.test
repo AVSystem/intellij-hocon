@@ -12,10 +12,16 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HConcatenation(CONCATENATION)
           HString(STRING)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('v')
+=======
+        HoconPsiElement(CONCATENATION)
+          HoconPsiElement(UNQUOTED_STRING)
+            PsiElement(UNQUOTED_CHARS)('v')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
           PsiErrorElement:characters $ " { } [ ] : = , + # ` ^ ? ! @ * & \ are forbidden unquoted
             PsiElement(BAD_CHARACTER)('@')
           HString(STRING)

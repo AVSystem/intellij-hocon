@@ -12,6 +12,7 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HString(STRING)
           HUnquotedString(UNQUOTED_STRING)
             PsiElement(UNQUOTED_CHARS)('some')
@@ -21,3 +22,13 @@ HOCON_FILE
             PsiElement(UNQUOTED_CHARS)('qualified')
             PsiElement(PERIOD)('.')
             PsiElement(UNQUOTED_CHARS)('ClassName')
+=======
+        HoconPsiElement(UNQUOTED_STRING)
+          PsiElement(UNQUOTED_CHARS)('some')
+          PsiElement(PERIOD)('.')
+          PsiElement(UNQUOTED_CHARS)('fully')
+          PsiElement(PERIOD)('.')
+          PsiElement(UNQUOTED_CHARS)('qualified')
+          PsiElement(PERIOD)('.')
+          PsiElement(UNQUOTED_CHARS)('ClassName')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node

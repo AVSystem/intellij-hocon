@@ -18,8 +18,14 @@ object HoconElementType {
   val SubstitutionPath = new HoconElementType("SUBSTITUTION_PATH")
   val Key = new HoconElementType("KEY")
   val Array = new HoconElementType("ARRAY")
+<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/parser/HoconElementType.scala
   val Substitution = new HoconElementType("SUBSTITUTION")
   val Concatenation = new HoconElementType("CONCATENATION")
+=======
+
+  val Concatenation = new HoconElementType("CONCATENATION")
+
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node:intellij-hocon/src/main/scala/intellijhocon/parser/HoconElementType.scala
   val UnquotedString = new HoconElementType("UNQUOTED_STRING")
   val String = new HoconElementType("STRING")
   val Number = new HoconElementType("NUMBER")

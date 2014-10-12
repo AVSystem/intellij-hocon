@@ -8,6 +8,8 @@ import com.intellij.psi.{PsiElement, StringEscapesTokenTypes, TokenType}
 
 import scala.annotation.tailrec
 
+import annotation.tailrec
+
 class HoconErrorHighlightingAnnotator extends Annotator {
 
   import org.jetbrains.plugins.hocon.Util._

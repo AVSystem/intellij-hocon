@@ -18,9 +18,14 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace('\n ')
+<<<<<<< HEAD
         HString(STRING)
           HUnquotedString(UNQUOTED_STRING)
             PsiElement(UNQUOTED_CHARS)('b')
+=======
+        HoconPsiElement(UNQUOTED_STRING)
+          PsiElement(UNQUOTED_CHARS)('b')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
     PsiWhiteSpace('\n')
     HObjectField(OBJECT_FIELD)
       HBareObjectField(BARE_OBJECT_FIELD)
@@ -32,5 +37,9 @@ HOCON_FILE
         PsiWhiteSpace('\n\n')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace('\n\n')
+<<<<<<< HEAD
         HNumber(NUMBER)
+=======
+        HoconPsiElement(NUMBER)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
           PsiElement(UNQUOTED_CHARS)('1')

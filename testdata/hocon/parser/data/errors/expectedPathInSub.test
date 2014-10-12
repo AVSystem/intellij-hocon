@@ -12,7 +12,11 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HSubstitution(SUBSTITUTION)
+=======
+        HoconPsiElement(SUBSTITUTION)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
           PsiElement(DOLLAR)('$')
           PsiElement(SUB_LBRACE)('{')
           PsiErrorElement:expected path expression

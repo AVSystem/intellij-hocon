@@ -12,9 +12,14 @@ HOCON_FILE
                 HUnquotedString(UNQUOTED_STRING)
                   PsiElement(UNQUOTED_CHARS)('k')
           PsiElement(EQUALS)('=')
+<<<<<<< HEAD
           HString(STRING)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('v')
+=======
+          HoconPsiElement(UNQUOTED_STRING)
+            PsiElement(UNQUOTED_CHARS)('v')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
       PsiElement(COMMA)(',')
       HObjectField(OBJECT_FIELD)
         HBareObjectField(BARE_OBJECT_FIELD)
@@ -24,8 +29,13 @@ HOCON_FILE
                 HUnquotedString(UNQUOTED_STRING)
                   PsiElement(UNQUOTED_CHARS)('k')
           PsiElement(EQUALS)('=')
+<<<<<<< HEAD
           HString(STRING)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('v')
+=======
+          HoconPsiElement(UNQUOTED_STRING)
+            PsiElement(UNQUOTED_CHARS)('v')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
       PsiElement(COMMA)(',')
     PsiElement(RBRACE)('}')

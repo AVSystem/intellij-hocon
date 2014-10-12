@@ -12,8 +12,13 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HConcatenation(CONCATENATION)
           HSubstitution(SUBSTITUTION)
+=======
+        HoconPsiElement(CONCATENATION)
+          HoconPsiElement(SUBSTITUTION)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
             PsiElement(DOLLAR)('$')
             PsiElement(SUB_LBRACE)('{')
             HPath(SUBSTITUTION_PATH)
@@ -31,6 +36,7 @@ HOCON_FILE
           PsiWhiteSpace(' ')
           HArray(ARRAY)
             PsiElement(LBRACKET)('[')
+<<<<<<< HEAD
             HNumber(NUMBER)
               PsiElement(UNQUOTED_CHARS)('1')
             PsiElement(COMMA)(',')
@@ -38,6 +44,15 @@ HOCON_FILE
               PsiElement(UNQUOTED_CHARS)('2')
             PsiElement(COMMA)(',')
             HNumber(NUMBER)
+=======
+            HoconPsiElement(NUMBER)
+              PsiElement(UNQUOTED_CHARS)('1')
+            PsiElement(COMMA)(',')
+            HoconPsiElement(NUMBER)
+              PsiElement(UNQUOTED_CHARS)('2')
+            PsiElement(COMMA)(',')
+            HoconPsiElement(NUMBER)
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
               PsiElement(UNQUOTED_CHARS)('3')
             PsiElement(RBRACKET)(']')
           PsiWhiteSpace(' ')
@@ -55,9 +70,14 @@ HOCON_FILE
                   PsiWhiteSpace(' ')
                   PsiElement(COLON)(':')
                   PsiWhiteSpace(' ')
+<<<<<<< HEAD
                   HString(STRING)
                     HUnquotedString(UNQUOTED_STRING)
                       PsiElement(UNQUOTED_CHARS)('v')
+=======
+                  HoconPsiElement(UNQUOTED_STRING)
+                    PsiElement(UNQUOTED_CHARS)('v')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
               PsiWhiteSpace(' ')
             PsiElement(RBRACE)('}')
           PsiWhiteSpace(' ')
@@ -73,7 +93,12 @@ HOCON_FILE
               PsiWhiteSpace(' ')
           HArray(ARRAY)
             PsiElement(LBRACKET)('[')
+<<<<<<< HEAD
             HString(STRING)
               HUnquotedString(UNQUOTED_STRING)
                 PsiElement(UNQUOTED_CHARS)('list')
+=======
+            HoconPsiElement(UNQUOTED_STRING)
+              PsiElement(UNQUOTED_CHARS)('list')
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
             PsiElement(RBRACKET)(']')

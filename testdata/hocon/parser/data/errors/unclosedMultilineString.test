@@ -13,7 +13,13 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
+<<<<<<< HEAD
         HString(STRING)
           PsiElement(MULTILINE_STRING)('"""unclosed\nmultiline')
           PsiErrorElement:unclosed multiline string
             <empty list>
+=======
+        PsiElement(MULTILINE_STRING)('"""unclosed\nmultiline')
+        PsiErrorElement:unclosed multiline string
+          <empty list>
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
