@@ -15,10 +15,14 @@ HOCON_FILE
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
 <<<<<<< HEAD
+<<<<<<< HEAD
         HNull(NULL)
 =======
         HoconPsiElement(NULL)
 >>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
+=======
+        HNull(NULL)
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
           PsiElement(UNQUOTED_CHARS)('null')
     PsiWhiteSpace('\n')
     HObjectField(OBJECT_FIELD)
@@ -32,6 +36,9 @@ HOCON_FILE
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
         HString(STRING)
           HUnquotedString(UNQUOTED_STRING)
             PsiElement(UNQUOTED_CHARS)('null')
@@ -40,6 +47,7 @@ HOCON_FILE
             PsiElement(PERIOD)('.')
             PsiElement(PERIOD)('.')
             PsiElement(UNQUOTED_CHARS)('not')
+<<<<<<< HEAD
 =======
         HoconPsiElement(UNQUOTED_STRING)
           PsiElement(UNQUOTED_CHARS)('null')
@@ -49,6 +57,8 @@ HOCON_FILE
           PsiElement(PERIOD)('.')
           PsiElement(UNQUOTED_CHARS)('not')
 >>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
+=======
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
     PsiWhiteSpace('\n')
     HObjectField(OBJECT_FIELD)
       HBareObjectField(BARE_OBJECT_FIELD)
@@ -61,14 +71,20 @@ HOCON_FILE
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
         HString(STRING)
           HUnquotedString(UNQUOTED_STRING)
             PsiElement(UNQUOTED_CHARS)('not')
             PsiWhiteSpace(' ')
             PsiElement(UNQUOTED_CHARS)('null')
+<<<<<<< HEAD
 =======
         HoconPsiElement(UNQUOTED_STRING)
           PsiElement(UNQUOTED_CHARS)('not')
           PsiWhiteSpace(' ')
           PsiElement(UNQUOTED_CHARS)('null')
 >>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
+=======
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced

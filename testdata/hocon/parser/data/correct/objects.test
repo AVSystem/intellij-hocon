@@ -30,6 +30,7 @@ HOCON_FILE
                 PsiElement(EQUALS)('=')
                 PsiWhiteSpace(' ')
 <<<<<<< HEAD
+<<<<<<< HEAD
                 HString(STRING)
                   HUnquotedString(UNQUOTED_STRING)
                     PsiElement(UNQUOTED_CHARS)('value')
@@ -37,6 +38,11 @@ HOCON_FILE
                 HoconPsiElement(UNQUOTED_STRING)
                   PsiElement(UNQUOTED_CHARS)('value')
 >>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
+=======
+                HString(STRING)
+                  HUnquotedString(UNQUOTED_STRING)
+                    PsiElement(UNQUOTED_CHARS)('value')
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
             PsiWhiteSpace('\n  ')
             HObjectField(OBJECT_FIELD)
               HBareObjectField(BARE_OBJECT_FIELD)
@@ -48,6 +54,7 @@ HOCON_FILE
                 PsiWhiteSpace(' ')
                 PsiElement(EQUALS)('=')
                 PsiWhiteSpace(' ')
+<<<<<<< HEAD
 <<<<<<< HEAD
                 HObject(OBJECT)
                   PsiElement(LBRACE)('{')
@@ -68,21 +75,31 @@ HOCON_FILE
                             PsiElement(UNQUOTED_CHARS)('value')
 =======
                 HoconPsiElement(OBJECT)
+=======
+                HObject(OBJECT)
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
                   PsiElement(LBRACE)('{')
-                  HoconPsiElement(OBJECT_ENTRIES)
+                  HObjectEntries(OBJECT_ENTRIES)
                     PsiWhiteSpace('\n    ')
-                    HoconPsiElement(OBJECT_FIELD)
-                      HoconPsiElement(BARE_OBJECT_FIELD)
-                        HoconPsiElement(FIELD_PATH)
-                          HoconPsiElement(KEY)
-                            HoconPsiElement(UNQUOTED_STRING)
-                              PsiElement(UNQUOTED_CHARS)('key')
+                    HObjectField(OBJECT_FIELD)
+                      HBareObjectField(BARE_OBJECT_FIELD)
+                        HPath(FIELD_PATH)
+                          HKey(KEY)
+                            HString(STRING)
+                              HUnquotedString(UNQUOTED_STRING)
+                                PsiElement(UNQUOTED_CHARS)('key')
                         PsiWhiteSpace(' ')
                         PsiElement(EQUALS)('=')
                         PsiWhiteSpace(' ')
+<<<<<<< HEAD
                         HoconPsiElement(UNQUOTED_STRING)
                           PsiElement(UNQUOTED_CHARS)('value')
 >>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
+=======
+                        HString(STRING)
+                          HUnquotedString(UNQUOTED_STRING)
+                            PsiElement(UNQUOTED_CHARS)('value')
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
                     PsiWhiteSpace('\n  ')
                   PsiElement(RBRACE)('}')
             PsiWhiteSpace('\n')

@@ -13,10 +13,14 @@ HOCON_FILE
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
 <<<<<<< HEAD
+<<<<<<< HEAD
         HSubstitution(SUBSTITUTION)
 =======
         HoconPsiElement(SUBSTITUTION)
 >>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
+=======
+        HSubstitution(SUBSTITUTION)
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
           PsiElement(DOLLAR)('$')
           PsiElement(SUB_LBRACE)('{')
           PsiErrorElement:expected path expression

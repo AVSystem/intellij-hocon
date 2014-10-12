@@ -15,9 +15,15 @@ import annotation.tailrec
 
 class HoconErrorHighlightingAnnotator extends Annotator {
 
+<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/parser/HoconErrorHighlightingAnnotator.scala
   import org.jetbrains.plugins.hocon.Util._
   import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
   import org.jetbrains.plugins.hocon.parser.HoconElementType._
+=======
+  import intellijhocon.Util._
+  import intellijhocon.lexer.HoconTokenType._
+  import intellijhocon.parser.HoconElementType._
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced:intellij-hocon/src/main/scala/intellijhocon/parser/HoconErrorHighlightingAnnotator.scala
 
   def annotate(element: PsiElement, holder: AnnotationHolder) {
     element.getNode.getElementType match {

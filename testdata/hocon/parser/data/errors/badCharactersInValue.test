@@ -13,15 +13,21 @@ HOCON_FILE
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
         HConcatenation(CONCATENATION)
           HString(STRING)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('v')
+<<<<<<< HEAD
 =======
         HoconPsiElement(CONCATENATION)
           HoconPsiElement(UNQUOTED_STRING)
             PsiElement(UNQUOTED_CHARS)('v')
 >>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
+=======
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
           PsiErrorElement:characters $ " { } [ ] : = , + # ` ^ ? ! @ * & \ are forbidden unquoted
             PsiElement(BAD_CHARACTER)('@')
           HString(STRING)

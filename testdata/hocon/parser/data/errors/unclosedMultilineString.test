@@ -14,12 +14,18 @@ HOCON_FILE
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
         HString(STRING)
           PsiElement(MULTILINE_STRING)('"""unclosed\nmultiline')
           PsiErrorElement:unclosed multiline string
             <empty list>
+<<<<<<< HEAD
 =======
         PsiElement(MULTILINE_STRING)('"""unclosed\nmultiline')
         PsiErrorElement:unclosed multiline string
           <empty list>
 >>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
+=======
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced

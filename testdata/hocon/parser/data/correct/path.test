@@ -36,8 +36,12 @@ HOCON_FILE
                 PsiElement(UNQUOTED_CHARS)('moar')
         PsiElement(EQUALS)('=')
 <<<<<<< HEAD
+<<<<<<< HEAD
         HNumber(NUMBER)
 =======
         HoconPsiElement(NUMBER)
 >>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
+=======
+        HNumber(NUMBER)
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
           PsiElement(UNQUOTED_CHARS)('42')

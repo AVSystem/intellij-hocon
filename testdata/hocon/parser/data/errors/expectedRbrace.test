@@ -15,6 +15,7 @@ HOCON_FILE
           PsiElement(EQUALS)('=')
           PsiWhiteSpace(' ')
 <<<<<<< HEAD
+<<<<<<< HEAD
           HString(STRING)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('b')
@@ -22,5 +23,10 @@ HOCON_FILE
           HoconPsiElement(UNQUOTED_STRING)
             PsiElement(UNQUOTED_CHARS)('b')
 >>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
+=======
+          HString(STRING)
+            HUnquotedString(UNQUOTED_STRING)
+              PsiElement(UNQUOTED_CHARS)('b')
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
     PsiErrorElement:expected '}'
       <empty list>
