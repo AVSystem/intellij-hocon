@@ -5,9 +5,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFileFactory
 import com.intellij.util.LocalTimeCounter
 <<<<<<< HEAD:test/org/jetbrains/plugins/hocon/HoconTestUtils.scala
+<<<<<<< HEAD:test/org/jetbrains/plugins/hocon/HoconTestUtils.scala
 import org.jetbrains.plugins.hocon.psi.HoconPsiFile
 =======
 >>>>>>> ecf1b15... HOCON: reformat code, organize imports:intellij-hocon/src/test/scala/intellijhocon/HoconTestUtils.scala
+=======
+import psi.HoconPsiFile
+>>>>>>> 1fd4c19... HOCON: Java class reference detection on string literals:intellij-hocon/src/test/scala/intellijhocon/HoconTestUtils.scala
 
 import scala.language.implicitConversions
 

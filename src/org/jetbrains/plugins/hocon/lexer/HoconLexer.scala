@@ -105,6 +105,10 @@ class HoconLexer extends LexerBase {
     new RegexTokenMatcher(".".r, BadCharacter, always, identity)
   )
 
+<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/lexer/HoconLexer.scala
+=======
+  
+>>>>>>> 1fd4c19... HOCON: Java class reference detection on string literals:intellij-hocon/src/main/scala/intellijhocon/lexer/HoconLexer.scala
 
   def isHoconWhitespace(char: Char) = char.isWhitespace || SpecialWhitespace.contains(char)
 
