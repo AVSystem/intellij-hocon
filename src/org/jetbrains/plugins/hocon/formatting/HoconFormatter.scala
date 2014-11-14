@@ -4,13 +4,8 @@ import com.intellij.formatting.{Alignment, Indent, Spacing, Wrap}
 import com.intellij.lang.ASTNode
 import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.tree.IElementType
-<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/formatting/HoconFormatter.scala
 import org.jetbrains.plugins.hocon.codestyle.HoconCustomCodeStyleSettings
 import org.jetbrains.plugins.hocon.lang.HoconLanguage
-=======
-import intellijhocon.codestyle.HoconCustomCodeStyleSettings
-import intellijhocon.lang.HoconLanguage
->>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node:intellij-hocon/src/main/scala/intellijhocon/formatting/HoconFormatter.scala
 
 class HoconFormatter(settings: CodeStyleSettings) {
 

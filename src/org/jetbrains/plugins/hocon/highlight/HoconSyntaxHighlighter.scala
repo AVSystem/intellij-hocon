@@ -7,13 +7,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.StringEscapesTokenTypes
 import com.intellij.psi.tree.IElementType
-<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/highlight/HoconSyntaxHighlighter.scala
 import org.jetbrains.plugins.hocon.highlight.{HoconHighlighterColors => HHC}
 import org.jetbrains.plugins.hocon.lexer.HoconLexer
-=======
-import intellijhocon.highlight.{HoconHighlighterColors => HHC}
-import intellijhocon.lexer.HoconLexer
->>>>>>> ecf1b15... HOCON: reformat code, organize imports:intellij-hocon/src/main/scala/intellijhocon/highlight/HoconSyntaxHighlighter.scala
 
 class HoconSyntaxHighlighterFactory extends SyntaxHighlighterFactory {
   def getSyntaxHighlighter(project: Project, virtualFile: VirtualFile) =

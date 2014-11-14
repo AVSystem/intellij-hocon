@@ -2,11 +2,7 @@ package org.jetbrains.plugins.hocon.highlight
 
 import com.intellij.lang.annotation.{AnnotationHolder, Annotator}
 import com.intellij.psi.PsiElement
-<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/highlight/HoconSyntaxHighlightingAnnotator.scala
 import org.jetbrains.plugins.hocon.parser.HoconPsiParser
-=======
-import intellijhocon.parser.HoconPsiParser
->>>>>>> ecf1b15... HOCON: reformat code, organize imports:intellij-hocon/src/main/scala/intellijhocon/highlight/HoconSyntaxHighlightingAnnotator.scala
 
 class HoconSyntaxHighlightingAnnotator extends Annotator {
 

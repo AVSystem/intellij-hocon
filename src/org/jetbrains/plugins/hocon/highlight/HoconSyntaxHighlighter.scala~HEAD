@@ -1,5 +1,4 @@
-package intellijhocon
-package highlight
+package org.jetbrains.plugins.hocon.highlight
 
 import com.intellij.lexer.{LayeredLexer, StringLiteralLexer}
 import com.intellij.openapi.editor.colors.TextAttributesKey
@@ -8,8 +7,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.StringEscapesTokenTypes
 import com.intellij.psi.tree.IElementType
+<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/highlight/HoconSyntaxHighlighter.scala
+import org.jetbrains.plugins.hocon.highlight.{HoconHighlighterColors => HHC}
+import org.jetbrains.plugins.hocon.lexer.HoconLexer
+=======
 import intellijhocon.highlight.{HoconHighlighterColors => HHC}
 import intellijhocon.lexer.HoconLexer
+>>>>>>> ecf1b15... HOCON: reformat code, organize imports:intellij-hocon/src/main/scala/intellijhocon/highlight/HoconSyntaxHighlighter.scala
 
 class HoconSyntaxHighlighterFactory extends SyntaxHighlighterFactory {
   def getSyntaxHighlighter(project: Project, virtualFile: VirtualFile) =
@@ -18,7 +22,7 @@ class HoconSyntaxHighlighterFactory extends SyntaxHighlighterFactory {
 
 object HoconSyntaxHighlighter extends SyntaxHighlighter {
 
-  import intellijhocon.lexer.HoconTokenType._
+  import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
 
   private val tokenHighlights = Map[IElementType, Array[TextAttributesKey]](
     BadCharacter -> Array(HHC.BadCharacter),

@@ -8,11 +8,7 @@ import com.intellij.lang.WhitespacesAndCommentsBinder.TokenTextGetter
 import com.intellij.lang.{PsiBuilder, PsiParser, WhitespacesAndCommentsBinder, WhitespacesBinders}
 import com.intellij.psi.tree.IElementType
 
-<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/parser/HoconPsiParser.scala
 import scala.annotation.tailrec
-=======
-import annotation.tailrec
->>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node:intellij-hocon/src/main/scala/intellijhocon/parser/HoconPsiParser.scala
 import scala.util.matching.Regex
 
 object HoconPsiParser {
@@ -71,15 +67,6 @@ class HoconPsiParser extends PsiParser {
     }
 
     def advanceLexer() {
-<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/parser/HoconPsiParser.scala
-<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/parser/HoconPsiParser.scala
-=======
-      val unclosedQuotedString = builder.getTokenType == QuotedString &&
-              !ProperlyClosedQuotedString.pattern.matcher(builder.getTokenText).matches
-      val unclosedMultilineString = builder.getTokenType == MultilineString && !builder.getTokenText.endsWith("\"\"\"")
->>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node:intellij-hocon/src/main/scala/intellijhocon/parser/HoconPsiParser.scala
-=======
->>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced:intellij-hocon/src/main/scala/intellijhocon/parser/HoconPsiParser.scala
       builder.advanceLexer()
     }
 
@@ -342,15 +329,7 @@ class HoconPsiParser extends PsiParser {
           } else if (matches(Dollar)) {
             parseSubstitution()
           } else if (matches(ValueUnquotedChars)) {
-<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/parser/HoconPsiParser.scala
-<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/parser/HoconPsiParser.scala
             parseUnquotedString(ValueUnquotedChars.noNewLine, partCount == 0, ValueEnding.orNewLineOrEof)
-=======
-            parseAsUnquotedString(ValueUnquotedChars.noNewLine, partCount == 0, ValueEnding.orNewLineOrEof)
->>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node:intellij-hocon/src/main/scala/intellijhocon/parser/HoconPsiParser.scala
-=======
-            parseUnquotedString(ValueUnquotedChars.noNewLine, partCount == 0, ValueEnding.orNewLineOrEof)
->>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced:intellij-hocon/src/main/scala/intellijhocon/parser/HoconPsiParser.scala
           } else if (matches(StringLiteral)) {
             parseStringLiteral()
           } else {

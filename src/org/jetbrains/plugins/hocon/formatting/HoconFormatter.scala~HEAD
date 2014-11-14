@@ -1,20 +1,24 @@
-package intellijhocon
-package formatting
+package org.jetbrains.plugins.hocon.formatting
 
 import com.intellij.formatting.{Alignment, Indent, Spacing, Wrap}
 import com.intellij.lang.ASTNode
 import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.tree.IElementType
+<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/formatting/HoconFormatter.scala
+import org.jetbrains.plugins.hocon.codestyle.HoconCustomCodeStyleSettings
+import org.jetbrains.plugins.hocon.lang.HoconLanguage
+=======
 import intellijhocon.codestyle.HoconCustomCodeStyleSettings
 import intellijhocon.lang.HoconLanguage
+>>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node:intellij-hocon/src/main/scala/intellijhocon/formatting/HoconFormatter.scala
 
 class HoconFormatter(settings: CodeStyleSettings) {
 
-  import intellijhocon.Util._
-  import intellijhocon.lexer.HoconTokenSets._
-  import intellijhocon.lexer.HoconTokenType._
-  import intellijhocon.parser.HoconElementSets._
-  import intellijhocon.parser.HoconElementType._
+  import org.jetbrains.plugins.hocon.Util._
+  import org.jetbrains.plugins.hocon.lexer.HoconTokenSets._
+  import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
+  import org.jetbrains.plugins.hocon.parser.HoconElementSets._
+  import org.jetbrains.plugins.hocon.parser.HoconElementType._
 
   val commonSettings = settings.getCommonSettings(HoconLanguage)
   val customSettings = settings.getCustomSettings(classOf[HoconCustomCodeStyleSettings])

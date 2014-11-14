@@ -1,11 +1,15 @@
-package intellijhocon
-package psi
+package org.jetbrains.plugins.hocon.psi
 
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.impl.source.PsiFileImpl
 import com.intellij.psi.{FileViewProvider, PsiElementVisitor}
+<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/psi/HoconPsiFile.scala
+import org.jetbrains.plugins.hocon.lang.HoconLanguageFileType
+import org.jetbrains.plugins.hocon.parser.HoconElementType.HoconFileElementType
+=======
 import intellijhocon.lang.HoconLanguageFileType
 import intellijhocon.parser.HoconElementType.HoconFileElementType
+>>>>>>> ecf1b15... HOCON: reformat code, organize imports:intellij-hocon/src/main/scala/intellijhocon/psi/HoconPsiFile.scala
 
 class HoconPsiFile(provider: FileViewProvider) extends PsiFileImpl(HoconFileElementType, HoconFileElementType, provider) {
   def accept(visitor: PsiElementVisitor): Unit =

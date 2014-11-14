@@ -1,19 +1,29 @@
-package intellijhocon
-package parser
+package org.jetbrains.plugins.hocon.parser
 
 import com.intellij.lang.ASTNode
 import com.intellij.lang.annotation.{AnnotationHolder, Annotator}
 import com.intellij.lexer.StringLiteralLexer
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.{PsiElement, StringEscapesTokenTypes, TokenType}
+<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/parser/HoconErrorHighlightingAnnotator.scala
+
+import scala.annotation.tailrec
+=======
+>>>>>>> ecf1b15... HOCON: reformat code, organize imports:intellij-hocon/src/main/scala/intellijhocon/parser/HoconErrorHighlightingAnnotator.scala
 
 import annotation.tailrec
 
 class HoconErrorHighlightingAnnotator extends Annotator {
 
+<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/parser/HoconErrorHighlightingAnnotator.scala
+  import org.jetbrains.plugins.hocon.Util._
+  import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
+  import org.jetbrains.plugins.hocon.parser.HoconElementType._
+=======
   import intellijhocon.Util._
   import intellijhocon.lexer.HoconTokenType._
   import intellijhocon.parser.HoconElementType._
+>>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced:intellij-hocon/src/main/scala/intellijhocon/parser/HoconErrorHighlightingAnnotator.scala
 
   def annotate(element: PsiElement, holder: AnnotationHolder) {
     element.getNode.getElementType match {

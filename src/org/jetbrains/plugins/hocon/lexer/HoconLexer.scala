@@ -3,11 +3,7 @@ package org.jetbrains.plugins.hocon.lexer
 import com.intellij.lexer.LexerBase
 import com.intellij.psi.tree.IElementType
 
-<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/lexer/HoconLexer.scala
 import scala.annotation.tailrec
-=======
-import annotation.tailrec
->>>>>>> ecf1b15... HOCON: reformat code, organize imports:intellij-hocon/src/main/scala/intellijhocon/lexer/HoconLexer.scala
 import scala.util.matching.Regex
 
 object HoconLexer {
@@ -105,10 +101,6 @@ class HoconLexer extends LexerBase {
     new RegexTokenMatcher(".".r, BadCharacter, always, identity)
   )
 
-<<<<<<< HEAD:src/org/jetbrains/plugins/hocon/lexer/HoconLexer.scala
-=======
-  
->>>>>>> 1fd4c19... HOCON: Java class reference detection on string literals:intellij-hocon/src/main/scala/intellijhocon/lexer/HoconLexer.scala
 
   def isHoconWhitespace(char: Char) = char.isWhitespace || SpecialWhitespace.contains(char)
 
