@@ -11,7 +11,7 @@ HOCON_FILE
       HObjectField(OBJECT_FIELD)
         HValuedField(VALUED_FIELD)
           HKey(KEY)
-            HString(STRING)
+            HKeyPart(KEY_PART)
               HUnquotedString(UNQUOTED_STRING)
                 PsiElement(UNQUOTED_CHARS)('key')
           PsiWhiteSpace(' ')
@@ -19,7 +19,11 @@ HOCON_FILE
           PsiWhiteSpace(' ')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
           HString(STRING)
+=======
+          HStringValue(STRING_VALUE)
+>>>>>>> fe6c6bb... HOCON: introduced separate nodes for string literals in every context (key, value, include)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('value')
 =======
@@ -35,12 +39,13 @@ HOCON_FILE
       HObjectField(OBJECT_FIELD)
         HValuedField(VALUED_FIELD)
           HKey(KEY)
-            HString(STRING)
+            HKeyPart(KEY_PART)
               HUnquotedString(UNQUOTED_STRING)
                 PsiElement(UNQUOTED_CHARS)('kye')
           PsiWhiteSpace(' ')
           PsiElement(COLON)(':')
           PsiWhiteSpace(' ')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
           HString(STRING)
@@ -52,6 +57,9 @@ HOCON_FILE
 >>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
 =======
           HString(STRING)
+=======
+          HStringValue(STRING_VALUE)
+>>>>>>> fe6c6bb... HOCON: introduced separate nodes for string literals in every context (key, value, include)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('vlaue')
 >>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced

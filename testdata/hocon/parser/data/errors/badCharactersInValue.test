@@ -5,7 +5,7 @@ HOCON_FILE
     HObjectField(OBJECT_FIELD)
       HValuedField(VALUED_FIELD)
         HKey(KEY)
-          HString(STRING)
+          HKeyPart(KEY_PART)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('k')
         PsiWhiteSpace(' ')
@@ -16,7 +16,7 @@ HOCON_FILE
 =======
 >>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
         HConcatenation(CONCATENATION)
-          HString(STRING)
+          HStringValue(STRING_VALUE)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('v')
 <<<<<<< HEAD
@@ -29,6 +29,6 @@ HOCON_FILE
 >>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
           PsiErrorElement:characters $ " { } [ ] : = , + # ` ^ ? ! @ * & \ are forbidden unquoted
             PsiElement(BAD_CHARACTER)('@')
-          HString(STRING)
+          HStringValue(STRING_VALUE)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('v')

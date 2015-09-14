@@ -6,7 +6,7 @@ HOCON_FILE
     HObjectField(OBJECT_FIELD)
       HValuedField(VALUED_FIELD)
         HKey(KEY)
-          HString(STRING)
+          HKeyPart(KEY_PART)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('notInclude')
         PsiWhiteSpace(' ')
@@ -17,11 +17,11 @@ HOCON_FILE
 =======
 >>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
         HConcatenation(CONCATENATION)
-          HString(STRING)
+          HStringValue(STRING_VALUE)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('include')
               PsiWhiteSpace(' ')
-          HString(STRING)
+          HStringValue(STRING_VALUE)
             PsiElement(QUOTED_STRING)('"stuff"')
 <<<<<<< HEAD
 =======
@@ -37,7 +37,7 @@ HOCON_FILE
     HObjectField(OBJECT_FIELD)
       HValuedField(VALUED_FIELD)
         HKey(KEY)
-          HString(STRING)
+          HKeyPart(KEY_PART)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('alsoNotInclude')
         PsiWhiteSpace(' ')
@@ -52,11 +52,11 @@ HOCON_FILE
           PsiElement(COMMA)(',')
           PsiWhiteSpace(' ')
           HConcatenation(CONCATENATION)
-            HString(STRING)
+            HStringValue(STRING_VALUE)
               HUnquotedString(UNQUOTED_STRING)
                 PsiElement(UNQUOTED_CHARS)('include')
                 PsiWhiteSpace(' ')
-            HString(STRING)
+            HStringValue(STRING_VALUE)
               PsiElement(QUOTED_STRING)('"stuff"')
 =======
         HoconPsiElement(ARRAY)
