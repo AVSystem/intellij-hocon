@@ -28,7 +28,6 @@ import org.jetbrains.plugins.hocon.HoconConstants._
 import org.jetbrains.plugins.hocon.lexer.{HoconTokenSets, HoconTokenType}
 import org.jetbrains.plugins.hocon.parser.HoconElementType
 import org.jetbrains.plugins.hocon.ref.{HKeySelfReference, IncludedFileReferenceSet}
-import org.jetbrains.plugins.scala.extensions._
 
 import scala.reflect.{ClassTag, classTag}
 
@@ -173,6 +172,7 @@ sealed trait HKeyedField extends HoconPsiElement with HInnerElement with HScope 
         case head #:: tail => head.validKey.flatMap(key => iterate(tail, key :: acc))
         case _ => Some(acc)
       }
+
     iterate(fieldsInAllPathsBackward, Nil)
   }
 
@@ -258,7 +258,7 @@ final class HIncluded(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElem
   def fileReferenceSet: Option[IncludedFileReferenceSet] =
     for {
       hs <- target
-      vf <- getContainingFile.getOriginalFile.getVirtualFile.toOption
+      vf <- Option(getContainingFile.getOriginalFile.getVirtualFile)
       rs <- {
         val strVal = hs.stringValue
 
@@ -322,6 +322,7 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElement 
   def allPaths: List[HPath] = {
     def allPathsIn(path: HPath, acc: List[HPath]): List[HPath] =
       path.prefix.map(prePath => allPathsIn(prePath, path :: acc)).getOrElse(path :: acc)
+
     allPathsIn(this, Nil)
   }
 
@@ -333,6 +334,7 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElement 
       path.validKey.flatMap(key => path.prefix
         .map(prePath => allKeysIn(prePath, key :: acc))
         .getOrElse(Some(key :: acc)))
+
     allKeysIn(this, Nil)
   }
 
