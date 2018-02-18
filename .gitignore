@@ -1,0 +1,13 @@
+.idea/scopes/
+.idea/dictionaries/
+.idea/inspectionProfiles/
+.idea/libraries/
+.idea/modules/
+.idea/.name
+.idea/*.xml
+/target
+/*.bat
+*.class
+.DS_Store
+*~
+target/
