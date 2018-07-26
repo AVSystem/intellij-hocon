@@ -11,8 +11,6 @@ HOCON_FILE
         PsiWhiteSpace(' ')
         PsiElement(EQUALS)('=')
         PsiWhiteSpace(' ')
-<<<<<<< HEAD
-<<<<<<< HEAD
         HSubstitution(SUBSTITUTION)
           PsiElement(DOLLAR)('$')
           PsiElement(SUB_LBRACE)('{')
@@ -21,24 +19,5 @@ HOCON_FILE
               HKeyPart(KEY_PART)
                 HUnquotedString(UNQUOTED_STRING)
                   PsiElement(UNQUOTED_CHARS)('path')
-=======
-        HoconPsiElement(SUBSTITUTION)
-          PsiElement(DOLLAR)('$')
-          PsiElement(SUB_LBRACE)('{')
-          HoconPsiElement(SUBSTITUTION_PATH)
-            HoconPsiElement(KEY)
-              HoconPsiElement(UNQUOTED_STRING)
-                PsiElement(UNQUOTED_CHARS)('path')
->>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
-=======
-        HSubstitution(SUBSTITUTION)
-          PsiElement(DOLLAR)('$')
-          PsiElement(SUB_LBRACE)('{')
-          HPath(SUBSTITUTION_PATH)
-            HKey(KEY)
-              HString(STRING)
-                HUnquotedString(UNQUOTED_STRING)
-                  PsiElement(UNQUOTED_CHARS)('path')
->>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
           PsiErrorElement:expected '}'
             <empty list>

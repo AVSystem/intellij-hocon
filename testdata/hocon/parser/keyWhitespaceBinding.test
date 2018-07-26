@@ -16,22 +16,6 @@ HOCON_FILE
             HKeyPart(KEY_PART)
               HUnquotedString(UNQUOTED_STRING)
                 PsiWhiteSpace(' ')
-<<<<<<< HEAD
-                PsiElement(UNQUOTED_CHARS)('last')
-        PsiWhiteSpace(' ')
-        PsiElement(EQUALS)('=')
-        PsiWhiteSpace(' ')
-<<<<<<< HEAD
-<<<<<<< HEAD
-        HNumber(NUMBER)
-=======
-        HoconPsiElement(NUMBER)
->>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
-=======
-        HNumber(NUMBER)
->>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
-          PsiElement(UNQUOTED_CHARS)('1')
-=======
                 PsiElement(UNQUOTED_CHARS)('more')
                 PsiWhiteSpace(' ')
           PsiElement(PERIOD)('.')
@@ -46,4 +30,3 @@ HOCON_FILE
             PsiWhiteSpace(' ')
             HNumber(NUMBER)
               PsiElement(UNQUOTED_CHARS)('1')
->>>>>>> 65a48d8... HOCON: changed tree layout of object fields by introducing PrefixedField and ValuedField instead of using Path

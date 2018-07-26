@@ -14,6 +14,6 @@ class HoconFormattingModelBuilder extends FormattingModelBuilder {
     new PsiBasedFormattingModel(containingFile, block, FormattingDocumentModelImpl.createOn(containingFile))
   }
 
-  def getRangeAffectingIndent(file: PsiFile, offset: Int, elementAtOffset: ASTNode): TextRange =
+  override def getRangeAffectingIndent(file: PsiFile, offset: Int, elementAtOffset: ASTNode): TextRange =
     elementAtOffset.getTextRange
 }

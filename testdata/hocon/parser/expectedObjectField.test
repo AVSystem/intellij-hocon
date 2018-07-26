@@ -13,24 +13,9 @@ HOCON_FILE
           PsiWhiteSpace(' ')
           PsiElement(EQUALS)('=')
           PsiWhiteSpace(' ')
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-          HString(STRING)
-=======
           HStringValue(STRING_VALUE)
->>>>>>> fe6c6bb... HOCON: introduced separate nodes for string literals in every context (key, value, include)
             HUnquotedString(UNQUOTED_STRING)
               PsiElement(UNQUOTED_CHARS)('b')
-=======
-          HoconPsiElement(UNQUOTED_STRING)
-            PsiElement(UNQUOTED_CHARS)('b')
->>>>>>> 64be8ca... HOCON: removed Value node, introduced Concatenation node
-=======
-          HString(STRING)
-            HUnquotedString(UNQUOTED_STRING)
-              PsiElement(UNQUOTED_CHARS)('b')
->>>>>>> 44682da... HOCON: hierarchy of PSI stub classes, String node introduced
       PsiElement(COMMA)(',')
       PsiErrorElement:expected object field, include or '}'
         PsiElement(COMMA)(',')

@@ -4,16 +4,7 @@ import java.{lang => jl}
 
 import com.intellij.extapi.psi.ASTWrapperPsiElement
 import com.intellij.lang.ASTNode
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-import com.intellij.psi.{PsiElement, ContributedReferenceHost, PsiComment, PsiReferenceService}
-=======
-=======
->>>>>>> 87a4a08... HOCON include resolution and accompanying refactors
-=======
 import com.intellij.openapi.roots.ProjectRootManager
->>>>>>> 6c9bc6d... HOCON relative includes now also work from files outside sources and libraries
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi._
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReference
@@ -21,10 +12,6 @@ import com.intellij.psi.tree.IElementType
 import org.jetbrains.plugins.hocon.CommonUtil._
 import org.jetbrains.plugins.hocon.HoconConstants
 import org.jetbrains.plugins.hocon.HoconConstants._
-<<<<<<< HEAD
->>>>>>> 0a15058... HOCON include resolution and accompanying refactors
-=======
->>>>>>> 87a4a08... HOCON include resolution and accompanying refactors
 import org.jetbrains.plugins.hocon.lexer.{HoconTokenSets, HoconTokenType}
 import org.jetbrains.plugins.hocon.parser.HoconElementType
 import org.jetbrains.plugins.hocon.ref.{HKeySelfReference, IncludedFileReferenceSet}
