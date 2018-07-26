@@ -5,11 +5,13 @@ ideaBuild in ThisBuild := "182.3684.2"
 lazy val hocon = project.in(file("."))
   .settings(
     scalaVersion := "2.12.4",
+    version := "2018.3",
     scalaSource in Compile := baseDirectory.value / "src",
     scalaSource in Test := baseDirectory.value / "test",
     resourceDirectory in Compile := baseDirectory.value / "resources",
     ideaInternalPlugins := Seq("properties"),
     libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test",
+    ideaPublishSettings := PublishSettings("10481", sys.env("PL_USER"), sys.env("PL_PASS"), None),
     packageLibraryMappings := Seq.empty // allow scala-library
   )
 
