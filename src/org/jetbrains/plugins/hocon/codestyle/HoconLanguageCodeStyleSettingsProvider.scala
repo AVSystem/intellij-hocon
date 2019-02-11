@@ -1,12 +1,13 @@
 package org.jetbrains.plugins.hocon.codestyle
 
 import com.intellij.application.options.SmartIndentOptionsEditor
+import com.intellij.lang.Language
 import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider.SettingsType
 import com.intellij.psi.codeStyle.{CodeStyleSettingsCustomizable, CommonCodeStyleSettings, DisplayPriority, LanguageCodeStyleSettingsProvider}
 import org.jetbrains.plugins.hocon.lang.HoconLanguage
 
 class HoconLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvider {
-  def getLanguage = HoconLanguage
+  override def getLanguage: Language = HoconLanguage
 
   override def getDisplayPriority = DisplayPriority.COMMON_SETTINGS
 
