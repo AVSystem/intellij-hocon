@@ -3,12 +3,12 @@
     <id>org.jetbrains.plugins.hocon</id>
     <name>HOCON</name>
     <description>Standalone HOCON plugin for IntelliJ Idea</description>
-    <version>2018.3</version>
+    <version>2019.1</version>
     <vendor url="http://www.jetbrains.com" logo="/org/jetbrains/plugins/scala/images/scala-small-logo.png">JetBrains</vendor>
-    <idea-version since-build="183.0" until-build="184.0"/>
+    <idea-version since-build="191.0" until-build="192.0"/>
     <extensions defaultExtensionNs="com.intellij">
         <fileTypeFactory implementation="org.jetbrains.plugins.hocon.lang.HoconFileTypeFactory"/>
-        <lang.syntaxHighlighterFactory key="HOCON"
+        <lang.syntaxHighlighterFactory language="HOCON"
                                        implementationClass="org.jetbrains.plugins.hocon.highlight.HoconSyntaxHighlighterFactory"/>
         <lang.parserDefinition language="HOCON"
                                implementationClass="org.jetbrains.plugins.hocon.parser.HoconParserDefinition"/>
