@@ -13,15 +13,8 @@ lazy val hocon = project.in(file("."))
     resourceDirectory in Compile := baseDirectory.value / "resources",
     ideaInternalPlugins := Seq("properties"),
     libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test",
-    ideaPublishSettings := PublishSettings("10481", sys.env("PL_USER"), sys.env("PL_PASS"), None),
+    ideaPublishSettings := PublishSettings("10481", sys.env.getOrElse("PL_USER", ""), sys.env.getOrElse("PL_PASS", ""), None),
     packageLibraryMappings := Seq.empty // allow scala-library
   )
 
-lazy val runner = project.in(file("target") / "tools" / "runner")
-  .settings(
-    dumpDependencyStructure := null, // avoid cyclic dependencies on products task
-    products := packagePlugin.in(hocon).value :: Nil,
-    packageMethod := org.jetbrains.sbtidea.Keys.PackagingMethod.Skip(),
-    unmanagedJars in Compile := ideaMainJars.value,
-    unmanagedJars in Compile += file(System.getProperty("java.home")).getParentFile / "lib" / "tools.jar"
-  )
+lazy val runner = createRunnerProject(hocon, "hocon-runner")
