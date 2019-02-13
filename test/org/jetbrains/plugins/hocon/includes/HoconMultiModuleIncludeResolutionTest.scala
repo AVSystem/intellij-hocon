@@ -9,6 +9,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder
 import com.intellij.testFramework.fixtures._
+import com.intellij.testFramework.fixtures.impl.{JavaModuleFixtureBuilderImpl, ModuleFixtureImpl}
 import org.jetbrains.jps.model.java.JavaSourceRootType
 
 import scala.collection.JavaConverters._
@@ -28,7 +29,10 @@ class HoconMultiModuleIncludeResolutionTest extends UsefulTestCase with HoconInc
   override def setUp(): Unit = {
     super.setUp()
 
-    val fixtureBuilder = IdeaTestFixtureFactory.getFixtureFactory.createFixtureBuilder(getName)
+    val testFixtureFactory = IdeaTestFixtureFactory.getFixtureFactory
+    testFixtureFactory.registerFixtureBuilder(
+      classOf[JavaModuleFixtureBuilder[ModuleFixture]], classOf[HoconJavaModuleFixtureBuilder])
+    val fixtureBuilder = testFixtureFactory.createFixtureBuilder(getName)
 
     val moduleBuilders = subdirectories(rootPath)
       .map((_, fixtureBuilder.addModule(classOf[JavaModuleFixtureBuilder[ModuleFixture]])))
@@ -167,4 +171,10 @@ object HoconMultiModuleIncludeResolutionTest {
     model.addModuleOrderEntry(module).setExported(true)
     model.commit()
   }
+}
+
+class HoconJavaModuleFixtureBuilder(fixtureBuilder: TestFixtureBuilder[_ <: IdeaProjectTestFixture])
+  extends JavaModuleFixtureBuilderImpl[ModuleFixture](fixtureBuilder) {
+
+  def instantiateFixture(): ModuleFixture = new ModuleFixtureImpl(this)
 }

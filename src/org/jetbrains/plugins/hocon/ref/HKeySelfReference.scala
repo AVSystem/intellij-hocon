@@ -8,8 +8,6 @@ import org.jetbrains.plugins.hocon.psi.HKey
   * @author ghik
   */
 class HKeySelfReference(key: HKey) extends PsiReference {
-  def getVariants: Array[AnyRef] = Array.empty
-
   def getCanonicalText: String = key.stringValue
 
   def getElement: PsiElement = key
