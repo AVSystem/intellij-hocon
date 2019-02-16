@@ -39,6 +39,8 @@ object HoconSyntaxHighlighter extends SyntaxHighlighter {
     QMark -> Array(HHC.OptionalSubstitutionSign),
     UnquotedChars -> Array(HHC.UnquotedString),
     Period -> Array(HHC.UnquotedString),
+    LParen -> Array(HHC.UnquotedString),
+    RParen -> Array(HHC.UnquotedString),
     StringEscapesTokenTypes.VALID_STRING_ESCAPE_TOKEN -> Array(HHC.ValidStringEscape),
     StringEscapesTokenTypes.INVALID_CHARACTER_ESCAPE_TOKEN -> Array(HHC.InvalidStringEscape),
     StringEscapesTokenTypes.INVALID_UNICODE_ESCAPE_TOKEN -> Array(HHC.InvalidStringEscape)

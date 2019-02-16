@@ -1,4 +1,4 @@
-key = stuff"more stuff" even more stuff """ multiline
+key = stuff"more stuff" even (more) stuff """ multiline
 stuff """ some.more.stuff "quoted stuff"
 -----
 HOCON_FILE
@@ -23,7 +23,9 @@ HOCON_FILE
               PsiWhiteSpace(' ')
               PsiElement(UNQUOTED_CHARS)('even')
               PsiWhiteSpace(' ')
+              PsiElement(LPAREN)('(')
               PsiElement(UNQUOTED_CHARS)('more')
+              PsiElement(RPAREN)(')')
               PsiWhiteSpace(' ')
               PsiElement(UNQUOTED_CHARS)('stuff')
               PsiWhiteSpace(' ')

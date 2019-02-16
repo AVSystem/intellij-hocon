@@ -5,11 +5,18 @@ import com.intellij.lang.properties.PropertiesFileType
 import org.jetbrains.plugins.hocon.lang.HoconFileType
 
 object HoconConstants {
-  final val UrlQualifier = "url("
-  final val FileQualifier = "file("
-  final val ClasspathQualifier = "classpath("
+  final val Null = "null"
+  final val True = "true"
+  final val False = "false"
+  final val Include = "include"
 
-  final val IncludeQualifiers = Set(UrlQualifier, ClasspathQualifier, FileQualifier)
+  final val UrlModifier = "url"
+  final val FileModifier = "file"
+  final val ClasspathModifier = "classpath"
+  final val RequiredModifer = "required"
+  final val IncludeLocationModifiers = Set(UrlModifier, FileModifier, ClasspathModifier)
+  final val IncludeModifiers = IncludeLocationModifiers + RequiredModifer
+
   final val IntegerPattern = """-?(0|[1-9][0-9]*)""".r
   final val DecimalPartPattern = """([0-9]+)((e|E)(\+|-)?[0-9]+)?""".r
   final val ProperlyClosedQuotedString = ".*[^\\\\](\\\\\\\\)*\"".r

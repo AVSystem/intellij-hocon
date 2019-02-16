@@ -1,0 +1,14 @@
+include required ("sth")
+-----
+HOCON_FILE
+  HObjectEntries(OBJECT_ENTRIES)
+    HInclude(INCLUDE)
+      PsiElement(UNQUOTED_CHARS)('include')
+      PsiWhiteSpace(' ')
+      HIncluded(INCLUDED)
+        PsiElement(UNQUOTED_CHARS)('required')
+        PsiWhiteSpace(' ')
+        PsiErrorElement:expected '(' immediately after 'required'
+          PsiElement(LPAREN)('(')
+          PsiElement(QUOTED_STRING)('"sth"')
+          PsiElement(RPAREN)(')')

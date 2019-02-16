@@ -46,8 +46,12 @@
 
         <localInspection language="HOCON"
                          implementationClass="org.jetbrains.plugins.hocon.ref.HoconIncludeResolutionInspection"
-                         displayName="HOCON include resolution" groupName="HOCON" enabledByDefault="true"
+                         displayName="Include resolution" groupName="HOCON" enabledByDefault="true"
                          level="WARNING"/>
+        <localInspection language="HOCON"
+                         implementationClass="org.jetbrains.plugins.hocon.ref.HoconRequiredIncludeResolutionInspection"
+                         displayName="Required include resolution" groupName="HOCON" enabledByDefault="true"
+                         level="ERROR"/>
 
         <highlightUsagesHandlerFactory
                 implementation="org.jetbrains.plugins.hocon.highlight.HoconHighlightUsagesHandlerFactory"/>

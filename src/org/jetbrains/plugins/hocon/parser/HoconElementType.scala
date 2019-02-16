@@ -41,13 +41,22 @@ object HoconElementType {
   val Include = new HoconElementType("INCLUDE")
 
   /**
-    * Thing that comes after `include` keyword.
+    * Thing that comes after `include` keyword, including possible `required` modifier
+    *
+    * {{{
+    *   required(file("stuff"))
+    * }}}
+    */
+  val Included = new HoconElementType("INCLUDED")
+
+  /**
+    * Thing that comes after `include` keyword but without the enclosing `required` modifier, if any.
     *
     * {{{
     *   file("stuff")
     * }}}
     */
-  val Included = new HoconElementType("INCLUDED")
+  val QualifiedIncluded = new HoconElementType("QUALIFIED_INCLUDED")
 
   /**
     * Keyed field (i.e. prefixed field or valued field) along with documentation comments.
@@ -109,8 +118,8 @@ object HoconElementType {
   val Concatenation = new HoconElementType("CONCATENATION")
 
   /**
-    * Unquoted string - a concatenation of whitespace, unquoted chars and periods. This element type exists primarily
-    * so that [[String]] element always has exactly one child (unquoted, quoted or multiline string).
+    * Unquoted string - a concatenation of whitespace, unquoted chars, parens and periods. This element type exists
+    * primarily so that [[String]] element always has exactly one child (unquoted, quoted or multiline string).
     * Unquoted string occurs as a child of [[String]] or [[Key]].
     */
   val UnquotedString = new HoconElementType("UNQUOTED_STRING")

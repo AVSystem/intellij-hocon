@@ -147,7 +147,7 @@ class HoconFormatter(settings: CodeStyleSettings) {
       case (Path, SubRBrace) =>
         normalSpacing(customSettings.SPACE_WITHIN_SUBSTITUTION_BRACES)
 
-      case (UnquotedChars, IncludeTarget) | (IncludeTarget, UnquotedChars) =>
+      case (LParen, QualifiedIncluded | IncludeTarget) | (QualifiedIncluded | IncludeTarget, RParen) =>
         normalSpacing(commonSettings.SPACE_WITHIN_METHOD_CALL_PARENTHESES)
 
       case _ =>

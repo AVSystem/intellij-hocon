@@ -52,6 +52,7 @@ object HoconParserDefinition {
     case ObjectEntries => new HObjectEntries(ast)
     case Include => new HInclude(ast)
     case Included => new HIncluded(ast)
+    case QualifiedIncluded => new HQualifiedIncluded(ast)
     case ObjectField => new HObjectField(ast)
     case PrefixedField => new HPrefixedField(ast)
     case ValuedField => new HValuedField(ast)
