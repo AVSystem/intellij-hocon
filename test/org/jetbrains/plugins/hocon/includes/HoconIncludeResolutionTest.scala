@@ -42,16 +42,14 @@ trait HoconIncludeResolutionTest {
       case target: HIncludeTarget => target
     }.foreach { target =>
       val parent = target.parent
-      val prevComments = parent.map(_.parent.map(_.nonWhitespaceChildren).getOrElse(Iterator.empty)).getOrElse(Iterator.empty)
+      val prevComments = parent.parent.nonWhitespaceChildren
         .takeWhile(e => e.getNode.getElementType == HoconTokenType.HashComment)
         .toVector
 
       val references = target.getFileReferences
 
-      def parentText = parent.map(_.getText).getOrElse("[No parent]")
-
       if (prevComments.nonEmpty) {
-        assertTrue("No references in " + parentText, references.nonEmpty)
+        assertTrue("No references in " + parent.getText, references.nonEmpty)
         val resolveResults = references.last.multiResolve(false)
         resolveResults.sliding(2).foreach {
           case Array(rr1, rr2) =>
@@ -70,9 +68,9 @@ trait HoconIncludeResolutionTest {
             case file: PsiFile => file.getVirtualFile
           }
 
-        assertEquals(parentText, expectedFiles.toSet, actualFiles.toSet)
+        assertEquals(parent.getText, expectedFiles.toSet, actualFiles.toSet)
       } else {
-        assertTrue("Expected no references in " + parentText, references.isEmpty)
+        assertTrue("Expected no references in " + parent.getText, references.isEmpty)
       }
     }
   }

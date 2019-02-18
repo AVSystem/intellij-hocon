@@ -8,7 +8,7 @@ abstract class AbstractHoconIncludeResolutionInspection(forRequired: Boolean) ex
   override def buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor =
     new PsiElementVisitor {
       override def visitElement(element: PsiElement): Unit = element match {
-        case hit: HIncludeTarget if hit.parent.flatMap(_.parent).exists(_.required == forRequired) =>
+        case hit: HIncludeTarget if hit.parent.parent.required == forRequired =>
           hit.getFileReferences.foreach { ref =>
             if (!ref.isSoft && ref.multiResolve(false).isEmpty) {
               holder.registerProblem(ref, ProblemsHolder.unresolvedReferenceMessage(ref),
