@@ -3,9 +3,14 @@ package org.jetbrains.plugins.hocon.psi
 /**
   * "Something that has keys in it and stuff associated with those keys".
   */
-trait HScope {
-  def directKeyedFields: Iterator[HKeyedField]
+trait HScope { outer =>
+  def directKeyedFields(reverse: Boolean = false): Iterator[HKeyedField]
 
-  def directSubScopes(key: String): Iterator[HScope] =
-    directKeyedFields.filter(_.validKey.map(_.stringValue).contains(key)).flatMap(_.subScopes)
+  def directSubScope(key: String): HScope = new HScope {
+    def directKeyedFields(reverse: Boolean): Iterator[HKeyedField] =
+      outer.directKeyedFields(reverse)
+        .filter(_.validKey.exists(_.stringValue == key))
+        .flatMap(_.subScopes(reverse))
+        .flatMap(_.directKeyedFields(reverse))
+  }
 }

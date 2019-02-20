@@ -74,6 +74,11 @@ sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement
     allChildren.collect {
       case t: T => t
     }
+
+  def findChildrenReverse[T <: HoconPsiElement : ClassTag]: Iterator[T] =
+    allChildrenReverse.collect {
+      case t: T => t
+    }
 }
 
 sealed trait HInnerElement extends HoconPsiElement {
@@ -94,9 +99,12 @@ final class HObjectEntries(ast: ASTNode) extends HoconPsiElement(ast) with HScop
 
   def objectFields: Iterator[HObjectField] = findChildren[HObjectField]
 
+  def objectFieldsReverse: Iterator[HObjectField] = findChildrenReverse[HObjectField]
+
   def includes: Iterator[HInclude] = findChildren[HInclude]
 
-  def directKeyedFields: Iterator[HKeyedField] = objectFields.flatMap(_.directKeyedFields)
+  def directKeyedFields(reverse: Boolean): Iterator[HKeyedField] =
+    (if (reverse) objectFieldsReverse else objectFields).flatMap(_.directKeyedFields(reverse))
 }
 
 sealed trait HObjectEntry extends HoconPsiElement with HInnerElement {
@@ -116,7 +124,8 @@ final class HObjectField(ast: ASTNode) extends HoconPsiElement(ast) with HObject
 
   def endingValue: Option[HValue] = keyedField.endingField.endingValue
 
-  def directKeyedFields = Iterator(keyedField)
+  def directKeyedFields(reverse: Boolean): Iterator[HKeyedField] =
+    keyedField.directKeyedFields(reverse)
 
   // there may be bound comments and text offset should be at the beginning of path
   override def getTextOffset: Int = keyedField.getTextOffset
@@ -182,9 +191,9 @@ sealed trait HKeyedField extends HoconPsiElement with HInnerElement with HScope 
   /**
     * Scopes present in whatever is on the right side of key in that keyed field.
     */
-  def subScopes: Iterator[HScope]
+  def subScopes(reverse: Boolean): Iterator[HScope]
 
-  def directKeyedFields = Iterator(this)
+  def directKeyedFields(reverse: Boolean) = Iterator(this)
 }
 
 final class HPrefixedField(ast: ASTNode) extends HoconPsiElement(ast) with HKeyedField {
@@ -195,7 +204,7 @@ final class HPrefixedField(ast: ASTNode) extends HoconPsiElement(ast) with HKeye
 
   def endingField: HValuedField = subField.endingField
 
-  def subScopes = Iterator(subField)
+  def subScopes(reverse: Boolean) = Iterator(subField)
 }
 
 final class HValuedField(ast: ASTNode) extends HoconPsiElement(ast) with HKeyedField {
@@ -212,11 +221,13 @@ final class HValuedField(ast: ASTNode) extends HoconPsiElement(ast) with HKeyedF
 
   def endingField: HValuedField = this
 
-  def subScopes: Iterator[HObject] =
+  def subScopes(reverse: Boolean): Iterator[HObject] =
     if (isArrayAppend) Iterator.empty
     else value.collect {
       case obj: HObject => Iterator(obj)
-      case conc: HConcatenation => conc.findChildren[HObject]
+      case conc: HConcatenation =>
+        if(reverse) conc.findChildrenReverse[HObject]
+        else conc.findChildren[HObject]
     }.getOrElse(Iterator.empty)
 }
 
@@ -368,7 +379,8 @@ sealed trait HValue extends HoconPsiElement with HInnerElement {
 final class HObject(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HScope {
   def entries: HObjectEntries = getChild[HObjectEntries]
 
-  def directKeyedFields: Iterator[HKeyedField] = entries.directKeyedFields
+  def directKeyedFields(reverse: Boolean): Iterator[HKeyedField] =
+    entries.directKeyedFields(reverse)
 }
 
 final class HArray(ast: ASTNode) extends HoconPsiElement(ast) with HValue
