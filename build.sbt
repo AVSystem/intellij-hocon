@@ -6,7 +6,7 @@ ideaBuild in ThisBuild := "191.5109.14"
 
 lazy val hocon = project.in(file(".")).settings(
   scalaVersion := "2.12.8",
-  version := "2019.1",
+  version := "2019.1.1",
   scalaSource in Compile := baseDirectory.value / "src",
   scalaSource in Test := baseDirectory.value / "test",
   resourceDirectory in Compile := baseDirectory.value / "resources",
