@@ -5,13 +5,10 @@ jdk:
 
 env:
   global:
-    - IDEA_SDK=$HOME/.ScalaPluginIC/sdk
-
-before_script:
-  - sbt packagePlugin test:compile
+    - IDEA_SDK=$HOME/.intellij-hoconPluginIC/sdk
 
 script:
-  - sbt test
+  - sbt packagePlugin test
 
 cache:
   directories:
