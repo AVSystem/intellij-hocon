@@ -1,14 +1,14 @@
 package org.jetbrains.plugins.hocon.parser
 
 import java.net.{MalformedURLException, URL}
-import java.{lang => jl, util => ju}
+import java.{util => ju}
 
 import com.intellij.lang.PsiBuilder.Marker
 import com.intellij.lang.WhitespacesAndCommentsBinder.TokenTextGetter
 import com.intellij.lang._
 import com.intellij.psi.tree.IElementType
 import org.jetbrains.plugins.hocon.CommonUtil._
-import org.jetbrains.plugins.hocon.HoconConstants._
+import org.jetbrains.plugins.hocon.HoconConstants
 import org.jetbrains.plugins.hocon.lexer.HoconTokenSets._
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
 import org.jetbrains.plugins.hocon.parser.HoconElementType._
@@ -63,9 +63,8 @@ class HoconPsiParser extends PsiParser {
       newLineSuppressedIndex = builder.rawTokenIndex
     }
 
-    def advanceLexer(): Unit = {
+    def advanceLexer(): Unit =
       builder.advanceLexer()
-    }
 
     def matches(matcher: Matcher): Boolean =
       (matcher.tokenSet.contains(builder.getTokenType) && (!matcher.requireNoNewLine || !newLinesBeforeCurrentToken)) ||
@@ -120,7 +119,7 @@ class HoconPsiParser extends PsiParser {
       val marker = builder.mark()
 
       val unclosedQuotedString = builder.getTokenType == QuotedString &&
-        !ProperlyClosedQuotedString.pattern.matcher(builder.getTokenText).matches
+        !HoconConstants.ProperlyClosedQuotedString.pattern.matcher(builder.getTokenText).matches
       val unclosedMultilineString = builder.getTokenType == MultilineString && !builder.getTokenText.endsWith("\"\"\"")
 
       advanceLexer()
@@ -163,7 +162,7 @@ class HoconPsiParser extends PsiParser {
     }
 
     def parseObjectEntry(): Unit = {
-      if (matchesUnquoted("include"))
+      if (matchesUnquoted(HoconConstants.Include))
         parseInclude()
       else
         parseObjectField()
@@ -182,31 +181,53 @@ class HoconPsiParser extends PsiParser {
     def parseIncluded(): Unit = {
       val marker = builder.mark()
 
-      if (matches(QuotedString)) {
-        parseStringLiteral(IncludeTarget)
-      } else if (IncludeQualifiers.exists(matchesUnquoted)) {
-        val qualifier = builder.getTokenText
+      if (matchesUnquoted(HoconConstants.RequiredModifer)) {
         advanceLexer()
-        if (matches(QuotedString)) {
-          if (qualifier == UrlQualifier) {
-            try {
-              new URL(unquote(builder.getTokenText))
-              parseStringLiteral(IncludeTarget)
-            } catch {
-              case e: MalformedURLException =>
-                tokenError(if (e.getMessage != null) e.getMessage else "malformed URL")
-            }
-          } else {
-            parseStringLiteral(IncludeTarget)
-          }
-          if (matchesUnquoted(")")) {
+        if (matches(LParen) && !Whitespace.contains(builder.rawLookup(-1))) {
+          advanceLexer()
+          parseQualifiedIncluded()
+          if (matches(RParen)) {
             advanceLexer()
           } else errorUntil(ValueEnding.orNewLineOrEof, "expected ')'")
-        } else errorUntil(ValueEnding.orNewLineOrEof, "expected quoted string")
+        } else errorUntil(ValueEnding.orNewLineOrEof, "expected '(' immediately after 'required'")
+      } else {
+        parseQualifiedIncluded()
+      }
+
+      marker.done(Included)
+    }
+
+    def parseQualifiedIncluded(): Unit = {
+      val marker = builder.mark()
+
+      if (matches(QuotedString)) {
+        parseStringLiteral(IncludeTarget)
+      } else if (HoconConstants.IncludeLocationModifiers.exists(matchesUnquoted)) {
+        val qualifier = builder.getTokenText
+        advanceLexer()
+        if (matches(LParen) && !Whitespace.contains(builder.rawLookup(-1))) {
+          advanceLexer()
+          if (matches(QuotedString)) {
+            if (qualifier == HoconConstants.UrlModifier) {
+              try {
+                new URL(unquote(builder.getTokenText))
+                parseStringLiteral(IncludeTarget)
+              } catch {
+                case e: MalformedURLException =>
+                  tokenError(if (e.getMessage != null) e.getMessage else "malformed URL")
+              }
+            } else {
+              parseStringLiteral(IncludeTarget)
+            }
+            if (matches(RParen)) {
+              advanceLexer()
+            } else errorUntil(ValueEnding.orNewLineOrEof, "expected ')'")
+          } else errorUntil(ValueEnding.orNewLineOrEof, "expected quoted string")
+        } else errorUntil(ValueEnding.orNewLineOrEof, s"expected '(' immediately after '$qualifier'")
       } else errorUntil(ValueEnding.orNewLineOrEof,
         "expected quoted string, optionally wrapped in 'url(...)', 'file(...)' or 'classpath(...)'")
 
-      marker.done(Included)
+      marker.done(QualifiedIncluded)
     }
 
     def parseObjectField(): Unit = {
@@ -330,9 +351,10 @@ class HoconPsiParser extends PsiParser {
 
       val endingMatcher = ValueEnding.orNewLineOrEof
 
-      def tryParseNull = tryParse(passKeyword("null") && matches(endingMatcher), Null)
+      def tryParseNull = tryParse(passKeyword(HoconConstants.Null) && matches(endingMatcher), Null)
 
-      def tryParseBoolean = tryParse((passKeyword("true") || passKeyword("false")) && matches(endingMatcher), Boolean)
+      def tryParseBoolean = tryParse((passKeyword(HoconConstants.True) || passKeyword(HoconConstants.False))
+        && matches(endingMatcher), Boolean)
 
       def tryParseNumber = tryParse(passNumber() && matches(endingMatcher), Number)
 
@@ -370,7 +392,7 @@ class HoconPsiParser extends PsiParser {
 
     }
 
-    def passNumber(): Boolean = matchesUnquoted(IntegerPattern) && {
+    def passNumber(): Boolean = matchesUnquoted(HoconConstants.IntegerPattern) && {
       val textBuilder = new StringBuilder
       // we need to detect whitespaces between tokens forming a number to behave as if number is a single token
       val integerRawTokenIdx = builder.rawTokenIndex
@@ -385,7 +407,7 @@ class HoconPsiParser extends PsiParser {
         advanceLexer()
       }
 
-      val gotDecimalPart = gotPeriod && matchesUnquoted(DecimalPartPattern)
+      val gotDecimalPart = gotPeriod && matchesUnquoted(HoconConstants.DecimalPartPattern)
       val noDecimalPartWhitespace = gotDecimalPart && builder.rawTokenIndex == integerRawTokenIdx + 2
 
       if (gotDecimalPart) {

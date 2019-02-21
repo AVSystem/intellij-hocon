@@ -4,11 +4,11 @@ import com.intellij.codeInspection.{LocalInspectionTool, ProblemHighlightType, P
 import com.intellij.psi.{PsiElement, PsiElementVisitor}
 import org.jetbrains.plugins.hocon.psi.HIncludeTarget
 
-class HoconIncludeResolutionInspection extends LocalInspectionTool {
-  override def buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean) =
+abstract class AbstractHoconIncludeResolutionInspection(forRequired: Boolean) extends LocalInspectionTool {
+  override def buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor =
     new PsiElementVisitor {
       override def visitElement(element: PsiElement): Unit = element match {
-        case hit: HIncludeTarget =>
+        case hit: HIncludeTarget if hit.parent.flatMap(_.parent).exists(_.required == forRequired) =>
           hit.getFileReferences.foreach { ref =>
             if (!ref.isSoft && ref.multiResolve(false).isEmpty) {
               holder.registerProblem(ref, ProblemsHolder.unresolvedReferenceMessage(ref),
@@ -20,3 +20,6 @@ class HoconIncludeResolutionInspection extends LocalInspectionTool {
       }
     }
 }
+
+class HoconIncludeResolutionInspection extends AbstractHoconIncludeResolutionInspection(false)
+class HoconRequiredIncludeResolutionInspection extends AbstractHoconIncludeResolutionInspection(true)

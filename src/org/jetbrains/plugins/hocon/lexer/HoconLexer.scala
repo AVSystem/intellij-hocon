@@ -11,17 +11,18 @@ object HoconLexer {
 
   case class State(raw: Int) extends AnyVal
 
-  val Initial = State(0)
-  val Value = State(1)
-  val SubStarting = State(2)
-  val SubStarted = State(3)
-  val Substitution = State(4)
+  final val Initial = State(0)
+  final val Value = State(1)
+  final val SubStarting = State(2)
+  final val SubStarted = State(3)
+  final val Substitution = State(4)
 
-  val States = Array(Initial, Value, SubStarting, SubStarted, Substitution)
+  final val States = Array(Initial, Value, SubStarting, SubStarted, Substitution)
 
-  val ForbiddenChars = """$"{}[]:=,+#`^?!@*&\""".toSet
-  val ForbiddenCharsAndDot = ForbiddenChars + '.'
-  val SpecialWhitespace = "\u00A0\u2007\u202F\uFEFF"
+  final val ForbiddenChars = """$"{}[]:=,+#`^?!@*&\""".toSet
+  final val UnquotedSpecialChars = """.()"""
+  final val KeyForbiddenChars = ForbiddenChars + '.'
+  final val SpecialWhitespace = "\u00A0\u2007\u202F\uFEFF"
 }
 
 class HoconLexer extends LexerBase {
@@ -37,10 +38,10 @@ class HoconLexer extends LexerBase {
   }
 
   class LiteralTokenMatcher(str: String,
-                            token: HoconTokenType,
-                            condition: State => Boolean = _ => true,
-                            transitionFun: State => State = identity)
-    extends TokenMatcher {
+    token: HoconTokenType,
+    condition: State => Boolean = _ => true,
+    transitionFun: State => State = identity
+  ) extends TokenMatcher {
 
     def matchToken(seq: CharSequence, state: State): Option[TokenMatch] =
       if (condition(state) && seq.startsWith(str))
@@ -49,10 +50,10 @@ class HoconLexer extends LexerBase {
   }
 
   class RegexTokenMatcher(regex: Regex,
-                          token: HoconTokenType,
-                          condition: State => Boolean = _ => true,
-                          transitionFun: State => State = identity)
-    extends TokenMatcher {
+    token: HoconTokenType,
+    condition: State => Boolean = _ => true,
+    transitionFun: State => State = identity
+  ) extends TokenMatcher {
 
     def matchToken(seq: CharSequence, state: State): Option[TokenMatch] =
       if (condition(state))
@@ -96,6 +97,8 @@ class HoconLexer extends LexerBase {
     new LiteralTokenMatcher("}", RBrace, always, forceState(Value)),
     new LiteralTokenMatcher("[", LBracket, always, forceState(Initial)),
     new LiteralTokenMatcher("]", RBracket, always, forceState(Value)),
+    new LiteralTokenMatcher("(", LParen, always, forceState(Initial)),
+    new LiteralTokenMatcher(")", RParen, always, forceState(Value)),
     new LiteralTokenMatcher(":", Colon, always, forceState(Initial)),
     new LiteralTokenMatcher(",", Comma, always, forceState(Initial)),
     new LiteralTokenMatcher("=", Equals, always, forceState(Initial)),
@@ -117,7 +120,8 @@ class HoconLexer extends LexerBase {
 
   def continuesUnquotedChars(seq: CharSequence, index: Int): Boolean = index < seq.length && {
     val char = seq.charAt(index)
-    char != '.' && !ForbiddenChars.contains(char) && !isHoconWhitespace(char) && !isCStyleComment(seq, index)
+    !UnquotedSpecialChars.contains(char) && !ForbiddenChars.contains(char) &&
+      !isHoconWhitespace(char) && !isCStyleComment(seq, index)
   }
 
   object QuotedStringMatcher extends TokenMatcher {

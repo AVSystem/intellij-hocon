@@ -1,5 +1,9 @@
-something"aaaa\"aaaa"else
+some(th)ing"aaaa\"aaaa"else
 -----
-UNQUOTED_CHARS {something}
+UNQUOTED_CHARS {some}
+LPAREN {(}
+UNQUOTED_CHARS {th}
+RPAREN {)}
+UNQUOTED_CHARS {ing}
 QUOTED_STRING {"aaaa\"aaaa"}
 UNQUOTED_CHARS {else}

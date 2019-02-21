@@ -27,14 +27,11 @@ class HoconSyntaxHighlightingAnnotator extends Annotator {
       case UnquotedChars if parentType == Include =>
         holder.createInfoAnnotation(element, null).setTextAttributes(HoconHighlighterColors.Include)
 
-      case UnquotedChars if parentType == Included =>
-        if (HoconConstants.IncludeQualifiers.contains(element.getText)) {
-          val TextRange(start, end) = element.getTextRange
-          holder.createInfoAnnotation(TextRange(start, end - 1), null).setTextAttributes(HoconHighlighterColors.IncludeModifier)
-          holder.createInfoAnnotation(TextRange(end - 1, end), null).setTextAttributes(HoconHighlighterColors.IncludeModifierParens)
-        } else if (element.getText == ")") {
-          holder.createInfoAnnotation(element, null).setTextAttributes(HoconHighlighterColors.IncludeModifierParens)
-        }
+      case UnquotedChars if parentType == Included || parentType == QualifiedIncluded =>
+        holder.createInfoAnnotation(element, null).setTextAttributes(HoconHighlighterColors.IncludeModifier)
+
+      case LParen | RParen if parentType == Included || parentType == QualifiedIncluded =>
+        holder.createInfoAnnotation(element, null).setTextAttributes(HoconHighlighterColors.IncludeModifierParens)
 
       case KeyPart if firstChildType == UnquotedString =>
         val textAttributesKey = element.getParent.getParent.getNode.getElementType match {

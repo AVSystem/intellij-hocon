@@ -6,7 +6,9 @@ HOCON_FILE
       PsiElement(UNQUOTED_CHARS)('include')
       PsiWhiteSpace(' ')
       HIncluded(INCLUDED)
-        PsiElement(UNQUOTED_CHARS)('url(')
-        PsiErrorElement:no protocol: unknownProtocol
-          PsiElement(QUOTED_STRING)('"unknownProtocol"')
-        PsiElement(UNQUOTED_CHARS)(')')
+        HQualifiedIncluded(QUALIFIED_INCLUDED)
+          PsiElement(UNQUOTED_CHARS)('url')
+          PsiElement(LPAREN)('(')
+          PsiErrorElement:no protocol: unknownProtocol
+            PsiElement(QUOTED_STRING)('"unknownProtocol"')
+          PsiElement(RPAREN)(')')

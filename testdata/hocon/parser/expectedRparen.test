@@ -6,8 +6,10 @@ HOCON_FILE
       PsiElement(UNQUOTED_CHARS)('include')
       PsiWhiteSpace(' ')
       HIncluded(INCLUDED)
-        PsiElement(UNQUOTED_CHARS)('file(')
-        HIncludeTarget(INCLUDE_TARGET)
-          PsiElement(QUOTED_STRING)('"stuff"')
-        PsiErrorElement:expected ')'
-          <empty list>
+        HQualifiedIncluded(QUALIFIED_INCLUDED)
+          PsiElement(UNQUOTED_CHARS)('file')
+          PsiElement(LPAREN)('(')
+          HIncludeTarget(INCLUDE_TARGET)
+            PsiElement(QUOTED_STRING)('"stuff"')
+          PsiErrorElement:expected ')'
+            <empty list>

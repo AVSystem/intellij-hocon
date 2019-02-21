@@ -157,5 +157,6 @@ HOCON_FILE
       PsiElement(UNQUOTED_CHARS)('include')
       PsiWhiteSpace(' ')
       HIncluded(INCLUDED)
-        HIncludeTarget(INCLUDE_TARGET)
-          PsiElement(QUOTED_STRING)('"something"')
+        HQualifiedIncluded(QUALIFIED_INCLUDED)
+          HIncludeTarget(INCLUDE_TARGET)
+            PsiElement(QUOTED_STRING)('"something"')

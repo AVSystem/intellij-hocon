@@ -223,7 +223,7 @@ final class HValuedField(ast: ASTNode) extends HoconPsiElement(ast) with HKeyedF
 }
 
 final class HInclude(ast: ASTNode) extends HoconPsiElement(ast) with HObjectEntry {
-  def included: HIncluded = getChild[HIncluded]
+  def included: HQualifiedIncluded = getChild[HQualifiedIncluded]
 
   // there may be bound comments and text offset should be on 'include' keyword
   override def getTextOffset: Int =
@@ -233,6 +233,18 @@ final class HInclude(ast: ASTNode) extends HoconPsiElement(ast) with HObjectEntr
 
 final class HIncluded(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElement {
   type Parent = HInclude
+
+  def required: Boolean =
+    getFirstChild.getNode.getElementType == HoconTokenType.UnquotedChars &&
+      getFirstChild.getText == HoconConstants.RequiredModifer
+
+  def qualified: Option[HQualifiedIncluded] = findChild[HQualifiedIncluded]
+
+  def target: Option[HIncludeTarget] = qualified.flatMap(_.target)
+}
+
+final class HQualifiedIncluded(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElement {
+  type Parent = HIncluded
 
   def qualifier: Option[String] = getFirstChild.getNode.getElementType match {
     case HoconTokenType.UnquotedChars =>
@@ -250,7 +262,7 @@ final class HIncluded(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElem
         val strVal = hs.stringValue
 
         val (absolute, forcedAbsolute, fromClasspath) = qualifier match {
-          case Some(ClasspathQualifier) => (true, true, true)
+          case Some(ClasspathModifier) => (true, true, true)
           case None if !isValidUrl(strVal) =>
             val pfi = ProjectRootManager.getInstance(getProject).getFileIndex
             val fromClasspath = pfi.isInSource(vf) || pfi.isInLibraryClasses(vf)
@@ -439,7 +451,7 @@ final class HKeyPart(ast: ASTNode) extends HoconPsiElement(ast) with HString {
 }
 
 final class HIncludeTarget(ast: ASTNode) extends HoconPsiElement(ast) with HString {
-  type Parent = HIncluded
+  type Parent = HQualifiedIncluded
 
   def getFileReferences: Array[FileReference] =
     parent.flatMap(_.fileReferenceSet.map(_.getAllReferences)).getOrElse(FileReference.EMPTY)
