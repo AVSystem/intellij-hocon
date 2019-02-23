@@ -1,10 +1,10 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="IDEA" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.intellij.idea.Main" />
-    <module name="runner" />
+    <module name="hocon-runner" />
     <option name="PROGRAM_PARAMETERS" value="nosplash" />
-    <option name="VM_PARAMETERS" value="-Xmx800m -Xss4m -XX:ReservedCodeCacheSize=240m -XX:+HeapDumpOnOutOfMemoryError -ea -Didea.is.internal=true -Didea.debug.mode=true -Didea.system.path=$USER_HOME$/.intellij-hoconPluginIU/system -Didea.config.path=$USER_HOME$/.intellij-hoconPluginIU/config -Dapple.laf.useScreenMenuBar=true -Dplugin.path=$PROJECT_DIR$/target/plugin/intellij-hocon -Duse.linux.keychain=false" />
     <shortenClasspath name="CLASSPATH_FILE" />
+    <option name="VM_PARAMETERS" value="-Xmx800m -Xss4m -XX:ReservedCodeCacheSize=240m -XX:+HeapDumpOnOutOfMemoryError -ea -Didea.is.internal=true -Didea.debug.mode=true -Didea.system.path=$USER_HOME$/.intellij-hoconPluginIU/system -Didea.config.path=$USER_HOME$/.intellij-hoconPluginIU/config -Dapple.laf.useScreenMenuBar=true -Dplugin.path=$PROJECT_DIR$/target/plugin/intellij-hocon -Duse.linux.keychain=false" />
     <RunnerSettings RunnerId="Debug">
       <option name="DEBUG_PORT" value="" />
       <option name="TRANSPORT" value="0" />
