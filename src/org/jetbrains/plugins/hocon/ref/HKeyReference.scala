@@ -26,9 +26,12 @@ class HKeyReference(key: HKey) extends PsiReference {
   def getRangeInElement: TextRange = ElementManipulators.getValueTextRange(key)
 
   def resolve(): PsiElement = key.forParent(
-    path => path.allValidKeys.flatMap { keys =>
-      path.getContainingFile.toplevelEntries.occurrences(keys, reverse = true).nextOption
-    }.getOrElse(key),
+    path => {
+      val result = path.resolveAsSelfReference orElse
+        path.allValidKeys.flatMap(keys =>
+          path.getContainingFile.toplevelEntries.occurrences(keys, reverse = true).nextOption)
+      result.flatMap(_.key).getOrElse(key)
+    },
     _ => key
   )
 }

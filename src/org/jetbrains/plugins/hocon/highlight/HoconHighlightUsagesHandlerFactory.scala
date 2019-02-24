@@ -36,26 +36,25 @@ class HoconHighlightKeyUsagesHandler(editor: Editor, psiFile: PsiFile, hkey: HKe
     lazy val allValidPathsInFile = findPaths(psiFile).map(_.startingValidKeys).toList
 
     val foundKeys = targets.iterator.asScala.flatMap(_.fullValidContainingPath).flatMap {
-      case allKeys@(firstKey :: _) =>
-        val fromFields = firstKey.enclosingEntries.occurrences(allKeys, reverse = false).flatMap(_.key)
+      case (enclosingEntries, allKeys) =>
+        val fromFields = enclosingEntries.occurrences(allKeys, reverse = false).flatMap(_.key)
 
-        @tailrec def fromPath(keys: List[HKey], pathKeys: List[HKey]): Option[HKey] = (keys, pathKeys) match {
-          case (key :: Nil, pathKey :: _) if key.stringValue == pathKey.stringValue =>
-            Some(pathKey)
-          case (key :: rest, pathKey :: pathRest) if key.stringValue == pathKey.stringValue =>
-            fromPath(rest, pathRest)
-          case _ => None
-        }
+        @tailrec def fromPath(keys: List[String], pathKeys: List[HKey]): Option[HKey] =
+          (keys, pathKeys) match {
+            case (key :: Nil, pathKey :: _) if key == pathKey.stringValue =>
+              Some(pathKey)
+            case (key :: rest, pathKey :: pathRest) if key == pathKey.stringValue =>
+              fromPath(rest, pathRest)
+            case _ => None
+          }
 
         def fromPaths =
-          if (firstKey.enclosingEntries.isToplevel)
+          if (enclosingEntries.isToplevel)
             allValidPathsInFile.iterator.flatMap(pathKeys => fromPath(allKeys, pathKeys))
           else
             Iterator.empty
 
         fromFields ++ fromPaths
-      case Nil =>
-        Iterator.empty
     }
     foundKeys.foreach(key =>
       key.forParent(_ => myReadUsages, _ => myWriteUsages).add(key.getTextRange))

@@ -14,8 +14,8 @@ class HoconQualifiedNameProvider extends QualifiedNameProvider {
 
   def getQualifiedName(element: PsiElement): String = element match {
     case key: HKey => key.forParent(
-      path => path.allValidKeys.map(_.iterator.map(_.getText).mkString(".")).orNull,
-      field => field.fullValidContainingPath.map(_.iterator.map(_.getText).mkString(".")).orNull
+      path => path.allValidKeys.map(_.mkString(".")).orNull,
+      field => field.fullValidContainingPath.map({ case (_, keys) => keys.mkString(".") }).orNull
     )
     case _ => null
   }
