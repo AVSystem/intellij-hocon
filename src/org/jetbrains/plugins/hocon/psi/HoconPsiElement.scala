@@ -14,7 +14,7 @@ import org.jetbrains.plugins.hocon.HoconConstants
 import org.jetbrains.plugins.hocon.HoconConstants._
 import org.jetbrains.plugins.hocon.lexer.{HoconTokenSets, HoconTokenType}
 import org.jetbrains.plugins.hocon.parser.HoconElementType
-import org.jetbrains.plugins.hocon.ref.{HKeySelfReference, IncludedFileReferenceSet}
+import org.jetbrains.plugins.hocon.ref.{HKeyReference, IncludedFileReferenceSet}
 
 import scala.annotation.tailrec
 import scala.reflect.{ClassTag, classTag}
@@ -107,6 +107,13 @@ final class HObjectEntries(ast: ASTNode) extends HoconPsiElement(ast) {
 
   def occurrences(key: String, reverse: Boolean): Iterator[HObjectField] =
     findChildren[HObjectField](reverse).filter(_.keyedField.hasKeyValue(key))
+
+  def occurrences(path: List[HKey], reverse: Boolean): Iterator[HKeyedField] = path match {
+    case firstKey :: restOfKeys =>
+      val occurrencesOfFirst = occurrences(firstKey.stringValue, reverse).map(_.keyedField)
+      restOfKeys.foldLeft(occurrencesOfFirst)((occ, key) => occ.flatMap(_.subOccurrences(key.stringValue, reverse)))
+    case Nil => Iterator.empty
+  }
 }
 
 sealed trait HObjectEntry extends HoconPsiElement with HInnerElement {
@@ -343,7 +350,7 @@ final class HKey(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElement {
 
   def isValidKey: Boolean = findChild[PsiErrorElement].isEmpty
 
-  override def getReference = new HKeySelfReference(this)
+  override def getReference = new HKeyReference(this)
 }
 
 final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElement {

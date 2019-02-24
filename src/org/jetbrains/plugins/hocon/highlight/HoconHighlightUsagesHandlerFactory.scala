@@ -36,16 +36,8 @@ class HoconHighlightKeyUsagesHandler(editor: Editor, psiFile: PsiFile, hkey: HKe
     lazy val allValidPathsInFile = findPaths(psiFile).map(_.startingValidKeys).toList
 
     val foundKeys = targets.iterator.asScala.flatMap(_.fullValidContainingPath).flatMap {
-      case firstKey :: restKeys =>
-        val firstKeyOccurrences: Iterator[HKeyedField] =
-          firstKey.enclosingEntries.occurrences(firstKey.stringValue, reverse = false).map(_.keyedField)
-
-        val occurrences: Iterator[HKeyedField] =
-          restKeys.foldLeft(firstKeyOccurrences) {
-            (occurrences, key) => occurrences.flatMap(_.subOccurrences(key.stringValue, reverse = false))
-          }
-
-        val fromFields = occurrences.flatMap(_.key)
+      case allKeys@(firstKey :: _) =>
+        val fromFields = firstKey.enclosingEntries.occurrences(allKeys, reverse = false).flatMap(_.key)
 
         @tailrec def fromPath(keys: List[HKey], pathKeys: List[HKey]): Option[HKey] = (keys, pathKeys) match {
           case (key :: Nil, pathKey :: _) if key.stringValue == pathKey.stringValue =>
@@ -57,7 +49,7 @@ class HoconHighlightKeyUsagesHandler(editor: Editor, psiFile: PsiFile, hkey: HKe
 
         def fromPaths =
           if (firstKey.enclosingEntries.isToplevel)
-            allValidPathsInFile.iterator.flatMap(pathKeys => fromPath(firstKey :: restKeys, pathKeys))
+            allValidPathsInFile.iterator.flatMap(pathKeys => fromPath(allKeys, pathKeys))
           else
             Iterator.empty
 
