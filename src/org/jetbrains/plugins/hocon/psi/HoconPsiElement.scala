@@ -361,18 +361,24 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElement 
   def validKey: Option[HKey] = findChild[HKey].filter(_.isValidKey)
 }
 
-sealed trait HValue extends HoconPsiElement with HInnerElement {
-  def forParent[T](forValuedField: HValuedField => T, forArray: HArray => T, forConcatenation: HConcatenation => T): T =
-    parent match {
-      case vf: HValuedField => forValuedField(vf)
-      case arr: HArray => forArray(arr)
-      case conc: HConcatenation => forConcatenation(conc)
-    }
+sealed trait HValue extends HoconPsiElement {
+  def forParent[T](
+    forValuedField: HValuedField => T,
+    forArray: HArray => T,
+    forConcatenation: HConcatenation => T,
+    forFile: HoconPsiFile => T // only possible for toplevel HObject
+  ): T = parent match {
+    case vf: HValuedField => forValuedField(vf)
+    case arr: HArray => forArray(arr)
+    case conc: HConcatenation => forConcatenation(conc)
+    case file: HoconPsiFile => forFile(file)
+  }
 
   def prefixingField: Option[HValuedField] = forParent(
     vf => if (vf.isArrayAppend) None else Some(vf),
     _ => None,
-    concat => concat.prefixingField
+    concat => concat.prefixingField,
+    _ => None
   )
 }
 
