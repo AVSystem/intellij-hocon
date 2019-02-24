@@ -35,15 +35,17 @@ class HoconHighlightKeyUsagesHandler(editor: Editor, psiFile: PsiFile, hkey: HKe
 
     lazy val allValidPathsInFile = findPaths(psiFile).map(_.startingValidKeys).toList
 
-    val foundKeys = targets.iterator.asScala.flatMap(_.allKeysFromToplevel).flatMap {
-      case allKeys@(firstKey :: _) =>
-        @tailrec def fromFields(scope: HScope, keys: List[HKey]): Iterator[HKey] = keys match {
-          case Nil => Iterator.empty
-          case lastKey :: Nil =>
-            scope.directKeyedFields().flatMap(_.validKey).filter(_.stringValue == lastKey.stringValue)
-          case nextKey :: restOfKeys =>
-            fromFields(scope.directSubScope(nextKey.stringValue), restOfKeys)
-        }
+    val foundKeys = targets.iterator.asScala.flatMap(_.fullValidContainingPath).flatMap {
+      case firstKey :: restKeys =>
+        val firstKeyOccurrences: Iterator[HKeyedField] =
+          firstKey.enclosingEntries.occurrences(firstKey.stringValue, reverse = false).map(_.keyedField)
+
+        val occurrences: Iterator[HKeyedField] =
+          restKeys.foldLeft(firstKeyOccurrences) {
+            (occurrences, key) => occurrences.flatMap(_.subOccurrences(key.stringValue, reverse = false))
+          }
+
+        val fromFields = occurrences.flatMap(_.key)
 
         @tailrec def fromPath(keys: List[HKey], pathKeys: List[HKey]): Option[HKey] = (keys, pathKeys) match {
           case (key :: Nil, pathKey :: _) if key.stringValue == pathKey.stringValue =>
@@ -54,12 +56,12 @@ class HoconHighlightKeyUsagesHandler(editor: Editor, psiFile: PsiFile, hkey: HKe
         }
 
         def fromPaths =
-          if (firstKey.enclosingEntries eq firstKey.getContainingFile.toplevelEntries)
-            allValidPathsInFile.iterator.flatMap(pathKeys => fromPath(allKeys, pathKeys))
+          if (firstKey.enclosingEntries.isToplevel)
+            allValidPathsInFile.iterator.flatMap(pathKeys => fromPath(firstKey :: restKeys, pathKeys))
           else
             Iterator.empty
 
-        fromFields(firstKey.enclosingEntries, allKeys) ++ fromPaths
+        fromFields ++ fromPaths
       case Nil =>
         Iterator.empty
     }

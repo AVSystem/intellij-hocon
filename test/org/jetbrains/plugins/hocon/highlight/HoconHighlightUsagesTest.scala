@@ -27,7 +27,8 @@ class HoconHighlightUsagesTest extends LightPlatformCodeInsightFixtureTestCase {
   def testNested(): Unit = testUsages(
     (4, 2, 3),
     (7, 4, 3),
-    (10, 16, 3)
+    (10, 16, 3),
+    (13, 19, 3),
   )
 
   def testInArrayElement(): Unit = testUsages(

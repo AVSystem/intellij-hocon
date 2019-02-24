@@ -11,11 +11,12 @@ import org.jetbrains.plugins.hocon.lexer.HoconTokenType
 
 import scala.collection.GenTraversableOnce
 import scala.language.implicitConversions
+import scala.reflect.ClassTag
 
 object CommonUtil {
 
   def notWhiteSpaceSibling(element: PsiElement)
-                          (sibling: PsiElement => PsiElement): PsiElement = {
+    (sibling: PsiElement => PsiElement): PsiElement = {
     var result = sibling(element)
     while (isWhiteSpace(result)) {
       result = sibling(result)
@@ -34,7 +35,7 @@ object CommonUtil {
 
   implicit def liftSingleToken(token: IElementType): TokenSet = TokenSet.create(token)
 
-  implicit class TokenSetOps(val tokenSet: TokenSet) {
+  implicit class TokenSetOps(tokenSet: TokenSet) {
     def |(otherTokenSet: TokenSet): TokenSet =
       TokenSet.orSet(tokenSet, otherTokenSet)
 
@@ -47,12 +48,12 @@ object CommonUtil {
     def unapply(tokenType: IElementType): Boolean =
       tokenSet.contains(tokenType)
 
-    val extractor = this
+    val extractor: TokenSetOps = this
   }
 
   implicit def token2TokenSetOps(token: IElementType): TokenSetOps = new TokenSetOps(token)
 
-  implicit class CharSequenceOps(val cs: CharSequence) extends AnyVal {
+  implicit class CharSequenceOps(private val cs: CharSequence) extends AnyVal {
     def startsWith(str: String): Boolean =
       cs.length >= str.length && str.contentEquals(cs.subSequence(0, str.length))
 
@@ -60,7 +61,7 @@ object CommonUtil {
       Iterator.range(0, cs.length).map(cs.charAt)
   }
 
-  implicit class NodeOps(val node: ASTNode) extends AnyVal {
+  implicit class NodeOps(private val node: ASTNode) extends AnyVal {
     def childrenIterator: Iterator[ASTNode] =
       Iterator.iterate(node.getFirstChildNode)(_.getTreeNext).takeWhile(_ != null)
 
@@ -69,24 +70,31 @@ object CommonUtil {
 
     def hasSingleChild: Boolean =
       node.getFirstChildNode != null && node.getFirstChildNode.getTreeNext == null
-
   }
 
-  implicit class StringOps(val str: String) extends AnyVal {
+  implicit class StringOps(private val str: String) extends AnyVal {
     def indent(ind: String): String =
       ind + str.replaceAllLiterally("\n", "\n" + ind)
   }
 
-  implicit class any2opt[T](val t: T) extends AnyVal {
+  implicit class any2opt[T](private val t: T) extends AnyVal {
     def opt = Option(t)
   }
 
-  implicit class collectionOps[A](val coll: GenTraversableOnce[A]) extends AnyVal {
+  implicit class collectionOps[A](private val coll: GenTraversableOnce[A]) extends AnyVal {
     def toJList[B >: A]: ju.List[B] = {
       val result = new ju.ArrayList[B]
       coll.foreach(result.add)
       result
     }
+  }
+
+  implicit class IteratorOps[A](private val it: Iterator[A]) extends AnyVal {
+    def nextOption: Option[A] =
+      if (it.hasNext) Option(it.next()) else None
+
+    def collectOnly[T: ClassTag]: Iterator[T] =
+      it.collect { case t: T => t }
   }
 
   private val quotedCharPattern = "\\\\[\\\\\"/bfnrt]".r
