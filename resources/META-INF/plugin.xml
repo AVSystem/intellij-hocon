@@ -7,6 +7,7 @@
     <idea-version since-build="191.0" until-build="192.0"/>
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
+    <depends optional="true" config-file="hocon-java.xml">com.intellij.modules.java</depends>
     <extensions defaultExtensionNs="com.intellij">
         <fileTypeFactory implementation="org.jetbrains.plugins.hocon.lang.HoconFileTypeFactory"/>
         <lang.syntaxHighlighterFactory language="HOCON"

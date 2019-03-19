@@ -1,0 +1,5 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <psi.referenceContributor implementation="org.jetbrains.plugins.hocon.ref.HoconJavaReferenceContributor"/>
+    </extensions>
+</idea-plugin>
