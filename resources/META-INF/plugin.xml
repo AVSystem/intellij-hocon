@@ -5,7 +5,6 @@
     <version>2019.1.1</version>
     <vendor>Roman Janusz, JetBrains</vendor>
     <idea-version since-build="191.0" until-build="192.0"/>
-    <depends>com.intellij.properties</depends>
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
     <extensions defaultExtensionNs="com.intellij">
