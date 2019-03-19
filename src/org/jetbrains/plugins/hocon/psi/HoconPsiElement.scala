@@ -382,7 +382,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
 
 final class HConcatenation(ast: ASTNode) extends HoconPsiElement(ast) with HValue
 
-sealed trait HLiteralValue extends HValue with PsiLiteral
+sealed trait HLiteralValue extends HValue with PsiLiteralValue
 
 final class HNull(ast: ASTNode) extends HoconPsiElement(ast) with HLiteralValue {
   def getValue: Object = null
@@ -410,7 +410,7 @@ object HNumber {
 
 final class HUnquotedString(ast: ASTNode) extends HoconPsiElement(ast)
 
-sealed trait HString extends HInnerElement with PsiLiteral with ContributedReferenceHost {
+sealed trait HString extends HInnerElement with PsiLiteralValue with ContributedReferenceHost {
   def stringType: IElementType = getFirstChild.getNode.getElementType
 
   def getValue: Object = stringValue
