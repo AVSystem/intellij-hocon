@@ -25,7 +25,7 @@ abstract class HoconFileSetTestCase(subpath: String) extends FileSetTestCase(s"$
   protected def transform(data: Seq[String]): String
 
   override protected def setUp(): Unit = {
-    val settings = CodeStyleSettingsManager.getInstance(LightPlatformTestCase.getProject)
+    val settings = CodeStyleSettingsManager.getInstance(myProject)
       .getCurrentSettings
       .getCommonSettings(HoconLanguage)
 
@@ -35,15 +35,8 @@ abstract class HoconFileSetTestCase(subpath: String) extends FileSetTestCase(s"$
     indentOptions.TAB_SIZE = 2
   }
 
-  override def getName: String = getClass.getName
-}
-
-object HoconFileSetTestCase {
-
-  System.setProperty("fileset.pattern", "(.*)\\.test")
-
   private[hocon] def createPseudoPhysicalHoconFile(text: String): HoconPsiFile = {
-    val project = LightPlatformTestCase.getProject
+    val project = myProject
 
     val tempFile = project.getBaseDir + "temp.conf"
     val fileType = FileTypeManager.getInstance.getFileTypeByFileName(tempFile)
@@ -51,6 +44,25 @@ object HoconFileSetTestCase {
       .createFileFromText(tempFile, fileType, text, LocalTimeCounter.currentTime(), true)
       .asInstanceOf[HoconPsiFile]
   }
+
+  private[hocon] def inWriteCommandAction[T](body: => T): T = {
+    val computable = new Computable[T] {
+      override def compute(): T = body
+    }
+
+    new WriteCommandAction[T](myProject, "Undefined") {
+      protected def run(result: Result[T]): Unit = {
+        result.setResult(computable.compute())
+      }
+    }.execute.getResultObject
+  }
+
+  override def getName: String = getClass.getName
+}
+
+object HoconFileSetTestCase {
+
+  System.setProperty("fileset.pattern", "(.*)\\.test")
 
   private[hocon] def extractCaret(fileText: String): (String, Int) = {
     import EditorTestUtil.CARET_TAG
@@ -61,17 +73,5 @@ object HoconFileSetTestCase {
       else fileText
 
     (newFileText, caretOffset)
-  }
-
-  private[hocon] def inWriteCommandAction[T](body: => T): T = {
-    val computable = new Computable[T] {
-      override def compute(): T = body
-    }
-
-    new WriteCommandAction[T](getProject, "Undefined") {
-      protected def run(result: Result[T]): Unit = {
-        result.setResult(computable.compute())
-      }
-    }.execute.getResultObject
   }
 }

@@ -17,14 +17,14 @@ class HoconFormatterTest extends HoconFileSetTestCase("formatter") {
   override protected def transform(data: Seq[String]): String = {
     val Seq(settingsXml, input) = data
 
-    val settings = CodeStyleSettingsManager.getSettings(getProject)
+    val settings = CodeStyleSettingsManager.getSettings(myProject)
     settings.readExternal(JDOMUtil.load(settingsXml))
 
     val psiFile = createPseudoPhysicalHoconFile(input)
 
     inWriteCommandAction {
       val TextRange(start, end) = psiFile.getTextRange
-      CodeStyleManager.getInstance(getProject).reformatText(psiFile, start, end)
+      CodeStyleManager.getInstance(myProject).reformatText(psiFile, start, end)
     }
 
     psiFile.getText

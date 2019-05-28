@@ -2,7 +2,7 @@ import org.jetbrains.sbtidea.Keys._
 
 ideaPluginName in ThisBuild := "intellij-hocon"
 
-ideaBuild in ThisBuild := "191.6183.20"
+ideaBuild in ThisBuild := "192.4205.45"
 
 lazy val hocon = project.in(file(".")).settings(
   scalaVersion := "2.12.8",

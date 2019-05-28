@@ -24,8 +24,8 @@ abstract class HoconActionTest protected(protected val actionId: String,
     val (fileText, offset) = extractCaret(data.head)
     val psiFile = createPseudoPhysicalHoconFile(fileText)
 
-    val editorManager = FileEditorManager.getInstance(getProject)
-    implicit val editor: Editor = editorManager.openTextEditor(new OpenFileDescriptor(getProject, psiFile.getVirtualFile, 0), false)
+    val editorManager = FileEditorManager.getInstance(myProject)
+    implicit val editor: Editor = editorManager.openTextEditor(new OpenFileDescriptor(myProject, psiFile.getVirtualFile, 0), false)
     assertNotNull(editor)
     editor.getCaretModel.moveToOffset(offset)
 
