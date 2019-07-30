@@ -9,7 +9,7 @@ val silencerVersion = "1.4.1"
 
 lazy val hocon = project.in(file(".")).settings(
   scalaVersion := "2.12.8",
-  version := "2019.2.2",
+  version := "2019.2.3-SNAPSHOT",
   scalaSource in Compile := baseDirectory.value / "src",
   scalaSource in Test := baseDirectory.value / "test",
   resourceDirectory in Compile := baseDirectory.value / "resources",
