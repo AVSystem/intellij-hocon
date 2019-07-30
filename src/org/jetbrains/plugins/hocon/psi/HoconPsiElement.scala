@@ -389,10 +389,10 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElement 
   }
 
   /**
-    * If all keys are valid - all keys of this path.
-    * If some keys are invalid - all valid keys from left to right until some invalid key is encountered
-    * (i.e. longest valid prefix path)
-    */
+   * If all keys are valid - all keys of this path.
+   * If some keys are invalid - all valid keys from left to right until some invalid key is encountered
+   * (i.e. longest valid prefix path)
+   */
   def startingValidKeys: List[HKey] =
     allPaths.iterator.takeWhile(_.validKey.nonEmpty).flatMap(_.validKey).toList
 

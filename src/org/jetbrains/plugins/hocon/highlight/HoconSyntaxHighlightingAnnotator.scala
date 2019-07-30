@@ -2,7 +2,6 @@ package org.jetbrains.plugins.hocon.highlight
 
 import com.intellij.lang.annotation.{AnnotationHolder, Annotator}
 import com.intellij.psi.PsiElement
-import org.jetbrains.plugins.hocon.HoconConstants
 
 class HoconSyntaxHighlightingAnnotator extends Annotator {
 
@@ -11,7 +10,7 @@ class HoconSyntaxHighlightingAnnotator extends Annotator {
   import org.jetbrains.plugins.hocon.parser.HoconElementSets._
   import org.jetbrains.plugins.hocon.parser.HoconElementType._
 
-  def annotate(element: PsiElement, holder: AnnotationHolder) {
+  def annotate(element: PsiElement, holder: AnnotationHolder): Unit = {
     lazy val parentType = element.getParent.getNode.getElementType
     lazy val firstChildType = element.getFirstChild.getNode.getElementType
     element.getNode.getElementType match {

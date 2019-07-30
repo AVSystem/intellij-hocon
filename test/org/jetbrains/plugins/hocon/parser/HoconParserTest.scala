@@ -9,7 +9,7 @@ import org.junit.runners.AllTests
 class HoconParserTest extends HoconFileSetTestCase("parser") {
 
   override protected def transform(data: Seq[String]): String = {
-    val psiFile = HoconFileSetTestCase.createPseudoPhysicalHoconFile(data.head)
+    val psiFile = createPseudoPhysicalHoconFile(data.head)
     psiToString(psiFile, false).replace(":" + psiFile.getName, "")
   }
 }

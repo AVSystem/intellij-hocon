@@ -1,14 +1,14 @@
 package org.jetbrains.plugins.hocon.highlight
 
 import com.intellij.openapi.editor.LogicalPosition
-import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.jetbrains.plugins.hocon.lang.HoconFileType.DefaultExtension
 import org.junit.Assert.assertEquals
 
 /**
-  * @author ghik
-  */
-class HoconHighlightUsagesTest extends LightPlatformCodeInsightFixtureTestCase {
+ * @author ghik
+ */
+class HoconHighlightUsagesTest extends BasePlatformTestCase {
 
   override def getTestDataPath: String = "testdata/hocon/highlight/usages"
 

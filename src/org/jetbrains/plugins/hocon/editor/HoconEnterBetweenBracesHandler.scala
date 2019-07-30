@@ -1,5 +1,6 @@
 package org.jetbrains.plugins.hocon.editor
 
+import com.github.ghik.silencer.silent
 import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegate.Result
 import com.intellij.codeInsight.editorActions.enter.{EnterBetweenBracesHandler, EnterHandlerDelegate}
 import com.intellij.openapi.actionSystem.DataContext
@@ -10,14 +11,17 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.plugins.hocon.lang.HoconLanguage
 
 /**
-  * Like [[com.intellij.json.formatter.JsonEnterBetweenBracesHandler]]
-  *
-  * @author ghik
-  */
+ * Like [[com.intellij.json.formatter.JsonEnterBetweenBracesHandler]]
+ *
+ * @author ghik
+ */
+@silent("deprecated")
 class HoconEnterBetweenBracesHandler extends EnterBetweenBracesHandler {
-  override def preprocessEnter(file: PsiFile, editor: Editor, caretOffsetRef: Ref[Integer],
-                               caretAdvance: Ref[Integer], dataContext: DataContext,
-                               originalHandler: EditorActionHandler): Result =
+  override def preprocessEnter(
+    file: PsiFile, editor: Editor, caretOffsetRef: Ref[Integer],
+    caretAdvance: Ref[Integer], dataContext: DataContext,
+    originalHandler: EditorActionHandler
+  ): Result =
     if (file.getLanguage is HoconLanguage)
       super.preprocessEnter(file, editor, caretOffsetRef, caretAdvance, dataContext, originalHandler)
     else

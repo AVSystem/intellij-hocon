@@ -7,13 +7,12 @@ import com.intellij.openapi.editor.actionSystem.EditorActionManager
 import com.intellij.testFramework.EditorTestUtil
 import org.junit.Assert.assertNotNull
 
-abstract class HoconEditorActionTest protected(override protected val actionId: String,
-                                               subPath: String) extends HoconActionTest(actionId, subPath) {
+abstract class HoconEditorActionTest protected(
+  override protected val actionId: String,
+  subPath: String
+) extends HoconActionTest(actionId, subPath) {
 
-  import HoconFileSetTestCase._
-
-  override protected def executeAction(dataContext: DataContext)
-                                      (implicit editor: Editor): String = {
+  override protected def executeAction(dataContext: DataContext, editor: Editor): String = {
     val actionHandler = EditorActionManager.getInstance.getActionHandler(actionId)
     assertNotNull(actionHandler)
 

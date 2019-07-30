@@ -3,6 +3,8 @@
 .idea/inspectionProfiles/
 .idea/libraries/
 .idea/modules/
+.idea/codeStyles/
+.idea/markdown-navigator/
 .idea/.name
 .idea/*.xml
 /target

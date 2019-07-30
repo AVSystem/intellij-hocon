@@ -16,8 +16,8 @@ class HoconLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsPr
   private val ObjectFieldsWithColonWrap = "Object fields with ':'"
   private val ObjectFieldsWithAssignmentWrap = "Object fields with '=' or '+='"
 
-  override def customizeSettings(consumer: CodeStyleSettingsCustomizable, settingsType: SettingsType) {
-    def showCustomOption(name: String, title: String, group: String, options: AnyRef*) =
+  override def customizeSettings(consumer: CodeStyleSettingsCustomizable, settingsType: SettingsType): Unit = {
+    def showCustomOption(name: String, title: String, group: String, options: AnyRef*): Unit =
       consumer.showCustomOption(classOf[HoconCustomCodeStyleSettings], name, title, group, options: _*)
 
     import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable._

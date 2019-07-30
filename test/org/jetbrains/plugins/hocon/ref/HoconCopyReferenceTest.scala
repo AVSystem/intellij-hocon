@@ -14,8 +14,7 @@ import org.junit.runners.AllTests
 @RunWith(classOf[AllTests])
 class HoconCopyReferenceTest extends HoconActionTest(ACTION_COPY_REFERENCE, "copyReference") {
 
-  override protected def executeAction(dataContext: DataContext)
-                                      (implicit editor: Editor): String = {
+  override protected def executeAction(dataContext: DataContext, editor: Editor): String = {
     val action = ActionManager.getInstance.getAction(actionId)
     val actionEvent = new TestActionEvent(dataContext, action)
 
