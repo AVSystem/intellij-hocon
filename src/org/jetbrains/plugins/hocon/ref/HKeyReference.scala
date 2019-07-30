@@ -3,11 +3,11 @@ package org.jetbrains.plugins.hocon.ref
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.{ElementManipulators, PsiElement, PsiReference}
 import org.jetbrains.plugins.hocon.CommonUtil._
-import org.jetbrains.plugins.hocon.psi.HKey
+import org.jetbrains.plugins.hocon.psi.{HKey, HPath}
 
 /**
-  * @author ghik
-  */
+ * @author ghik
+ */
 class HKeyReference(key: HKey) extends PsiReference {
   def getCanonicalText: String = key.stringValue
 
@@ -25,13 +25,12 @@ class HKeyReference(key: HKey) extends PsiReference {
 
   def getRangeInElement: TextRange = ElementManipulators.getValueTextRange(key)
 
-  def resolve(): PsiElement = key.forParent(
-    path => {
+  def resolve(): PsiElement = key.parent match {
+    case path: HPath =>
       val result = path.resolveAsSelfReference orElse
         path.allValidKeys.flatMap(keys =>
           path.getContainingFile.toplevelEntries.occurrences(keys, reverse = true).nextOption)
       result.flatMap(_.key).getOrElse(key)
-    },
-    _ => key
-  )
+    case _ => key
+  }
 }

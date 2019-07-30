@@ -56,8 +56,13 @@ class HoconHighlightKeyUsagesHandler(editor: Editor, psiFile: PsiFile, hkey: HKe
 
         fromFields ++ fromPaths
     }
-    foundKeys.foreach(key =>
-      key.forParent(_ => myReadUsages, _ => myWriteUsages).add(key.getTextRange))
+    foundKeys.foreach { key =>
+      val usages = key.parent match {
+        case _: HKeyedField => myWriteUsages
+        case _: HPath => myReadUsages
+      }
+      usages.add(key.getTextRange)
+    }
 
     // don't highlight if there is only one occurrence
     if (myReadUsages.size + myWriteUsages.size == 1) {
