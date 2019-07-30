@@ -11,9 +11,15 @@ lazy val hocon = project.in(file(".")).settings(
   scalaSource in Test := baseDirectory.value / "test",
   resourceDirectory in Compile := baseDirectory.value / "resources",
   javacOptions in Global ++= Seq("-source", "1.8", "-target", "1.8"),
-  scalacOptions in Global ++= Seq("-target:jvm-1.8"),
-  ideaInternalPlugins := Seq("properties"),
-  libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test",
+  scalacOptions in Global ++= Seq(
+    "-target:jvm-1.8",
+    "-deprecation",
+    "-feature",
+    "-unchecked",
+    "-Xfuture"
+  ),
+  ideaInternalPlugins := Seq("properties", "java"),
+  libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % Test,
   ideaPublishSettings := PublishSettings("10481", sys.env.getOrElse("PL_USER", ""), sys.env.getOrElse("PL_PASS", ""), None),
   packageLibraryMappings := Seq.empty // allow scala-library
 )

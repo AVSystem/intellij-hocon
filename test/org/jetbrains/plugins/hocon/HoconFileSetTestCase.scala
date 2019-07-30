@@ -1,43 +1,35 @@
 package org.jetbrains.plugins.hocon
 
 import com.intellij.FileSetTestCase
-import com.intellij.openapi.application.Result
+import com.intellij.application.options.CodeStyle
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileTypes.FileTypeManager
-import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.codeStyle.CodeStyleSettingsManager
-import com.intellij.testFramework.LightPlatformTestCase.getProject
-import com.intellij.testFramework.{EditorTestUtil, LightPlatformTestCase}
+import com.intellij.testFramework.EditorTestUtil
 import com.intellij.util.LocalTimeCounter
 import org.jetbrains.plugins.hocon.lang.HoconLanguage
 import org.jetbrains.plugins.hocon.psi.HoconPsiFile
 import org.jetbrains.plugins.scala.util.TestUtils
 
 /**
-  * @author ghik
-  */
-abstract class HoconFileSetTestCase(subpath: String) extends FileSetTestCase(s"${TestUtils.getTestDataPath}/hocon/$subpath") {
+ * @author ghik
+ */
+abstract class HoconFileSetTestCase(subpath: String)
+  extends FileSetTestCase(s"${TestUtils.getTestDataPath}/hocon/$subpath") {
 
-  override final def transform(testName: String, data: Array[String]): String =
-    transform(data.map(_.stripLineEnd))
-
-  protected def transform(data: Seq[String]): String
-
-  override protected def setUp(): Unit = {
-    val settings = CodeStyleSettingsManager.getInstance(myProject)
-      .getCurrentSettings
-      .getCommonSettings(HoconLanguage)
-
+  override final def transform(testName: String, data: Array[String]): String = {
+    val settings = CodeStyle.getSettings(myProject).getCommonSettings(HoconLanguage)
     val indentOptions = settings.getIndentOptions
     indentOptions.INDENT_SIZE = 2
     indentOptions.CONTINUATION_INDENT_SIZE = 2
     indentOptions.TAB_SIZE = 2
+    transform(data.map(_.stripLineEnd))
   }
+
+  protected def transform(data: Seq[String]): String
 
   private[hocon] def createPseudoPhysicalHoconFile(text: String): HoconPsiFile = {
     val project = myProject
-
     val tempFile = project.getBaseDir + "temp.conf"
     val fileType = FileTypeManager.getInstance.getFileTypeByFileName(tempFile)
     PsiFileFactory.getInstance(project)
@@ -45,17 +37,8 @@ abstract class HoconFileSetTestCase(subpath: String) extends FileSetTestCase(s"$
       .asInstanceOf[HoconPsiFile]
   }
 
-  private[hocon] def inWriteCommandAction[T](body: => T): T = {
-    val computable = new Computable[T] {
-      override def compute(): T = body
-    }
-
-    new WriteCommandAction[T](myProject, "Undefined") {
-      protected def run(result: Result[T]): Unit = {
-        result.setResult(computable.compute())
-      }
-    }.execute.getResultObject
-  }
+  private[hocon] def inWriteCommandAction[T](body: => T): T =
+    WriteCommandAction.writeCommandAction(myProject).compute(() => body)
 
   override def getName: String = getClass.getName
 }

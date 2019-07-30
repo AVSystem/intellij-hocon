@@ -49,7 +49,7 @@ class HoconFoldingBuilder extends FoldingBuilder {
       element
     }
 
-    def pushChildren(element: ASTNode) {
+    def pushChildren(element: ASTNode): Unit = {
       var child = element.getLastChildNode
       while (child != null) {
         stack.push(child)

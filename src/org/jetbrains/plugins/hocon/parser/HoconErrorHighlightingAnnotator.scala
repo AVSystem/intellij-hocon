@@ -14,7 +14,7 @@ class HoconErrorHighlightingAnnotator extends Annotator {
   import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
   import org.jetbrains.plugins.hocon.parser.HoconElementType._
 
-  def annotate(element: PsiElement, holder: AnnotationHolder) {
+  def annotate(element: PsiElement, holder: AnnotationHolder): Unit = {
     element.getNode.getElementType match {
       case QuotedString =>
         val lexer = new StringLiteralLexer('"', QuotedString)
