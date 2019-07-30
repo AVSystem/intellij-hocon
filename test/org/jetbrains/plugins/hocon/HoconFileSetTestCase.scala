@@ -1,5 +1,6 @@
 package org.jetbrains.plugins.hocon
 
+import com.github.ghik.silencer.silent
 import com.intellij.FileSetTestCase
 import com.intellij.application.options.CodeStyle
 import com.intellij.openapi.command.WriteCommandAction
@@ -30,7 +31,7 @@ abstract class HoconFileSetTestCase(subpath: String)
 
   private[hocon] def createPseudoPhysicalHoconFile(text: String): HoconPsiFile = {
     val project = myProject
-    val tempFile = project.getBaseDir + "temp.conf"
+    val tempFile = (project.getBaseDir: @silent("deprecated")) + "temp.conf"
     val fileType = FileTypeManager.getInstance.getFileTypeByFileName(tempFile)
     PsiFileFactory.getInstance(project)
       .createFileFromText(tempFile, fileType, text, LocalTimeCounter.currentTime(), true)

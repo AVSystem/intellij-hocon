@@ -83,10 +83,11 @@ sealed trait HInnerElement extends HoconPsiElement {
 }
 
 final class HObjectEntries(ast: ASTNode) extends HoconPsiElement(ast) with HScope {
-  def forParent[T](forFile: HoconPsiFile => T, forObject: HObject => T): T = parent match {
-    case Some(file: HoconPsiFile) => forFile(file)
-    case Some(obj: HObject) => forObject(obj)
-  }
+  def forParent[T](forFile: HoconPsiFile => T, forObject: HObject => T): T =
+    (parent: @unchecked) match {
+      case Some(file: HoconPsiFile) => forFile(file)
+      case Some(obj: HObject) => forObject(obj)
+    }
 
   def isToplevel: Boolean = forParent(_ => true, _ => false)
 
@@ -125,21 +126,22 @@ final class HObjectField(ast: ASTNode) extends HoconPsiElement(ast) with HObject
 }
 
 sealed trait HKeyedField extends HoconPsiElement with HInnerElement with HScope {
-  def forParent[T](forKeyedParent: HKeyedField => T, forObjectField: HObjectField => T): T = parent match {
-    case Some(kf: HKeyedField) => forKeyedParent(kf)
-    case Some(of: HObjectField) => forObjectField(of)
-  }
+  def forParent[T](forKeyedParent: HKeyedField => T, forObjectField: HObjectField => T): T =
+    (parent: @unchecked) match {
+      case Some(kf: HKeyedField) => forKeyedParent(kf)
+      case Some(of: HObjectField) => forObjectField(of)
+    }
 
   def key: Option[HKey] = findChild[HKey]
 
   def validKey: Option[HKey] = key.filter(_.isValidKey)
 
   /**
-    * Goes up the tree in order to determine full path under which this keyed field is defined.
-    * Stops when encounters file-toplevel entries or an array (including array-append field).
-    *
-    * @return stream of all encountered keyed fields (in bottom-up order, i.e. starting with itself)
-    */
+   * Goes up the tree in order to determine full path under which this keyed field is defined.
+   * Stops when encounters file-toplevel entries or an array (including array-append field).
+   *
+   * @return stream of all encountered keyed fields (in bottom-up order, i.e. starting with itself)
+   */
   def fieldsInAllPathsBackward: Stream[HKeyedField] =
     this #:: forParent(
       keyedField => keyedField.fieldsInAllPathsBackward,
@@ -150,9 +152,9 @@ sealed trait HKeyedField extends HoconPsiElement with HInnerElement with HScope 
     )
 
   /**
-    * Like [[fieldsInAllPathsBackward]] but returns [[HKey]]s instead of [[HKeyedField]]s, in reverse order (i.e. key
-    * from this field is at the end) and ensures that all keys are valid. If not, [[None]] is returned.
-    */
+   * Like [[fieldsInAllPathsBackward]] but returns [[HKey]]s instead of [[HKeyedField]]s, in reverse order (i.e. key
+   * from this field is at the end) and ensures that all keys are valid. If not, [[None]] is returned.
+   */
   def keysInAllPaths: Option[List[HKey]] = {
     def iterate(str: Stream[HKeyedField], acc: List[HKey]): Option[List[HKey]] =
       str match {
@@ -182,8 +184,8 @@ sealed trait HKeyedField extends HoconPsiElement with HInnerElement with HScope 
   def endingValue: Option[HValue] = endingField.value
 
   /**
-    * Scopes present in whatever is on the right side of key in that keyed field.
-    */
+   * Scopes present in whatever is on the right side of key in that keyed field.
+   */
   def subScopes: Iterator[HScope]
 
   def directKeyedFields = Iterator(this)
@@ -283,10 +285,11 @@ final class HQualifiedIncluded(ast: ASTNode) extends HoconPsiElement(ast) with H
 }
 
 final class HKey(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElement {
-  def forParent[T](forPath: HPath => T, forKeyedField: HKeyedField => T): T = parent match {
-    case Some(path: HPath) => forPath(path)
-    case Some(keyedField: HKeyedField) => forKeyedField(keyedField)
-  }
+  def forParent[T](forPath: HPath => T, forKeyedField: HKeyedField => T): T =
+    (parent: @unchecked) match {
+      case Some(path: HPath) => forPath(path)
+      case Some(keyedField: HKeyedField) => forKeyedField(keyedField)
+    }
 
   def allKeysFromToplevel: Option[List[HKey]] =
     forParent(
@@ -313,10 +316,11 @@ final class HKey(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElement {
 }
 
 final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElement {
-  def forParent[T](forPath: HPath => T, forSubstitution: HSubstitution => T): T = parent match {
-    case Some(path: HPath) => forPath(path)
-    case Some(subst: HSubstitution) => forSubstitution(subst)
-  }
+  def forParent[T](forPath: HPath => T, forSubstitution: HSubstitution => T): T =
+    (parent: @unchecked) match {
+      case Some(path: HPath) => forPath(path)
+      case Some(subst: HSubstitution) => forSubstitution(subst)
+    }
 
   def allPaths: List[HPath] = {
     def allPathsIn(path: HPath, acc: List[HPath]): List[HPath] =
@@ -326,8 +330,8 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElement 
   }
 
   /**
-    * Some(all keys in this path) or None if there's an invalid key in path.
-    */
+   * Some(all keys in this path) or None if there's an invalid key in path.
+   */
   def allKeys: Option[List[HKey]] = {
     def allKeysIn(path: HPath, acc: List[HKey]): Option[List[HKey]] =
       path.validKey.flatMap(key => path.prefix
@@ -338,10 +342,10 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HInnerElement 
   }
 
   /**
-    * If all keys are valid - all keys of this path.
-    * If some keys are invalid - all valid keys from left to right until some invalid key is encountered
-    * (i.e. longest valid prefix path)
-    */
+   * If all keys are valid - all keys of this path.
+   * If some keys are invalid - all valid keys from left to right until some invalid key is encountered
+   * (i.e. longest valid prefix path)
+   */
   def startingValidKeys: List[HKey] =
     allPaths.iterator.takeWhile(_.validKey.nonEmpty).flatMap(_.validKey).toList
 

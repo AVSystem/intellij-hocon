@@ -1,5 +1,6 @@
 package org.jetbrains.plugins.hocon.settings
 
+import com.github.ghik.silencer.silent
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components._
 import com.intellij.openapi.project.Project
@@ -14,6 +15,7 @@ import scala.beans.BeanProperty
     new Storage("hocon_settings.xml")
   )
 )
+@silent("deprecated")
 class HoconProjectSettings extends PersistentStateComponent[HoconProjectSettings] with ExportableComponent {
   def getState: HoconProjectSettings = this
 
