@@ -23,6 +23,8 @@ lazy val hocon = project.in(file(".")).settings(
     "-Xfatal-warnings",
     "-P:silencer:checkUnused",
   ),
+  ideOutputDirectory in Compile := Some(file("out/production")),
+  ideOutputDirectory in Test := Some(file("out/test")),
   ideaInternalPlugins := Seq("properties", "java"),
   libraryDependencies ++= Seq(
     "com.novocode" % "junit-interface" % junitInterfaceVersion % Test,
