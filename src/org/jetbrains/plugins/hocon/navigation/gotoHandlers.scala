@@ -13,9 +13,9 @@ class HoconGotoDeclarationHandler extends GotoDeclarationHandler {
   def getGotoDeclarationTargets(sourceElement: PsiElement, offset: Int, editor: Editor): Array[PsiElement] =
     sourceElement.parentOfType[HPath].fold(PsiElement.EMPTY_ARRAY) { path =>
       val resolved =
-        path.resolveAsSelfReference orElse
+        path.resolveAsSelfReference(followIncludes = true) orElse
           path.allValidKeys.flatMap(keys =>
-            path.getContainingFile.toplevelEntries.occurrences(keys, reverse = true).nextOption)
+            path.getContainingFile.toplevelEntries.occurrences(keys, reverse = true, followIncludes = true).nextOption)
       resolved.toArray[PsiElement]
     }
 }
@@ -24,7 +24,7 @@ class HoconGotoSuperHandler extends CodeInsightActionHandler {
   def invoke(project: Project, editor: Editor, file: PsiFile): Unit = for {
     elemAtOffset <- file.findElementAt(editor.getCaretModel.getOffset).opt
     fieldAtOffset <- elemAtOffset.parentOfType[HKeyedField]
-    prevOccurrence <- fieldAtOffset.moreOccurrences(reverse = true).nextOption
+    prevOccurrence <- fieldAtOffset.moreOccurrences(reverse = true, followIncludes = true).nextOption
     containingFile <- prevOccurrence.getContainingFile.opt.flatMap(_.getVirtualFile.opt)
   } {
     val desc = PsiNavigationSupport.getInstance.createNavigatable(

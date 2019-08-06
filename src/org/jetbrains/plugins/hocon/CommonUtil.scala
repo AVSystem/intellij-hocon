@@ -112,6 +112,9 @@ object CommonUtil {
 
     def collectOnly[T: ClassTag]: Iterator[T] =
       it.collect { case t: T => t }
+
+    def flatCollect[B](f: PartialFunction[A, TraversableOnce[B]]): Iterator[B] =
+      it.flatMap(a => f.applyOrElse(a, (_: A) => Iterator.empty))
   }
 
   private val quotedCharPattern = "\\\\[\\\\\"/bfnrt]".r
