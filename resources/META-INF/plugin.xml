@@ -61,5 +61,8 @@
         <enterHandlerDelegate implementation="org.jetbrains.plugins.hocon.editor.HoconEnterBetweenBracesHandler"/>
         <joinLinesHandler implementation="org.jetbrains.plugins.hocon.editor.HoconCommentJoinLinesHandler"/>
         <statementUpDownMover implementation="org.jetbrains.plugins.hocon.editor.HoconObjectEntryMover"/>
+        <gotoDeclarationHandler implementation="org.jetbrains.plugins.hocon.navigation.HoconGotoDeclarationHandler"/>
+        <codeInsight.gotoSuper language="HOCON"
+                               implementationClass="org.jetbrains.plugins.hocon.navigation.HoconGotoSuperHandler"/>
     </extensions>
 </idea-plugin>

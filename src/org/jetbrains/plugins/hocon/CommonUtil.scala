@@ -6,12 +6,14 @@ import java.{lang => jl, util => ju}
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.tree.{IElementType, TokenSet}
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.{PsiElement, PsiWhiteSpace}
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType
+import org.jetbrains.plugins.hocon.psi.HoconPsiElement
 
 import scala.collection.GenTraversableOnce
 import scala.language.implicitConversions
-import scala.reflect.ClassTag
+import scala.reflect.{ClassTag, classTag}
 
 object CommonUtil {
 
@@ -72,13 +74,28 @@ object CommonUtil {
       node.getFirstChildNode != null && node.getFirstChildNode.getTreeNext == null
   }
 
+  implicit class PsiElementOps(private val elem: PsiElement) extends AnyVal {
+    def parentOfType[T <: HoconPsiElement : ClassTag]: Option[T] =
+      Option(PsiTreeUtil.getParentOfType(elem, classTag[T].runtimeClass.asInstanceOf[Class[T]]))
+  }
+
   implicit class StringOps(private val str: String) extends AnyVal {
     def indent(ind: String): String =
       ind + str.replaceAllLiterally("\n", "\n" + ind)
   }
 
-  implicit class any2opt[T](private val t: T) extends AnyVal {
-    def opt = Option(t)
+  implicit class universalOps[T](private val t: T) extends AnyVal {
+    def opt: Option[T] = Option(t)
+
+    def typedOpt[U: ClassTag]: Option[U] = t match {
+      case u: U => Some(u)
+      case _ => None
+    }
+
+    def debug(msg: T => String): T = {
+      println(msg(t))
+      t
+    }
   }
 
   implicit class collectionOps[A](private val coll: GenTraversableOnce[A]) extends AnyVal {
