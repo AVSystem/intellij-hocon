@@ -37,7 +37,8 @@ class HoconHighlightKeyUsagesHandler(editor: Editor, psiFile: PsiFile, hkey: HKe
 
     val foundKeys = targets.iterator.asScala.flatMap(_.fullValidContainingPath).flatMap {
       case (enclosingEntries, allKeys) =>
-        val fromFields = enclosingEntries.occurrences(allKeys, reverse = false, followIncludes = false).flatMap(_.key)
+        val resCtx = ResolutionCtx(enclosingEntries.getContainingFile, followIncludes = false)
+        val fromFields = enclosingEntries.occurrences(allKeys, reverse = false, resCtx).flatMap(_.key)
 
         @tailrec def fromPath(keys: List[String], pathKeys: List[HKey]): Option[HKey] =
           (keys, pathKeys) match {
@@ -62,12 +63,6 @@ class HoconHighlightKeyUsagesHandler(editor: Editor, psiFile: PsiFile, hkey: HKe
         case _: HPath => myReadUsages
       }
       usages.add(key.getTextRange)
-    }
-
-    // don't highlight if there is only one occurrence
-    if (myReadUsages.size + myWriteUsages.size == 1) {
-      myReadUsages.clear()
-      myWriteUsages.clear()
     }
   }
 
