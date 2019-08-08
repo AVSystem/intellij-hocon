@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.includes
+package org.jetbrains.plugins.hocon
+package includes
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project

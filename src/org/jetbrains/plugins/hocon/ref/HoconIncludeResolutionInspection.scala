@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.ref
+package org.jetbrains.plugins.hocon
+package ref
 
 import com.intellij.codeInspection.{LocalInspectionTool, ProblemHighlightType, ProblemsHolder}
 import com.intellij.psi.{PsiElement, PsiElementVisitor}

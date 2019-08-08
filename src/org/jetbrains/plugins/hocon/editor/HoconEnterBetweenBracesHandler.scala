@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.editor
+package org.jetbrains.plugins.hocon
+package editor
 
 import com.github.ghik.silencer.silent
 import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegate.Result

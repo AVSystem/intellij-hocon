@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.psi
+package org.jetbrains.plugins.hocon
+package psi
 
 import com.intellij.psi.{PsiFileFactory, PsiManager}
 import org.jetbrains.plugins.hocon.lang.HoconFileType

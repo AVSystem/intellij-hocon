@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.manipulators
+package org.jetbrains.plugins.hocon
+package manipulators
 
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.text.StringUtil

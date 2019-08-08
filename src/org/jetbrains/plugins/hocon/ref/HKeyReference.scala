@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.ref
+package org.jetbrains.plugins.hocon
+package ref
 
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.{ElementManipulators, PsiElement, PsiReference}

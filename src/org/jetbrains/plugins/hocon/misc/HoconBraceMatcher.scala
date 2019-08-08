@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.misc
+package org.jetbrains.plugins.hocon
+package misc
 
 import com.intellij.lang.{BracePair, PairedBraceMatcher}
 import com.intellij.psi.PsiFile
@@ -6,11 +7,10 @@ import com.intellij.psi.tree.IElementType
 
 class HoconBraceMatcher extends PairedBraceMatcher {
 
-  import org.jetbrains.plugins.hocon.CommonUtil._
   import org.jetbrains.plugins.hocon.lexer.HoconTokenSets._
   import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
 
-  def getPairs = Array(
+  def getPairs: Array[BracePair] = Array(
     new BracePair(LBrace, RBrace, true),
     new BracePair(LBracket, RBracket, false),
     new BracePair(SubLBrace, SubRBrace, false)

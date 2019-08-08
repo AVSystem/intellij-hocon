@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.editor
+package org.jetbrains.plugins.hocon
+package editor
 
 import com.intellij.codeInsight.editorActions.moveUpDown.StatementUpDownMover.MoveInfo
 import com.intellij.codeInsight.editorActions.moveUpDown.{LineMover, LineRange}

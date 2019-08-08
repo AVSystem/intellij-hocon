@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.highlight
+package org.jetbrains.plugins.hocon
+package highlight
 
 import com.intellij.lexer.{LayeredLexer, StringLiteralLexer}
 import com.intellij.openapi.editor.colors.TextAttributesKey

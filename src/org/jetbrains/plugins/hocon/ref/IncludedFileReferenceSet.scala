@@ -1,13 +1,13 @@
-package org.jetbrains.plugins.hocon.ref
+package org.jetbrains.plugins.hocon
+package ref
 
-import java.{lang => jl, util => ju}
+import java.{util => ju}
 
 import com.intellij.openapi.roots._
 import com.intellij.openapi.roots.impl.DirectoryIndex
 import com.intellij.openapi.util.{Condition, TextRange}
 import com.intellij.psi._
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.{FileReference, FileReferenceSet}
-import org.jetbrains.plugins.hocon.CommonUtil._
 import org.jetbrains.plugins.hocon.HoconConstants._
 
 import scala.collection.JavaConverters._
@@ -51,10 +51,8 @@ class IncludedFileReferenceSet(text: String, element: PsiElement, forcedAbsolute
     new IncludedFileReference(this, range, index, text)
 
   override def getReferenceCompletionFilter: Condition[PsiFileSystemItem] =
-    new Condition[PsiFileSystemItem] {
-      def value(item: PsiFileSystemItem): Boolean = item.isDirectory ||
-        item.getName.endsWith(ConfExt) || item.getName.endsWith(JsonExt) || item.getName.endsWith(PropsExt)
-    }
+    (item: PsiFileSystemItem) => item.isDirectory ||
+      item.getName.endsWith(ConfExt) || item.getName.endsWith(JsonExt) || item.getName.endsWith(PropsExt)
 
   // code mostly based on similar bits in `FileReferenceSet` and `PsiFileReferenceHelper`
   override def computeDefaultContexts: ju.Collection[PsiFileSystemItem] = {
@@ -122,7 +120,7 @@ class IncludedFileReferenceSet(text: String, element: PsiElement, forcedAbsolute
 }
 
 object IncludedFileReference {
-  val ResolveResultOrdering = Ordering.by { rr: ResolveResult =>
+  final val ResolveResultOrdering = Ordering.by { rr: ResolveResult =>
     rr.getElement match {
       case file: PsiFile =>
         val name = file.getName
@@ -155,7 +153,7 @@ class IncludedFileReference(refSet: FileReferenceSet, range: TextRange, index: I
   override def innerResolveInContext(text: String, context: PsiFileSystemItem, result: ju.Collection[ResolveResult],
                                      caseSensitive: Boolean): Unit =
     if (lacksExtension(text)) {
-      def resolveWithExt(ext: String) =
+      def resolveWithExt(ext: String): Unit =
         super.innerResolveInContext(text + ext, context, result, caseSensitive)
 
       resolveWithExt(ConfExt)

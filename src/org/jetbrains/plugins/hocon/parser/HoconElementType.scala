@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.parser
+package org.jetbrains.plugins.hocon
+package parser
 
 import com.intellij.psi.tree.{IElementType, IFileElementType}
 import org.jetbrains.plugins.hocon.lang.HoconLanguage

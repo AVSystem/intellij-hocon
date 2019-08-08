@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.formatting
+package org.jetbrains.plugins.hocon
+package formatting
 
 import java.util
 
@@ -14,8 +15,6 @@ import scala.collection.JavaConverters._
 
 class HoconBlock(formatter: HoconFormatter, node: ASTNode, indent: Indent, wrap: Wrap, alignment: Alignment)
   extends AbstractBlock(node, wrap, alignment) {
-
-  import org.jetbrains.plugins.hocon.CommonUtil._
 
   // HoconFormatter needs these to be able to return exactly the same instances of Wrap and Alignment for
   // children of this block

@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.psi
+package org.jetbrains.plugins.hocon
+package psi
 
 case class OpenInclude(
   include: HInclude,

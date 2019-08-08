@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.lexer
+package org.jetbrains.plugins.hocon
+package lexer
 
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType

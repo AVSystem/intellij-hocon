@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.editor
+package org.jetbrains.plugins.hocon
+package editor
 
 import com.intellij.lang.CodeDocumentationAwareCommenter
 import com.intellij.psi.PsiComment

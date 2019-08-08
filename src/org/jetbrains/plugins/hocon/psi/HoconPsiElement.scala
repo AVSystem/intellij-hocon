@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.psi
+package org.jetbrains.plugins.hocon
+package psi
 
 import java.{lang => jl}
 
@@ -11,8 +12,6 @@ import com.intellij.psi._
 import com.intellij.psi.impl.source.PsiFileImpl
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReference
 import com.intellij.psi.tree.IElementType
-import org.jetbrains.plugins.hocon.CommonUtil._
-import org.jetbrains.plugins.hocon.HoconConstants
 import org.jetbrains.plugins.hocon.HoconConstants._
 import org.jetbrains.plugins.hocon.lang.HoconFileType
 import org.jetbrains.plugins.hocon.lexer.{HoconTokenSets, HoconTokenType}
@@ -87,7 +86,7 @@ sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement
   def getChild[T >: Null : ClassTag]: T =
     findChildByClass(classTag[T].runtimeClass.asInstanceOf[Class[T]])
 
-  def findChild[T >: Null : ClassTag] =
+  def findChild[T >: Null : ClassTag]: Option[T] =
     Option(getChild[T])
 
   def findLastChild[T >: Null : ClassTag]: Option[PsiElement with T] =
@@ -104,13 +103,13 @@ sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement
       c => if (reverse) c.getPrevSibling else c.getNextSibling
     ).takeWhile(_ != null)
 
-  def prevSibling =
+  def prevSibling: Option[PsiElement] =
     Option(getPrevSibling)
 
   def prevSiblings: Iterator[PsiElement] =
     Iterator.iterate(getPrevSibling)(_.getPrevSibling).takeWhile(_ != null)
 
-  def nextSibling =
+  def nextSibling: Option[PsiElement] =
     Option(getNextSibling)
 
   def nextSiblings: Iterator[PsiElement] =

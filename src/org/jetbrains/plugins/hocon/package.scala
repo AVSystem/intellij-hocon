@@ -1,4 +1,4 @@
-package org.jetbrains.plugins.hocon
+package org.jetbrains.plugins
 
 import java.net.{MalformedURLException, URL}
 import java.{lang => jl, util => ju}
@@ -15,8 +15,7 @@ import scala.collection.GenTraversableOnce
 import scala.language.implicitConversions
 import scala.reflect.{ClassTag, classTag}
 
-object CommonUtil {
-
+package object hocon {
   def notWhiteSpaceSibling(element: PsiElement)
     (sibling: PsiElement => PsiElement): PsiElement = {
     var result = sibling(element)
@@ -117,8 +116,8 @@ object CommonUtil {
       it.flatMap(a => f.applyOrElse(a, (_: A) => Iterator.empty))
   }
 
-  private val quotedCharPattern = "\\\\[\\\\\"/bfnrt]".r
-  private val quotedUnicodePattern = "\\\\u([0-9A-Fa-f]{4})".r
+  private final val quotedCharPattern = "\\\\[\\\\\"/bfnrt]".r
+  private final val quotedUnicodePattern = "\\\\u([0-9A-Fa-f]{4})".r
 
   def unquote(str: String): String = {
     var result = str.stripPrefix("\"").stripSuffix("\"")
@@ -139,7 +138,7 @@ object CommonUtil {
     str.replace('_', ' ').toLowerCase
 
   object TextRange {
-    def unapply(textRange: TextRange) =
+    def unapply(textRange: TextRange): Some[(Int, Int)] =
       Some((textRange.getStartOffset, textRange.getEndOffset))
 
     def apply(start: Int, end: Int): TextRange =

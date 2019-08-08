@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.misc
+package org.jetbrains.plugins.hocon
+package misc
 
 import com.intellij.psi.PsiElement
 import com.intellij.ui.breadcrumbs.BreadcrumbsProvider

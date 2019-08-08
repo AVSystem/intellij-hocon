@@ -1,8 +1,8 @@
-package org.jetbrains.plugins.hocon.lexer
+package org.jetbrains.plugins.hocon
+package lexer
 
 import com.intellij.lexer.LexerBase
 import com.intellij.psi.tree.IElementType
-import org.jetbrains.plugins.hocon.HoconConstants
 
 import scala.annotation.tailrec
 import scala.util.matching.Regex
@@ -27,7 +27,6 @@ object HoconLexer {
 
 class HoconLexer extends LexerBase {
 
-  import org.jetbrains.plugins.hocon.CommonUtil._
   import org.jetbrains.plugins.hocon.lexer.HoconLexer._
   import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
 

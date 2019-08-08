@@ -1,11 +1,11 @@
-package org.jetbrains.plugins.hocon.highlight
+package org.jetbrains.plugins.hocon
+package highlight
 
 import com.intellij.lang.annotation.{AnnotationHolder, Annotator}
 import com.intellij.psi.PsiElement
 
 class HoconSyntaxHighlightingAnnotator extends Annotator {
 
-  import org.jetbrains.plugins.hocon.CommonUtil._
   import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
   import org.jetbrains.plugins.hocon.parser.HoconElementSets._
   import org.jetbrains.plugins.hocon.parser.HoconElementType._

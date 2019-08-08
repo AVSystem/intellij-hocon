@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.parser
+package org.jetbrains.plugins.hocon
+package parser
 
 import java.net.{MalformedURLException, URL}
 import java.{util => ju}
@@ -7,8 +8,6 @@ import com.intellij.lang.PsiBuilder.Marker
 import com.intellij.lang.WhitespacesAndCommentsBinder.TokenTextGetter
 import com.intellij.lang._
 import com.intellij.psi.tree.IElementType
-import org.jetbrains.plugins.hocon.CommonUtil._
-import org.jetbrains.plugins.hocon.HoconConstants
 import org.jetbrains.plugins.hocon.lexer.HoconTokenSets._
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
 import org.jetbrains.plugins.hocon.parser.HoconElementType._

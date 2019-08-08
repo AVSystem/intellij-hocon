@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.parser
+package org.jetbrains.plugins.hocon
+package parser
 
 import com.intellij.lang.ASTNode
 import com.intellij.lang.annotation.{AnnotationHolder, Annotator}
@@ -10,7 +11,6 @@ import scala.annotation.tailrec
 
 class HoconErrorHighlightingAnnotator extends Annotator {
 
-  import org.jetbrains.plugins.hocon.CommonUtil._
   import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
   import org.jetbrains.plugins.hocon.parser.HoconElementType._
 

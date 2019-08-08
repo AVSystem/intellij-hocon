@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.formatting
+package org.jetbrains.plugins.hocon
+package formatting
 
 import com.intellij.formatting.{Alignment, Indent, Spacing, Wrap}
 import com.intellij.lang.ASTNode
@@ -9,7 +10,6 @@ import org.jetbrains.plugins.hocon.lang.HoconLanguage
 
 class HoconFormatter(settings: CodeStyleSettings) {
 
-  import org.jetbrains.plugins.hocon.CommonUtil._
   import org.jetbrains.plugins.hocon.lexer.HoconTokenSets._
   import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
   import org.jetbrains.plugins.hocon.parser.HoconElementSets._

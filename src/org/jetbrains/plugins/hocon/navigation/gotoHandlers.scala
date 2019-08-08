@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.navigation
+package org.jetbrains.plugins.hocon
+package navigation
 
 import com.intellij.codeInsight.CodeInsightActionHandler
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
@@ -6,8 +7,9 @@ import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.{PsiElement, PsiFile}
-import org.jetbrains.plugins.hocon.CommonUtil._
 import org.jetbrains.plugins.hocon.psi.{HKeyedField, HPath, ResolutionCtx}
+
+import scala.annotation.tailrec
 
 class HoconGotoDeclarationHandler extends GotoDeclarationHandler {
   def getGotoDeclarationTargets(sourceElement: PsiElement, offset: Int, editor: Editor): Array[PsiElement] = {
@@ -18,7 +20,9 @@ class HoconGotoDeclarationHandler extends GotoDeclarationHandler {
         keyedField <- fullPath.resolve(reverse = true, resCtx).nextOption
       } yield (fullPath, keyedField)
 
-      def gotoPrefix(res: Option[(HPath, HKeyedField)]): Option[HKeyedField] = res match {
+      // when resolving a prefix in a substitution (e.g. the path `a.b` in substitution `${a.b.c}`) then
+      // actually resolve the full path (`a.b.c`) and simply navigate up
+      @tailrec def gotoPrefix(res: Option[(HPath, HKeyedField)]): Option[HKeyedField] = res match {
         case Some((`path`, field)) => Some(field)
         case Some((subpath, field)) =>
           gotoPrefix(for (pref <- subpath.prefix; prefField <- field.prefixingField) yield (pref, prefField))

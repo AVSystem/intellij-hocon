@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.formatting
+package org.jetbrains.plugins.hocon
+package formatting
 
 import com.intellij.formatting.FormattingModelBuilder
 import com.intellij.lang.ASTNode

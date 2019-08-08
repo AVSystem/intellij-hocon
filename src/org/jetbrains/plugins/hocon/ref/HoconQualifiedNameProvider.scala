@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.ref
+package org.jetbrains.plugins.hocon
+package ref
 
 import com.intellij.ide.actions.QualifiedNameProvider
 import com.intellij.openapi.editor.{Editor, EditorModificationUtil}

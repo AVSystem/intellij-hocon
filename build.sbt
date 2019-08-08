@@ -22,6 +22,7 @@ lazy val hocon = project.in(file(".")).settings(
     "-Xfatal-warnings",
     "-P:silencer:checkUnused",
   ),
+  ideBasePackages := Seq("org.jetbrains.plugins.hocon"),
   ideOutputDirectory in Compile := Some(file("out/production")),
   ideOutputDirectory in Test := Some(file("out/test")),
   ideaInternalPlugins := Seq("properties", "java"),

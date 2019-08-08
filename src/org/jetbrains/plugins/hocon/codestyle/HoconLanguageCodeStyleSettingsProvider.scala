@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.codestyle
+package org.jetbrains.plugins.hocon
+package codestyle
 
 import com.intellij.application.options.SmartIndentOptionsEditor
 import com.intellij.lang.Language

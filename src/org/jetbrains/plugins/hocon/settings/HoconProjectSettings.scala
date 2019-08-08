@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.settings
+package org.jetbrains.plugins.hocon
+package settings
 
 import com.github.ghik.silencer.silent
 import com.intellij.openapi.application.PathManager

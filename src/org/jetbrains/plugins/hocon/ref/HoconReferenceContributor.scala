@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.ref
+package org.jetbrains.plugins.hocon
+package ref
 
 import com.intellij.patterns.{PlatformPatterns, PsiElementPattern}
 import com.intellij.psi.{PsiReferenceContributor, PsiReferenceRegistrar}

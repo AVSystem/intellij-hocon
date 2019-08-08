@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.editor
+package org.jetbrains.plugins.hocon
+package editor
 
 import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegate.Result
 import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegateAdapter
@@ -9,7 +10,6 @@ import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.{PsiDocumentManager, PsiElement, PsiFile}
 import com.intellij.util.text.CharArrayUtil
-import org.jetbrains.plugins.hocon.CommonUtil.notWhiteSpaceSibling
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType
 import org.jetbrains.plugins.hocon.psi.HoconPsiFile
 

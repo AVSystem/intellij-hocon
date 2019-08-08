@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.lexer
+package org.jetbrains.plugins.hocon
+package lexer
 
 import com.intellij.psi.tree.TokenSet
 
@@ -6,7 +7,6 @@ import scala.language.implicitConversions
 
 object HoconTokenSets {
 
-  import org.jetbrains.plugins.hocon.CommonUtil._
   import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
 
   final val Empty = TokenSet.EMPTY

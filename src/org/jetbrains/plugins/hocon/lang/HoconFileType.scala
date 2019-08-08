@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.lang
+package org.jetbrains.plugins.hocon
+package lang
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.fileTypes.LanguageFileType

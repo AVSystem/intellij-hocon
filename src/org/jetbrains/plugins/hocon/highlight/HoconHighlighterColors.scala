@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.highlight
+package org.jetbrains.plugins.hocon
+package highlight
 
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.{HighlighterColors, DefaultLanguageHighlighterColors => DLHC}

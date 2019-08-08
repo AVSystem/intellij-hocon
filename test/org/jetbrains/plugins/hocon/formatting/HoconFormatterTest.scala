@@ -4,7 +4,6 @@ package formatting
 import com.intellij.application.options.CodeStyle
 import com.intellij.openapi.util.JDOMUtil
 import com.intellij.psi.codeStyle.CodeStyleManager
-import org.jetbrains.plugins.hocon.CommonUtil.TextRange
 import org.junit.runner.RunWith
 import org.junit.runners.AllTests
 

@@ -1,4 +1,5 @@
-package org.jetbrains.plugins.hocon.lang
+package org.jetbrains.plugins.hocon
+package lang
 
 import com.github.ghik.silencer.silent
 import com.intellij.openapi.fileTypes.{FileTypeConsumer, FileTypeFactory}
