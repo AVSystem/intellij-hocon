@@ -150,18 +150,17 @@ final class HObjectEntries(ast: ASTNode) extends HoconPsiElement(ast) {
 
   def entries: Iterator[HObjectEntry] = findChildren[HObjectEntry]
 
-  def occurrences(key: String, reverse: Boolean, resCtx: ResolutionCtx): Iterator[HObjectField] =
+  def occurrences(key: String, reverse: Boolean, resCtx: ResolutionCtx): Iterator[ResolvedField] =
     findChildren[HObjectEntry](reverse).flatMap(_.occurrences(key, reverse, resCtx))
 
-  def occurrences(path: List[String], reverse: Boolean, resCtx: ResolutionCtx): Iterator[HKeyedField] =
-    path match {
-      case firstKey :: restOfKeys =>
-        val occurrencesOfFirst = occurrences(firstKey, reverse, resCtx).map(_.keyedField)
-        restOfKeys.foldLeft(occurrencesOfFirst) { (occ, key) =>
-          occ.flatMap(_.subOccurrences(key, reverse, resCtx))
-        }
-      case Nil => Iterator.empty
-    }
+  def occurrences(path: List[String], reverse: Boolean, resCtx: ResolutionCtx): Iterator[ResolvedField] = path match {
+    case Nil => Iterator.empty
+    case firstKey :: restOfKeys =>
+      val occurrencesOfFirst = occurrences(firstKey, reverse, resCtx)
+      restOfKeys.foldLeft(occurrencesOfFirst) { (occ, key) =>
+        occ.flatMap(_.subOccurrences(key, reverse))
+      }
+  }
 }
 
 sealed trait HObjectEntry extends HoconPsiElement {
@@ -173,7 +172,7 @@ sealed trait HObjectEntry extends HoconPsiElement {
 
   def nextEntry: Option[HObjectEntry] = nextSiblings.collectFirst({ case e: HObjectEntry => e })
 
-  def occurrences(key: String, reverse: Boolean, resCtx: ResolutionCtx): Iterator[HObjectField]
+  def occurrences(key: String, reverse: Boolean, resCtx: ResolutionCtx): Iterator[ResolvedField]
 }
 
 final class HObjectField(ast: ASTNode) extends HoconPsiElement(ast) with HObjectEntry with HKeyedFieldParent {
@@ -191,8 +190,10 @@ final class HObjectField(ast: ASTNode) extends HoconPsiElement(ast) with HObject
   def nextEntries: Iterator[HObjectEntry] =
     nextSiblings.collectOnly[HObjectEntry]
 
-  def occurrences(key: String, reverse: Boolean, resCtx: ResolutionCtx): Iterator[HObjectField] =
-    if (keyedField.hasKeyValue(key)) Iterator(this) else Iterator.empty
+  def occurrences(key: String, reverse: Boolean, resCtx: ResolutionCtx): Iterator[ResolvedField] =
+    if (keyedField.hasKeyValue(key))
+      Iterator(ResolvedField(keyedField, resCtx))
+    else Iterator.empty
 
   // there may be bound comments and text offset should be at the beginning of path
   override def getTextOffset: Int = keyedField.getTextOffset
@@ -215,20 +216,11 @@ sealed trait HKeyedField extends HoconPsiElement with HKeyedFieldParent with HKe
       case (k1, k2) => k1.stringValue == k2.stringValue
     }
 
-  def subOccurrences(key: String, reverse: Boolean, resCtx: ResolutionCtx): Iterator[HKeyedField] = this match {
-    case pf: HPrefixedField =>
-      Iterator(pf.subField).filter(_.hasKeyValue(key))
-    case vf: HValuedField =>
-      vf.subScopeValue.fold[Iterator[HKeyedField]](Iterator.empty) { hvalue =>
-        hvalue.occurrences(key, reverse, resCtx).map(_.keyedField)
-      }
-  }
-
-  def moreOccurrences(reverse: Boolean, resCtx: ResolutionCtx): Iterator[HKeyedField] =
-    validKey.map(_.stringValue).fold[Iterator[HKeyedField]](Iterator.empty) { key =>
-      def byParentField(parentField: HKeyedField): Iterator[HKeyedField] =
+  def moreOccurrences(reverse: Boolean, resCtx: ResolutionCtx): Iterator[ResolvedField] =
+    validKey.map(_.stringValue).fold[Iterator[ResolvedField]](Iterator.empty) { key =>
+      def byParentField(parentField: HKeyedField): Iterator[ResolvedField] =
         parentField.moreOccurrences(reverse, resCtx)
-          .flatMap(_.subOccurrences(key, reverse, resCtx))
+          .flatMap(_.subOccurrences(key, reverse))
 
       parent match {
         case keyedField: HKeyedField =>
@@ -237,10 +229,10 @@ sealed trait HKeyedField extends HoconPsiElement with HKeyedFieldParent with HKe
         case objectField: HObjectField =>
           def withinEntries =
             (if (reverse) objectField.prevEntries else objectField.nextEntries)
-              .flatMap(_.occurrences(key, reverse, resCtx)).map(_.keyedField)
+              .flatMap(_.occurrences(key, reverse, resCtx))
 
           def fromConcatenated = objectField.containingObject
-            .map(_.moreConcatenated(reverse).flatMap(_.occurrences(key, reverse, resCtx)).map(_.keyedField))
+            .map(_.moreConcatenated(reverse).flatMap(_.occurrences(key, reverse, resCtx)))
             .getOrElse(Iterator.empty)
 
           def fromEnclosing =
@@ -334,18 +326,16 @@ final class HInclude(ast: ASTNode) extends HoconPsiElement(ast) with HObjectEntr
     allChildren.find(_.getNode.getElementType == HoconTokenType.UnquotedChars)
       .map(_.getTextOffset).getOrElse(super.getTextOffset)
 
-  def occurrences(key: String, reverse: Boolean, resCtx: ResolutionCtx): Iterator[HObjectField] =
-    if (!resCtx.followIncludes || resCtx.openIncludes.exists(_.include == this)) // cut circular includes
-      Iterator.empty
-    else included.qualified.flatMap(_.fileReferenceSet)
-      .fold[Iterator[HObjectField]](Iterator.empty) { refset =>
-        refset.getAllReferences.iterator.map(_.resolve()).flatCollect {
-          //TODO: search also .json and .properties files
-          case hf: HoconPsiFile =>
-            val newCtx = resCtx.withInclude(OpenInclude(this, hf))
-            hf.toplevelEntries.occurrences(key, reverse, newCtx)
-        }
+  def occurrences(key: String, reverse: Boolean, resCtx: ResolutionCtx): Iterator[ResolvedField] =
+    if (!resCtx.toplevelCtx.directOnly) Iterator.empty
+    else included.qualified.flatMap(_.fileReferenceSet).fold[Iterator[ResolvedField]](Iterator.empty) { refset =>
+      //TODO: search also .json and .properties files
+      val allFiles = refset.getAllReferences.iterator.map(_.resolve()).collectOnly[HoconPsiFile].toList
+      allFiles.iterator.flatMap { hf =>
+        if (resCtx.isAlreadyIn(hf)) Iterator.empty
+        else hf.toplevelEntries.occurrences(key, reverse, IncludeCtx(this, hf, allFiles, resCtx))
       }
+    }
 }
 
 final class HIncluded(ast: ASTNode) extends HoconPsiElement(ast) {
@@ -432,20 +422,6 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
     case sub: HSubstitution => sub
   }
 
-  def resolve(reverse: Boolean, resCtx: ResolutionCtx): Iterator[HKeyedField] =
-    selfReferencedField
-      .map(_.moreOccurrences(reverse, resCtx))
-      .orElse(allValidKeys.map { keys =>
-        val newCtx = resCtx.withSubstitution(this)
-        resCtx.fromFile.toplevelEntries.occurrences(keys, reverse, newCtx)
-      })
-      .getOrElse(Iterator.empty)
-
-  def selfReferencedField: Option[HKeyedField] = parent match {
-    case subpath: HPath => subpath.selfReferencedField.flatMap(_.prefixingField)
-    case subst: HSubstitution => subst.selfReferencedField
-  }
-
   def allPaths: List[HPath] = {
     @tailrec def allPathsIn(path: HPath, acc: List[HPath]): List[HPath] = path.prefix match {
       case Some(prePath) => allPathsIn(prePath, path :: acc)
@@ -497,13 +473,14 @@ sealed trait HValue extends HoconPsiElement {
   def moreConcatenated(reverse: Boolean): Iterator[HValue] =
     concatParent.map(_ => (if (reverse) prevSiblings else nextSiblings).collectOnly[HValue]).getOrElse(Iterator.empty)
 
-  def occurrences(key: String, reverse: Boolean, resCtx: ResolutionCtx): Iterator[HObjectField] = this match {
+  def occurrences(key: String, reverse: Boolean, resCtx: ResolutionCtx): Iterator[ResolvedField] = this match {
     case obj: HObject =>
       obj.entries.occurrences(key, reverse, resCtx)
     case conc: HConcatenation =>
       conc.findChildren[HValue](reverse).flatMap(_.occurrences(key, reverse, resCtx))
+    case subst: HSubstitution =>
+      subst.resolve(reverse, resCtx).flatMap(_.subOccurrences(key, reverse))
     case _ =>
-      // TODO: resolve substitutions
       Iterator.empty
   }
 }
@@ -529,6 +506,20 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
       (entries, fieldPath) <- pf.fullValidContainingPath
       if entries.isToplevel && refPath == fieldPath
     } yield pf
+
+  def resolve(reverse: Boolean, resCtx: ResolutionCtx): Iterator[ResolvedField] =
+    if (resCtx.toplevelCtx.directOnly) Iterator.empty
+    else path.fold[Iterator[ResolvedField]](Iterator.empty) { path =>
+      selfReferencedField
+        .map(_.moreOccurrences(reverse, resCtx))
+        .orElse(path.allValidKeys.map { keys =>
+          val toplevelCtx = resCtx.toplevelCtx
+          val newCtx = toplevelCtx.copy(forSubst = Some(AtSubstitution(resCtx, this)))
+          toplevelCtx.file.toplevelEntries.occurrences(keys, reverse, newCtx)
+            .map(_.copy(forSubst = Some(AtSubstitution(resCtx, this))))
+        })
+        .getOrElse(Iterator.empty)
+    }
 }
 
 final class HConcatenation(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HValueParent
