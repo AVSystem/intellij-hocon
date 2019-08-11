@@ -7,39 +7,51 @@ import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.{PsiElement, PsiFile}
-import org.jetbrains.plugins.hocon.psi.{HKeyedField, HPath, ResolvedField, ToplevelCtx}
+import org.jetbrains.plugins.hocon.psi._
 
 import scala.annotation.tailrec
 
 class HoconGotoDeclarationHandler extends GotoDeclarationHandler {
-  def getGotoDeclarationTargets(sourceElement: PsiElement, offset: Int, editor: Editor): Array[PsiElement] = {
+  def getGotoDeclarationTargets(sourceElement: PsiElement, offset: Int, editor: Editor): Array[PsiElement] =
     sourceElement.parentOfType[HPath].fold(PsiElement.EMPTY_ARRAY) { path =>
       val subst = path.substitution
-      val resCtx = ToplevelCtx(path.getContainingFile)
-      val fullPathResolved = for {
-        fullPath <- subst.path
-        resField <- subst.resolve(reverse = true, resCtx).nextOption
-      } yield (fullPath, resField)
+      val file = path.getContainingFile
+      val resCtx = ToplevelCtx(file, file.toplevelEntries)
+      val resField = subst.resolve(reverse = true, resCtx).nextOption
 
-      // when resolving a prefix in a substitution (e.g. the path `a.b` in substitution `${a.b.c}`) then
-      // actually resolve the full path (`a.b.c`) and simply navigate up
-      @tailrec def gotoPrefix(res: Option[(HPath, ResolvedField)]): Option[HKeyedField] = res match {
-        case Some((`path`, field)) => Some(field.field)
-        case Some((subpath, field)) =>
-          gotoPrefix(for (pref <- subpath.prefix; prefField <- field.previousField) yield (pref, prefField))
-        case _ => None
-      }
-      gotoPrefix(fullPathResolved).toArray[PsiElement]
+      @tailrec def gotoPrefix(rfOpt: Option[ResolvedField], subpath: HPath): Option[ResolvedField] =
+        if (subpath eq path) rfOpt
+        else (rfOpt, subpath.prefix) match {
+          case (Some(rf), Some(ppath)) => gotoPrefix(rf.prefixField, ppath)
+          case _ => None
+        }
+
+      subst.path.flatMap(fullPath => gotoPrefix(resField, fullPath))
+        .map(_.field).toArray[PsiElement]
     }
-  }
 }
 
 class HoconGotoSuperHandler extends CodeInsightActionHandler {
+  private def toplevelCtx(field: HKeyedField): ToplevelCtx = {
+    val file = field.getContainingFile
+    val entries = field.parent match {
+      case of: HObjectField => of.parent
+      case _ => file.toplevelEntries
+    }
+    ToplevelCtx(file, entries)
+  }
+
+  private def makeContextFor(field: HKeyedField): Option[ResolvedField] =
+    field.validKeyString.map { key =>
+      val parentCtx = field.prefixingField.flatMap(makeContextFor).getOrElse(toplevelCtx(field))
+      ResolvedField(key, field, parentCtx)
+    }
+
   def invoke(project: Project, editor: Editor, file: PsiFile): Unit = for {
     elemAtOffset <- file.findElementAt(editor.getCaretModel.getOffset).opt
     fieldAtOffset <- elemAtOffset.parentOfType[HKeyedField]
-    resCtx = ToplevelCtx(fieldAtOffset.getContainingFile)
-    prevOccurrence <- fieldAtOffset.moreOccurrences(reverse = true, resCtx).nextOption.map(_.field)
+    resField <- makeContextFor(fieldAtOffset)
+    prevOccurrence <- resField.moreOccurrences(reverse = true).nextOption.map(_.field)
     containingFile <- prevOccurrence.getContainingFile.opt.flatMap(_.getVirtualFile.opt)
   } {
     val desc = PsiNavigationSupport.getInstance.createNavigatable(

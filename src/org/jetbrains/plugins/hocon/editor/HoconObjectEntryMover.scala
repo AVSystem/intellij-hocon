@@ -75,7 +75,7 @@ class HoconObjectEntryMover extends LineMover {
     def canInsertBefore(entry: HObjectEntry) = {
       val lineStart = document.getLineStartOffset(startLine(entry))
       entry.parent.getTextRange.getStartOffset <= lineStart &&
-        entry.previousEntry.forall(_.getTextRange.getEndOffset < lineStart)
+        entry.prevEntry.forall(_.getTextRange.getEndOffset < lineStart)
     }
 
     def canInsertAfter(entry: HObjectEntry) = {
@@ -100,7 +100,7 @@ class HoconObjectEntryMover extends LineMover {
     def isByEdge(entry: HObjectEntry) =
       !entry.parent.isToplevel && {
         if (down) entry.nextEntry.forall(ne => startLine(ne) == endLine(entry.parent))
-        else entry.previousEntry.forall(pe => endLine(pe) == startLine(entry.parent))
+        else entry.prevEntry.forall(pe => endLine(pe) == startLine(entry.parent))
       }
 
     def keyString(keyedField: HKeyedField) =
@@ -117,7 +117,7 @@ class HoconObjectEntryMover extends LineMover {
 
     def adjacentMovableEntry(entry: HObjectEntry) =
       if (down) entry.nextEntry.filter(canInsertAfter)
-      else entry.previousEntry.filter(canInsertBefore)
+      else entry.prevEntry.filter(canInsertBefore)
 
     def fieldToAscendOutOf(field: HObjectField): Option[(HObjectField, List[String])] =
       if (isByEdge(field)) {
@@ -142,7 +142,7 @@ class HoconObjectEntryMover extends LineMover {
       }
 
     def adjacentEntry(entry: HObjectEntry) =
-      if (down) entry.nextEntry else entry.previousEntry
+      if (down) entry.nextEntry else entry.prevEntry
 
     def fieldToDescendInto(field: HObjectField): Option[(HObjectField, List[String])] =
       for {
