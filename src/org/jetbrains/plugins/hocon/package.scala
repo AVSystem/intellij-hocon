@@ -116,6 +116,8 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
 
   implicit class OptionOps[A](private val option: Option[A]) extends AnyVal {
     def collectOnly[T: ClassTag]: Option[T] = option.collect { case t: T => t }
+
+    def nullOr[T >: Null](f: A => T): T = option.fold(null: T)(f)
   }
 
   implicit class collectionOps[A](private val coll: GenTraversableOnce[A]) extends AnyVal {
