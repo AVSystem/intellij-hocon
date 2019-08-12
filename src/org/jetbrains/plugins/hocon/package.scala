@@ -12,10 +12,11 @@ import org.jetbrains.plugins.hocon.lexer.HoconTokenType
 import org.jetbrains.plugins.hocon.psi.HoconPsiElement
 
 import scala.collection.GenTraversableOnce
+import scala.collection.convert.{DecorateAsJava, DecorateAsScala}
 import scala.language.implicitConversions
 import scala.reflect.{ClassTag, classTag}
 
-package object hocon {
+package object hocon extends DecorateAsJava with DecorateAsScala {
   def notWhiteSpaceSibling(element: PsiElement)
     (sibling: PsiElement => PsiElement): PsiElement = {
     var result = sibling(element)

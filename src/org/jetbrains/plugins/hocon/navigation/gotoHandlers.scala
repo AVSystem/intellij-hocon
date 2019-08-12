@@ -16,7 +16,7 @@ class HoconGotoDeclarationHandler extends GotoDeclarationHandler {
     sourceElement.parentOfType[HPath].fold(PsiElement.EMPTY_ARRAY) { path =>
       val subst = path.substitution
       val file = path.getContainingFile
-      val resCtx = ToplevelCtx(file, file.toplevelEntries)
+      val resCtx = ToplevelCtx(file, file.toplevelEntries, ToplevelCtx.referenceFilesFor(file))
       val resField = subst.resolve(reverse = true, resCtx).nextOption
 
       @tailrec def gotoPrefix(rfOpt: Option[ResolvedField], subpath: HPath): Option[ResolvedField] =
@@ -38,7 +38,7 @@ class HoconGotoSuperHandler extends CodeInsightActionHandler {
       case of: HObjectField => of.parent
       case _ => file.toplevelEntries
     }
-    ToplevelCtx(file, entries)
+    ToplevelCtx(file, entries, ToplevelCtx.referenceFilesFor(file))
   }
 
   private def makeContextFor(field: HKeyedField): Option[ResolvedField] =

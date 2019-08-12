@@ -10,9 +10,6 @@ import com.intellij.psi.formatter.common.AbstractBlock
 import org.jetbrains.plugins.hocon.lexer.HoconTokenSets
 import org.jetbrains.plugins.hocon.parser.HoconElementType
 
-import scala.collection.JavaConverters._
-
-
 class HoconBlock(formatter: HoconFormatter, node: ASTNode, indent: Indent, wrap: Wrap, alignment: Alignment)
   extends AbstractBlock(node, wrap, alignment) {
 

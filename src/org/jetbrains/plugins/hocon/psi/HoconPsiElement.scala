@@ -303,13 +303,8 @@ final class HInclude(ast: ASTNode) extends HoconPsiElement(ast) with HObjectEntr
       val allFiles = refset.getLastReference.opt.fold(Vector.empty[HoconPsiFile]) { ref =>
         ref.multiResolve(false).iterator.map(_.getElement).collectOnly[HoconPsiFile].toVector
       }
-
-      val idxIt = if (reverse) allFiles.indices.reverseIterator else allFiles.indices.iterator
-      idxIt.flatMap { idx =>
-        val newCtx = IncludeCtx(this, allFiles, idx, resCtx)
-        if (resCtx.isAlreadyIn(newCtx.file)) Iterator.empty
-        else newCtx.file.toplevelEntries.occurrences(key, reverse, newCtx)
-      }
+      IncludeCtx.allContexts(Some(this), allFiles, reverse, resCtx)
+        .flatMap(_.occurrences(key, reverse))
     }
 }
 
@@ -484,7 +479,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
       //TODO: self-referential substitutions!
       val toplevelCtx = resCtx.toplevelCtx
       val newCtx = toplevelCtx.copy(forSubst = Some(OpenSubstitution(resCtx, this)))
-      toplevelCtx.file.toplevelEntries.occurrences(keys, reverse, newCtx)
+      newCtx.occurrences(keys, reverse)
     }
 }
 

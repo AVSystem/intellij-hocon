@@ -7,13 +7,12 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.{SyntaxHighlighter, SyntaxHighlighterFactory}
 import com.intellij.openapi.options.colors.{AttributesDescriptor, ColorDescriptor, ColorSettingsPage}
+import javax.swing.Icon
 import org.jetbrains.plugins.hocon.highlight.{HoconHighlighterColors => HHC}
 import org.jetbrains.plugins.hocon.lang.HoconLanguage
 
-import scala.collection.JavaConverters._
-
 class HoconColorSettingsPage extends ColorSettingsPage {
-  def getIcon =
+  def getIcon: Icon =
     AllIcons.FileTypes.Config
 
   def getDemoText: String =
@@ -71,7 +70,7 @@ class HoconColorSettingsPage extends ColorSettingsPage {
   def getColorDescriptors: Array[ColorDescriptor] =
     Array.empty
 
-  def getAttributeDescriptors =
+  def getAttributeDescriptors: Array[AttributesDescriptor] =
     HoconColorSettingsPage.Attrs
 }
 

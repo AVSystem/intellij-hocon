@@ -12,8 +12,6 @@ import com.intellij.testFramework.fixtures._
 import com.intellij.testFramework.fixtures.impl.{JavaModuleFixtureBuilderImpl, ModuleFixtureImpl}
 import org.jetbrains.jps.model.java.JavaSourceRootType
 
-import scala.collection.JavaConverters._
-
 /**
   * @author ghik
   */
