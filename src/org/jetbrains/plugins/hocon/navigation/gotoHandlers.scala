@@ -51,7 +51,7 @@ class HoconGotoSuperHandler extends CodeInsightActionHandler {
     elemAtOffset <- file.findElementAt(editor.getCaretModel.getOffset).opt
     fieldAtOffset <- elemAtOffset.parentOfType[HKeyedField]
     resField <- makeContextFor(fieldAtOffset)
-    prevOccurrence <- resField.moreOccurrences(reverse = true).nextOption.map(_.field)
+    prevOccurrence <- resField.nextOccurrence(reverse = true).map(_.field)
     containingFile <- prevOccurrence.getContainingFile.opt.flatMap(_.getVirtualFile.opt)
   } {
     val desc = PsiNavigationSupport.getInstance.createNavigatable(

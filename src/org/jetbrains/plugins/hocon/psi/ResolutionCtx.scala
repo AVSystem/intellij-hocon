@@ -48,6 +48,10 @@ case class ResolvedField(
   field: HKeyedField,
   parentCtx: ResolutionCtx,
 ) extends ResolutionCtx {
+
+  def firstSubOccurrence(key: String, reverse: Boolean): Option[ResolvedField] =
+    subOccurrences(key, reverse).nextOption
+
   def subOccurrences(key: String, reverse: Boolean): Iterator[ResolvedField] = field match {
     case pf: HPrefixedField =>
       val subField = pf.subField
@@ -68,45 +72,42 @@ case class ResolvedField(
     loop(parentCtx)
   }
 
-  def moreOccurrences(reverse: Boolean): Iterator[ResolvedField] = {
-    def moreFrom(
-      entry: HEntriesLike, parentCtx: ResolutionCtx, acc: Iterator[ResolvedField]
-    ): Iterator[ResolvedField] = parentCtx match {
+  def moreOccurrences(reverse: Boolean): Iterator[ResolvedField] =
+    Iterator.iterate(nextOccurrence(reverse).orNull)(_.nextOccurrence(reverse).orNull)
+      .takeWhile(_ != null)
+
+  def nextOccurrence(reverse: Boolean): Option[ResolvedField] = {
+    def nextFrom(entry: HEntriesLike, parentCtx: ResolutionCtx): Option[ResolvedField] = parentCtx match {
       case sc: SubstitutedCtx =>
-        val insideSubstitution = moreFrom(field, sc.localCtx, acc)
-        sc.backtracedCtx match {
-          case parentField: ResolvedField =>
-            fromParentField(parentField, withinConcat(sc.substitution, parentField, insideSubstitution))
-          case _ =>
-            insideSubstitution
-        }
+        nextFrom(field, sc.localCtx) orElse
+          sc.backtracedCtx.opt.collectOnly[ResolvedField].flatMap { parentField: ResolvedField =>
+            withinConcat(sc.substitution, parentField) orElse fromParentField(parentField)
+          }
 
       case ic: IncludeCtx =>
-        val locals = withinEntries(field, parentCtx, acc)
-        val otherFilesCtxs = if (reverse) ic.prevFileContexts else ic.nextFileContexts
-        val fromOtherFiles = otherFilesCtxs.flatMap(_.occurrences(key, reverse))
-        moreFrom(ic.include, ic.parentCtx, locals ++ fromOtherFiles)
+        withinEntries(field, parentCtx) orElse
+          ic.moreFileContexts(reverse).flatMap(_.firstOccurrence(key, reverse)).nextOption orElse
+          nextFrom(ic.include, ic.parentCtx)
 
       case parentField: ResolvedField =>
-        val locals = withinEntries(field, parentCtx, acc)
-        val localsWithConcat = field.parentOfType[HObjectField].flatMap(_.containingObject)
-          .fold(locals)(obj => withinConcat(obj, parentCtx, locals))
-        fromParentField(parentField, localsWithConcat)
+        withinEntries(field, parentCtx) orElse
+          field.parentOfType[HObjectField].flatMap(_.containingObject).flatMap(withinConcat(_, parentCtx)) orElse
+          fromParentField(parentField)
 
       case _: ToplevelCtx =>
-        withinEntries(field, parentCtx, acc)
+        withinEntries(field, parentCtx)
     }
 
-    def fromParentField(parentField: ResolvedField, acc: Iterator[ResolvedField]): Iterator[ResolvedField] =
-      acc ++ parentField.moreOccurrences(reverse).flatMap(_.subOccurrences(key, reverse))
+    def fromParentField(parentField: ResolvedField): Option[ResolvedField] =
+      parentField.moreOccurrences(reverse).flatMap(_.firstSubOccurrence(key, reverse)).nextOption
 
-    def withinEntries(entry: HEntriesLike, parentCtx: ResolutionCtx, acc: Iterator[ResolvedField]): Iterator[ResolvedField] =
-      acc ++ entry.moreEntries(reverse).flatMap(_.occurrences(key, reverse, parentCtx))
+    def withinEntries(entry: HEntriesLike, parentCtx: ResolutionCtx): Option[ResolvedField] =
+      entry.moreEntries(reverse).flatMap(_.firstOccurrence(key, reverse, parentCtx)).nextOption
 
-    def withinConcat(value: HValue, parentCtx: ResolutionCtx, acc: Iterator[ResolvedField]): Iterator[ResolvedField] =
-      acc ++ value.moreConcatenated(reverse).flatMap(_.occurrences(key, reverse, parentCtx))
+    def withinConcat(value: HValue, parentCtx: ResolutionCtx): Option[ResolvedField] =
+      value.moreConcatenated(reverse).flatMap(_.firstOccurrence(key, reverse, parentCtx)).nextOption
 
-    moreFrom(field, parentCtx, Iterator.empty)
+    nextFrom(field, parentCtx)
   }
 }
 
@@ -118,14 +119,13 @@ case class IncludeCtx(
 ) extends ResolutionCtx {
   def file: HoconPsiFile = allFiles(fileIdx)
 
-  def occurrences(key: String, reverse: Boolean): Iterator[ResolvedField] =
-    file.toplevelEntries.occurrences(key, reverse, this)
+  def firstOccurrence(key: String, reverse: Boolean): Option[ResolvedField] =
+    file.toplevelEntries.firstOccurrence(key, reverse, this)
 
-  def prevFileContexts: Iterator[IncludeCtx] =
-    Iterator.range(fileIdx - 1, -1, -1).map(prevIdx => copy(fileIdx = prevIdx))
-
-  def nextFileContexts: Iterator[IncludeCtx] =
-    Iterator.range(fileIdx + 1, allFiles.size).map(nextIdx => copy(fileIdx = nextIdx))
+  def moreFileContexts(reverse: Boolean): Iterator[IncludeCtx] = {
+    val idxIt = if (reverse) Iterator.range(fileIdx - 1, -1, -1) else Iterator.range(fileIdx + 1, allFiles.size)
+    idxIt.map(i => copy(fileIdx = i))
+  }
 }
 
 case class SubstitutedCtx(

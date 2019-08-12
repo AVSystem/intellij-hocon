@@ -7,7 +7,7 @@ import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.tree.{IElementType, TokenSet}
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.{PsiElement, PsiWhiteSpace}
+import com.intellij.psi.{PsiDocumentManager, PsiElement, PsiWhiteSpace}
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType
 import org.jetbrains.plugins.hocon.psi.HoconPsiElement
 
@@ -76,6 +76,17 @@ package object hocon {
   implicit class PsiElementOps(private val elem: PsiElement) extends AnyVal {
     def parentOfType[T <: HoconPsiElement : ClassTag]: Option[T] =
       Option(PsiTreeUtil.getParentOfType(elem, classTag[T].runtimeClass.asInstanceOf[Class[T]]))
+
+    def getNextSibling(reverse: Boolean): PsiElement =
+      if (reverse) elem.getPrevSibling else elem.getNextSibling
+
+    def pos: String = {
+      val doc = PsiDocumentManager.getInstance(elem.getProject).getDocument(elem.getContainingFile)
+      val off = elem.getTextOffset
+      val line = doc.getLineNumber(off)
+      val column = off - doc.getLineStartOffset(line)
+      s"$line:$column"
+    }
   }
 
   implicit class StringOps(private val str: String) extends AnyVal {
@@ -86,6 +97,11 @@ package object hocon {
   implicit class universalOps[T](private val t: T) extends AnyVal {
     def opt: Option[T] = Option(t)
 
+    def setup(code: T => Unit): T = {
+      code(t)
+      t
+    }
+
     def typedOpt[U: ClassTag]: Option[U] = t match {
       case u: U => Some(u)
       case _ => None
@@ -95,6 +111,10 @@ package object hocon {
       println(msg(t))
       t
     }
+  }
+
+  implicit class OptionOps[A](private val option: Option[A]) extends AnyVal {
+    def collectOnly[T: ClassTag]: Option[T] = option.collect { case t: T => t }
   }
 
   implicit class collectionOps[A](private val coll: GenTraversableOnce[A]) extends AnyVal {
