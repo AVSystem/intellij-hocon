@@ -231,20 +231,20 @@ sealed trait HKeyedField extends HEntriesLike with HKeyedFieldParent with HKeyPa
   }
 
   /**
-   * Goes up the tree in order to determine full path under which this keyed field is defined.
-   * Stops when encounters file-toplevel entries or an array (including array-append field).
-   *
-   * @return iterator of all encountered keyed fields (in bottom-up order, i.e. starting with itself)
-   */
+    * Goes up the tree in order to determine full path under which this keyed field is defined.
+    * Stops when encounters file-toplevel entries or an array (including array-append field).
+    *
+    * @return iterator of all encountered keyed fields (in bottom-up order, i.e. starting with itself)
+    */
   def prefixingFields: Iterator[HKeyedField] =
     Iterator.iterate(this)(_.prefixingField.orNull).takeWhile(_ != null)
 
   /**
-   * Returns all keys on containing path, assuming they are all valid keys. `None` is returned if not all keys
-   * on containing path are valid. The list is ordered top-down, i.e. `this` key is the last element.
-   * "Containing path" starts at the smallest enclosing array element or at the file toplevel entries if there are
-   * no arrays on the way to this field.
-   */
+    * Returns all keys on containing path, assuming they are all valid keys. `None` is returned if not all keys
+    * on containing path are valid. The list is ordered top-down, i.e. `this` key is the last element.
+    * "Containing path" starts at the smallest enclosing array element or at the file toplevel entries if there are
+    * no arrays on the way to this field.
+    */
   def fullValidContainingPath: Option[(HObjectEntries, List[String])] = {
     @tailrec def loop(currentField: HKeyedField, acc: List[String]): Option[(HObjectEntries, List[String])] =
       currentField.validKeyString match {
@@ -269,6 +269,21 @@ sealed trait HKeyedField extends HEntriesLike with HKeyedFieldParent with HKeyPa
     case pf: HPrefixedField => Iterator(pf) ++ pf.subField.fieldsInPathForward
     case vf: HValuedField => Iterator(vf)
   }
+
+  private def toplevelContext: ToplevelCtx = {
+    val file = getContainingFile
+    val entries = parent match {
+      case of: HObjectField => of.parent
+      case _ => file.toplevelEntries
+    }
+    ToplevelCtx(file, entries, ToplevelCtx.referenceFilesFor(file))
+  }
+
+  def makeContext: Option[ResolvedField] =
+    validKeyString.map { key =>
+      val parentCtx = prefixingField.flatMap(_.makeContext).getOrElse(toplevelContext)
+      ResolvedField(key, this, parentCtx)
+    }
 }
 
 final class HPrefixedField(ast: ASTNode) extends HoconPsiElement(ast) with HKeyedField {
@@ -401,8 +416,8 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
   }
 
   /**
-   * Some(all keys in this path) or None if there's an invalid key in path.
-   */
+    * Some(all keys in this path) or None if there's an invalid key in path.
+    */
   def allValidKeys: Option[List[String]] = {
     def allKeysIn(path: HPath, acc: List[String]): Option[List[String]] =
       path.validKey.map(_.stringValue).flatMap { key =>
@@ -412,10 +427,10 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
   }
 
   /**
-   * If all keys are valid - all keys of this path.
-   * If some keys are invalid - all valid keys from left to right until some invalid key is encountered
-   * (i.e. longest valid prefix path)
-   */
+    * If all keys are valid - all keys of this path.
+    * If some keys are invalid - all valid keys from left to right until some invalid key is encountered
+    * (i.e. longest valid prefix path)
+    */
   def startingValidKeys: List[HKey] =
     allPaths.iterator.takeWhile(_.validKey.nonEmpty).flatMap(_.validKey).toList
 
@@ -424,6 +439,22 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
   def prefix: Option[HPath] = findChild[HPath]
 
   def validKey: Option[HKey] = findChild[HKey].filter(_.isValidKey)
+
+  def resolve(): Option[ResolvedField] = {
+    val subst = substitution
+    val file = getContainingFile
+    val resCtx = ToplevelCtx(file, file.toplevelEntries, ToplevelCtx.referenceFilesFor(file))
+    val resField = subst.resolve(reverse = true, resCtx).nextOption
+
+    @tailrec def gotoPrefix(rfOpt: Option[ResolvedField], subpath: HPath): Option[ResolvedField] =
+      if (subpath eq this) rfOpt
+      else (rfOpt, subpath.prefix) match {
+        case (Some(rf), Some(ppath)) => gotoPrefix(rf.prefixField, ppath)
+        case _ => None
+      }
+
+    subst.path.flatMap(fullPath => gotoPrefix(resField, fullPath))
+  }
 }
 
 sealed trait HValue extends HoconPsiElement {

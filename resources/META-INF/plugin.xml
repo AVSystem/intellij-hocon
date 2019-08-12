@@ -64,5 +64,6 @@
         <gotoDeclarationHandler implementation="org.jetbrains.plugins.hocon.navigation.HoconGotoDeclarationHandler"/>
         <codeInsight.gotoSuper language="HOCON"
                                implementationClass="org.jetbrains.plugins.hocon.navigation.HoconGotoSuperHandler"/>
+        <documentationProvider implementation="org.jetbrains.plugins.hocon.misc.HoconDocumentationProvider"/>
     </extensions>
 </idea-plugin>
