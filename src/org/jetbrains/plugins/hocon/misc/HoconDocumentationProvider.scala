@@ -3,7 +3,7 @@ package misc
 
 import com.intellij.lang.documentation.{DocumentationMarkup, DocumentationProviderEx}
 import com.intellij.openapi.editor.Editor
-import com.intellij.psi.{PsiElement, PsiFile}
+import com.intellij.psi.{PsiElement, PsiFile, PsiManager}
 import org.apache.commons.lang3.StringEscapeUtils
 import org.jetbrains.plugins.hocon.psi._
 
@@ -13,18 +13,24 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
     case _ => origElem.parentOfType[HKey]
   }
 
+  private def findDocSource(rfOpt: Option[ResolvedField]): Option[HValuedField] = rfOpt.flatMap { rf =>
+    rf.field match {
+      case vf: HValuedField if vf.enclosingObjectField.docComments.nonEmpty => Some(vf)
+      case _ => findDocSource(rf.nextOccurrence(reverse = true))
+    }
+  }
+
+  override def getDocumentationElementForLookupItem(psiManager: PsiManager, obj: Any, element: PsiElement): PsiElement =
+    obj match {
+      case rf: ResolvedField => // see HoconFieldLookupElement.getObject
+        findDocSource(Some(rf)).getOrElse(rf.field)
+      case _ =>
+        null
+    }
+
   override def getCustomDocumentationElement(editor: Editor, file: PsiFile, contextElement: PsiElement): PsiElement =
     key(contextElement).nullOr { key =>
-      val resField = key.parent match {
-        case path: HPath => path.resolve()
-        case kf: HKeyedField => kf.makeContext
-      }
-      def findDocSource(rfOpt: Option[ResolvedField]): Option[HValuedField] = rfOpt.flatMap { rf =>
-        rf.field match {
-          case vf: HValuedField if vf.enclosingObjectField.docComments.nonEmpty => Some(vf)
-          case _ => findDocSource(rf.nextOccurrence(reverse = true))
-        }
-      }
+      val resField = key.resolved
       findDocSource(resField).orElse(resField.map(_.field)).orNull
     }
 
