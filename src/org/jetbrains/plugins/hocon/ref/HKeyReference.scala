@@ -70,10 +70,10 @@ class HKeyReference(key: HKey) extends PsiReference {
   }
 }
 
-class HoconFieldLookupElement(field: ResolvedField) extends LookupElement {
-  def getLookupString: String = field.field.key.fold("")(_.getText)
+class HoconFieldLookupElement(resField: ResolvedField) extends LookupElement {
+  def getLookupString: String = resField.field.key.fold("")(_.getText)
 
-  override def getObject: ResolvedField = field
+  override def getObject: ResolvedField = resField
 
-  override def getPsiElement: PsiElement = field.field
+  override def getPsiElement: PsiElement = resField.field
 }
