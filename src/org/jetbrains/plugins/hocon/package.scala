@@ -17,6 +17,9 @@ import scala.language.implicitConversions
 import scala.reflect.{ClassTag, classTag}
 
 package object hocon extends DecorateAsJava with DecorateAsScala {
+  type JList[T] = java.util.List[T]
+  type JMap[K, V] = java.util.Map[K, V]
+
   def notWhiteSpaceSibling(element: PsiElement)
     (sibling: PsiElement => PsiElement): PsiElement = {
     var result = sibling(element)
@@ -121,7 +124,7 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
   }
 
   implicit class collectionOps[A](private val coll: GenTraversableOnce[A]) extends AnyVal {
-    def toJList[B >: A]: ju.List[B] = {
+    def toJList[B >: A]: JList[B] = {
       val result = new ju.ArrayList[B]
       coll.foreach(result.add)
       result

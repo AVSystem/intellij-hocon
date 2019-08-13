@@ -8,6 +8,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
     <depends optional="true" config-file="hocon-java.xml">com.intellij.modules.java</depends>
+
     <extensions defaultExtensionNs="com.intellij">
         <fileTypeFactory implementation="org.jetbrains.plugins.hocon.lang.HoconFileTypeFactory"/>
         <lang.syntaxHighlighterFactory language="HOCON"
@@ -62,8 +63,18 @@
         <joinLinesHandler implementation="org.jetbrains.plugins.hocon.editor.HoconCommentJoinLinesHandler"/>
         <statementUpDownMover implementation="org.jetbrains.plugins.hocon.editor.HoconObjectEntryMover"/>
         <gotoDeclarationHandler implementation="org.jetbrains.plugins.hocon.navigation.HoconGotoDeclarationHandler"/>
-        <codeInsight.gotoSuper language="HOCON"
-                               implementationClass="org.jetbrains.plugins.hocon.navigation.HoconGotoSuperHandler"/>
+        <actionPromoter implementation="org.jetbrains.plugins.hocon.navigation.HoconGotoPrevNextPromoter"/>
         <documentationProvider implementation="org.jetbrains.plugins.hocon.misc.HoconDocumentationProvider"/>
     </extensions>
+
+    <actions>
+        <action class="org.jetbrains.plugins.hocon.navigation.HoconGotoNextAction" id="HoconGotoNext"
+                text="HOCON: Go to next definition"
+                description="Navigates to the next definition of a property in a HOCON file"
+                use-shortcut-of="GotoImplementation"/>
+        <action class="org.jetbrains.plugins.hocon.navigation.HoconGotoPrevAction" id="HoconGotoPrev"
+                text="HOCON: Go to previous definition"
+                description="Navigates to the previous definition of a property in a HOCON file"
+                use-shortcut-of="GotoSuperMethod"/>
+    </actions>
 </idea-plugin>
