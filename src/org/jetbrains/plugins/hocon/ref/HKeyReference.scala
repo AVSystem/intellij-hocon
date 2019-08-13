@@ -41,7 +41,8 @@ class HKeyReference(key: HKey) extends PsiReference {
       case path: HPath => path.prefix match {
         case Some(prefixPath) =>
           prefixPath.allValidKeys.map { path =>
-            toplevelCtx.occurrences(path, reverse = true).flatMap(_.subOccurrences(None, reverse = true))
+            val strPath = path.map(_.stringValue)
+            toplevelCtx.occurrences(strPath, reverse = true).flatMap(_.subOccurrences(None, reverse = true))
           }.getOrElse(Iterator.empty)
         case None =>
           toplevelCtx.occurrences(None, reverse = true)
@@ -49,9 +50,10 @@ class HKeyReference(key: HKey) extends PsiReference {
       case field: HKeyedField => field.prefixingField match {
         case Some(prefixField) => prefixField.fullValidContainingPath.iterator.flatMap {
           case (entries, path) =>
+            val strPath = path.map(_.stringValue)
             val prefixOccurrences =
-              if (entries.isToplevel) toplevelCtx.occurrences(path, reverse = true)
-              else entries.occurrences(path, reverse = true, toplevelCtx)
+              if (entries.isToplevel) toplevelCtx.occurrences(strPath, reverse = true)
+              else entries.occurrences(strPath, reverse = true, toplevelCtx)
             prefixOccurrences.flatMap(_.subOccurrences(None, reverse = true))
         }
         case None =>
@@ -69,7 +71,7 @@ class HKeyReference(key: HKey) extends PsiReference {
 }
 
 class HoconFieldLookupElement(field: ResolvedField) extends LookupElement {
-  def getLookupString: String = field.key
+  def getLookupString: String = field.field.key.fold("")(_.getText)
 
   override def getObject: ResolvedField = field
 
