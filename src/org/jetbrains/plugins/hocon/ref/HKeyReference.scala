@@ -36,30 +36,31 @@ class HKeyReference(key: HKey) extends PsiReference {
   override def getVariants: Array[AnyRef] = {
     val file = key.hoconFile
     val toplevelCtx = ToplevelCtx(file, ToplevelCtx.referenceFilesFor(file))
+    val opts = ResOpts(reverse = true)
 
     val variantFields: Iterator[ResolvedField] = key.parent match {
       case path: HPath => path.prefix match {
         case Some(prefixPath) =>
           prefixPath.allValidKeys.flatMapIt { path =>
             val strPath = path.map(_.stringValue)
-            toplevelCtx.occurrences(strPath, reverse = true).flatMap(_.subOccurrences(None, reverse = true))
+            toplevelCtx.occurrences(strPath, opts).flatMap(_.subOccurrences(None, opts))
           }
         case None =>
-          toplevelCtx.occurrences(None, reverse = true)
+          toplevelCtx.occurrences(None, opts)
       }
       case field: HKeyedField => field.prefixingField match {
         case Some(prefixField) => prefixField.fullValidContainingPath.iterator.flatMap {
           case (entries, path) =>
             val strPath = path.map(_.stringValue)
             val prefixOccurrences =
-              if (entries.isToplevel) toplevelCtx.occurrences(strPath, reverse = true)
-              else entries.occurrences(strPath, reverse = true, toplevelCtx)
-            prefixOccurrences.flatMap(_.subOccurrences(None, reverse = true))
+              if (entries.isToplevel) toplevelCtx.occurrences(strPath, opts)
+              else entries.occurrences(strPath, opts, toplevelCtx)
+            prefixOccurrences.flatMap(_.subOccurrences(None, opts))
         }
         case None =>
           val entries = field.enclosingEntries
-          if (entries.isToplevel) toplevelCtx.occurrences(None, reverse = true)
-          else entries.occurrences(None, reverse = true, toplevelCtx)
+          if (entries.isToplevel) toplevelCtx.occurrences(None, opts)
+          else entries.occurrences(None, opts, toplevelCtx)
       }
     }
 

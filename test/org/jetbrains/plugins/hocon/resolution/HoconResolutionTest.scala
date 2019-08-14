@@ -17,13 +17,14 @@ class HoconResolutionTest extends HoconSingleModuleTest {
     val path = hoconPath.split('.').toList
 
     def test(reverse: Boolean): Unit = {
+      val opts = ResOpts(reverse)
       val expectedStr = (if (reverse) expectedSplit.reverse else expectedSplit).mkString("\n")
 
-      val actualResult = render(ctx.occurrences(path, reverse))
+      val actualResult = render(ctx.occurrences(path, opts))
       Assert.assertEquals(expectedStr, actualResult)
 
-      val traversalResult = render(Iterator.iterate(ctx.occurrences(path, reverse).nextOption.orNull) { rf =>
-        rf.nextOccurrence(reverse).orNull
+      val traversalResult = render(Iterator.iterate(ctx.occurrences(path, opts).nextOption.orNull) { rf =>
+        rf.nextOccurrence(opts).orNull
       }.takeWhile(_ != null))
       Assert.assertEquals(expectedStr, traversalResult)
     }
@@ -44,7 +45,8 @@ class HoconResolutionTest extends HoconSingleModuleTest {
       |moreIncluded.conf:1:4
       |included.conf:3:4
       |nestedIncluded.conf:1:2
-      |application.conf:22:4
+      |application.conf:21:4
+      |application.conf:24:4
       |""".stripMargin
   )
 }

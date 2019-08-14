@@ -7,6 +7,11 @@ import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet.DefaultContexts
 
 import scala.annotation.tailrec
 
+case class ResOpts(
+  reverse: Boolean,
+  mergeableOnly: Boolean = false
+)
+
 sealed abstract class ResolutionCtx {
   val toplevelCtx: ToplevelCtx = this match {
     case tc: ToplevelCtx => tc
@@ -39,27 +44,27 @@ sealed abstract class ResolutionCtx {
   /**
    * Occurrences of given key (or all) adjacent to this resolution context (outside of it, before or after).
    */
-  def adjacentOccurrences(key: Option[String], reverse: Boolean): Iterator[ResolvedField] = this match {
+  def adjacentOccurrences(key: Option[String], opts: ResOpts): Iterator[ResolvedField] = this match {
     case _: ToplevelCtx =>
       Iterator.empty
 
     case ic: IncludeCtx =>
-      ic.moreFileContexts(reverse).flatMap(_.occurrences(key, reverse)) ++ (ic.include match {
+      ic.moreFileContexts(opts.reverse).flatMap(_.occurrences(key, opts)) ++ (ic.include match {
         case Some(inc) =>
-          inc.adjacentEntriesOccurrences(key, reverse, ic.parentCtx) ++
-            ic.parentCtx.adjacentOccurrences(key, reverse)
-        case None if !reverse =>
+          inc.adjacentEntriesOccurrences(key, opts, ic.parentCtx) ++
+            ic.parentCtx.adjacentOccurrences(key, opts)
+        case None if !opts.reverse =>
           // proceeding from last auto-included file into the contents of toplevel file itself
-          ic.toplevelCtx.file.toplevelEntries.occurrences(key, reverse, ic.toplevelCtx)
+          ic.toplevelCtx.file.toplevelEntries.occurrences(key, opts, ic.toplevelCtx)
         case _ => Iterator.empty
       })
 
     case sc: SubstitutedCtx =>
-      sc.substitution.adjacentConcatOccurrences(key, reverse, sc.backtracedCtx) ++
-        sc.backtracedCtx.adjacentOccurrences(key, reverse)
+      sc.substitution.adjacentConcatOccurrences(key, opts, sc.backtracedCtx) ++
+        sc.backtracedCtx.adjacentOccurrences(key, opts)
 
     case rf: ResolvedField =>
-      rf.moreOccurrences(reverse).flatMap(_.subOccurrences(key, reverse))
+      rf.moreOccurrences(opts).flatMap(_.subOccurrences(key, opts))
   }
 }
 
@@ -77,19 +82,21 @@ case class ToplevelCtx(
     if (directOnly) Iterator.empty
     else IncludeCtx.allContexts(None, referenceFiles, reverse, this)
 
-  def occurrences(subkey: Option[String], reverse: Boolean): Iterator[ResolvedField] = {
-    def autoIncluded = referenceIncludeCtxs(reverse).flatMap(_.occurrences(subkey, reverse))
-    def fromActualContents = file.toplevelEntries.occurrences(subkey, reverse, this)
-    if (reverse) fromActualContents ++ autoIncluded
+  def occurrences(subkey: Option[String], opts: ResOpts): Iterator[ResolvedField] = {
+    def autoIncluded =
+      referenceIncludeCtxs(opts.reverse).flatMap(_.occurrences(subkey, opts))
+    def fromActualContents =
+      file.toplevelEntries.occurrences(subkey, opts, this)
+    if (opts.reverse) fromActualContents ++ autoIncluded
     else autoIncluded ++ fromActualContents
   }
 
-  def occurrences(path: List[String], reverse: Boolean): Iterator[ResolvedField] = path match {
+  def occurrences(path: List[String], opts: ResOpts): Iterator[ResolvedField] = path match {
     case Nil => Iterator.empty
     case head :: tail =>
-      val occurrencesOfFirst = occurrences(Some(head), reverse)
+      val occurrencesOfFirst = occurrences(Some(head), opts)
       tail.foldLeft(occurrencesOfFirst) {
-        case (occ, key) => occ.flatMap(_.subOccurrences(Some(key), reverse))
+        case (occ, key) => occ.flatMap(_.subOccurrences(Some(key), opts))
       }
   }
 }
@@ -113,14 +120,14 @@ case class ResolvedField(
   parentCtx: ResolutionCtx,
 ) extends ResolutionCtx {
 
-  def firstSubOccurrence(subkey: Option[String], reverse: Boolean): Option[ResolvedField] =
-    subOccurrences(subkey, reverse).nextOption
+  def firstSubOccurrence(subkey: Option[String], opts: ResOpts): Option[ResolvedField] =
+    subOccurrences(subkey, opts).nextOption
 
-  def subOccurrences(subkey: Option[String], reverse: Boolean): Iterator[ResolvedField] = field match {
+  def subOccurrences(subkey: Option[String], opts: ResOpts): Iterator[ResolvedField] = field match {
     case pf: HPrefixedField =>
-      pf.subField.occurrences(subkey, reverse, this)
+      pf.subField.occurrences(subkey, opts, this)
     case vf: HValuedField =>
-      vf.subScopeValue.flatMapIt(_.occurrences(subkey, reverse, this))
+      vf.subScopeValue.flatMapIt(_.occurrences(subkey, opts, this))
   }
 
   def prefixField: Option[ResolvedField] = {
@@ -133,12 +140,12 @@ case class ResolvedField(
     loop(parentCtx)
   }
 
-  def moreOccurrences(reverse: Boolean): Iterator[ResolvedField] =
-    field.adjacentEntriesOccurrences(key.opt, reverse, parentCtx) ++
-      parentCtx.adjacentOccurrences(key.opt, reverse)
+  def moreOccurrences(opts: ResOpts): Iterator[ResolvedField] =
+    field.adjacentEntriesOccurrences(key.opt, opts, parentCtx) ++
+      parentCtx.adjacentOccurrences(key.opt, opts)
 
-  def nextOccurrence(reverse: Boolean): Option[ResolvedField] =
-    moreOccurrences(reverse).nextOption
+  def nextOccurrence(opts: ResOpts): Option[ResolvedField] =
+    moreOccurrences(opts).nextOption
 }
 
 case class IncludeCtx(
@@ -149,12 +156,12 @@ case class IncludeCtx(
 ) extends ResolutionCtx {
   def file: HoconPsiFile = allFiles(fileIdx)
 
-  def occurrences(key: Option[String], reverse: Boolean): Iterator[ResolvedField] =
+  def occurrences(key: Option[String], opts: ResOpts): Iterator[ResolvedField] =
     if (parentCtx.isAlreadyIn(file)) Iterator.empty
-    else file.toplevelEntries.occurrences(key, reverse, this)
+    else file.toplevelEntries.occurrences(key, opts, this)
 
-  def firstOccurrence(key: Option[String], reverse: Boolean): Option[ResolvedField] =
-    occurrences(key, reverse).nextOption
+  def firstOccurrence(key: Option[String], opts: ResOpts): Option[ResolvedField] =
+    occurrences(key, opts).nextOption
 
   def moreFileContexts(reverse: Boolean): Iterator[IncludeCtx] = {
     val idxIt = if (reverse) Iterator.range(fileIdx - 1, -1, -1) else Iterator.range(fileIdx + 1, allFiles.size)
