@@ -35,6 +35,32 @@ sealed abstract class ResolutionCtx {
     }
     mkPath(Nil, this)
   }
+
+  /**
+   * Occurrences of given key (or all) adjacent to this resolution context (outside of it, before or after).
+   */
+  def adjacentOccurrences(key: Option[String], reverse: Boolean): Iterator[ResolvedField] = this match {
+    case _: ToplevelCtx =>
+      Iterator.empty
+
+    case ic: IncludeCtx =>
+      ic.moreFileContexts(reverse).flatMap(_.occurrences(key, reverse)) ++ (ic.include match {
+        case Some(inc) =>
+          inc.adjacentEntriesOccurrences(key, reverse, ic.parentCtx) ++
+            ic.parentCtx.adjacentOccurrences(key, reverse)
+        case None if !reverse =>
+          // proceeding from last auto-included file into the contents of toplevel file itself
+          ic.toplevelCtx.file.toplevelEntries.occurrences(key, reverse, ic.toplevelCtx)
+        case _ => Iterator.empty
+      })
+
+    case sc: SubstitutedCtx =>
+      sc.substitution.adjacentConcatOccurrences(key, reverse, sc.backtracedCtx) ++
+        sc.backtracedCtx.adjacentOccurrences(key, reverse)
+
+    case rf: ResolvedField =>
+      rf.moreOccurrences(reverse).flatMap(_.subOccurrences(key, reverse))
+  }
 }
 
 case class OpenSubstitution(ctx: ResolutionCtx, subst: HSubstitution)
@@ -94,7 +120,7 @@ case class ResolvedField(
     case pf: HPrefixedField =>
       pf.subField.occurrences(subkey, reverse, this)
     case vf: HValuedField =>
-      vf.subScopeValue.map(_.occurrences(subkey, reverse, this)).getOrElse(Iterator.empty)
+      vf.subScopeValue.flatMapIt(_.occurrences(subkey, reverse, this))
   }
 
   def prefixField: Option[ResolvedField] = {
@@ -108,53 +134,11 @@ case class ResolvedField(
   }
 
   def moreOccurrences(reverse: Boolean): Iterator[ResolvedField] =
-    Iterator.iterate(nextOccurrence(reverse).orNull)(_.nextOccurrence(reverse).orNull)
-      .takeWhile(_ != null)
+    field.adjacentEntriesOccurrences(key.opt, reverse, parentCtx) ++
+      parentCtx.adjacentOccurrences(key.opt, reverse)
 
-  def nextOccurrence(reverse: Boolean): Option[ResolvedField] = {
-    def nextFrom(entry: HEntriesLike, parentCtx: ResolutionCtx): Option[ResolvedField] = parentCtx match {
-      case sc: SubstitutedCtx =>
-        nextFrom(entry, sc.localCtx) orElse
-          sc.backtracedCtx.opt.collectOnly[ResolvedField].flatMap { parentField: ResolvedField =>
-            withinConcat(sc.substitution, parentField) orElse fromParentField(parentField)
-          }
-
-      case ic: IncludeCtx =>
-        withinEntries(entry, parentCtx) orElse
-          ic.moreFileContexts(reverse).flatMap(_.firstOccurrence(key.opt, reverse)).nextOption orElse
-          ic.include.map(nextFrom(_, ic.parentCtx)).getOrElse(
-            // proceeding from auto included files into the contents of the toplevel file
-            if (reverse) None
-            else ic.parentCtx.opt.collectOnly[ToplevelCtx]
-              .flatMap(tc => tc.file.toplevelEntries.firstOccurrence(key.opt, reverse, tc))
-          )
-
-      case parentField: ResolvedField =>
-        withinEntries(entry, parentCtx) orElse
-          entry.parentOfType[HObjectField].flatMap(_.containingObject).flatMap(withinConcat(_, parentCtx)) orElse
-          fromParentField(parentField)
-
-      case tc: ToplevelCtx =>
-        withinEntries(entry, parentCtx) orElse {
-          // proceeding into auto-included files
-          if (reverse)
-            tc.referenceIncludeCtxs(reverse).flatMap(_.firstOccurrence(key.opt, reverse)).nextOption
-          else
-            None
-        }
-    }
-
-    def fromParentField(parentField: ResolvedField): Option[ResolvedField] =
-      parentField.moreOccurrences(reverse).flatMap(_.firstSubOccurrence(key.opt, reverse)).nextOption
-
-    def withinEntries(entry: HEntriesLike, parentCtx: ResolutionCtx): Option[ResolvedField] =
-      entry.moreEntries(reverse).flatMap(_.firstOccurrence(key.opt, reverse, parentCtx)).nextOption
-
-    def withinConcat(value: HValue, parentCtx: ResolutionCtx): Option[ResolvedField] =
-      value.moreConcatenated(reverse).flatMap(_.firstOccurrence(key.opt, reverse, parentCtx)).nextOption
-
-    nextFrom(field, parentCtx)
-  }
+  def nextOccurrence(reverse: Boolean): Option[ResolvedField] =
+    moreOccurrences(reverse).nextOption
 }
 
 case class IncludeCtx(

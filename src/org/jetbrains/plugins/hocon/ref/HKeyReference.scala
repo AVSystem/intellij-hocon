@@ -40,10 +40,10 @@ class HKeyReference(key: HKey) extends PsiReference {
     val variantFields: Iterator[ResolvedField] = key.parent match {
       case path: HPath => path.prefix match {
         case Some(prefixPath) =>
-          prefixPath.allValidKeys.map { path =>
+          prefixPath.allValidKeys.flatMapIt { path =>
             val strPath = path.map(_.stringValue)
             toplevelCtx.occurrences(strPath, reverse = true).flatMap(_.subOccurrences(None, reverse = true))
-          }.getOrElse(Iterator.empty)
+          }
         case None =>
           toplevelCtx.occurrences(None, reverse = true)
       }

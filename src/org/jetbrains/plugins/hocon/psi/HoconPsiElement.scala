@@ -121,7 +121,7 @@ sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement
 final class HObjectEntries(ast: ASTNode) extends HoconPsiElement(ast) with HEntriesLike {
   type Parent = HObjectEntriesParent
 
-  def objectParent: Option[HObject] =
+  def containingObject: Option[HObject] =
     Option(parent).collect { case obj: HObject => obj }
 
   def isToplevel: Boolean = parent match {
@@ -137,7 +137,7 @@ final class HObjectEntries(ast: ASTNode) extends HoconPsiElement(ast) with HEntr
   def entries(reverse: Boolean): Iterator[HObjectEntry] =
     findChildren[HObjectEntry](reverse)
 
-  def nextEntry(reverse: Boolean): Option[HEntriesLike] = None
+  def moreEntries(reverse: Boolean): Iterator[HEntriesLike] = Iterator.empty
 
   def occurrences(key: Option[String], reverse: Boolean, resCtx: ResolutionCtx): Iterator[ResolvedField] =
     entries(reverse).flatMap(_.occurrences(key, reverse, resCtx))
@@ -158,12 +158,13 @@ final class HObjectEntries(ast: ASTNode) extends HoconPsiElement(ast) with HEntr
 sealed trait HObjectEntry extends HoconPsiElement with HEntriesLike {
   type Parent = HObjectEntries
 
-  def containingObject: Option[HObject] = parent.objectParent
+  def containingObject: Option[HObject] = parent.containingObject
 
   override def moreEntries(reverse: Boolean): Iterator[HObjectEntry] =
     moreSiblings(reverse).collectOnly[HObjectEntry]
 
-  def nextEntry(reverse: Boolean): Option[HObjectEntry] = nextSibling[HObjectEntry](reverse)
+  override def nextEntry(reverse: Boolean): Option[HObjectEntry] =
+    nextSibling[HObjectEntry](reverse)
 
   def nextEntry: Option[HObjectEntry] = nextEntry(reverse = false)
 
@@ -187,19 +188,41 @@ final class HObjectField(ast: ASTNode) extends HoconPsiElement(ast) with HObject
 }
 
 sealed trait HEntriesLike extends HoconPsiElement {
-  def nextEntry(reverse: Boolean): Option[HEntriesLike]
+  def moreEntries(reverse: Boolean): Iterator[HEntriesLike]
 
-  def moreEntries(reverse: Boolean): Iterator[HEntriesLike] =
-    Iterator.iterate(nextEntry(reverse).orNull)(_.nextEntry(reverse).orNull).takeWhile(_ != null)
+  def containingObject: Option[HObject]
+
+  def nextEntry(reverse: Boolean): Option[HEntriesLike] =
+    moreEntries(reverse).nextOption
 
   def firstOccurrence(key: Option[String], reverse: Boolean, resCtx: ResolutionCtx): Option[ResolvedField] =
     occurrences(key, reverse, resCtx).nextOption
 
   def occurrences(key: Option[String], reverse: Boolean, resCtx: ResolutionCtx): Iterator[ResolvedField]
+
+  /**
+   * Occurrences of given key (or all) within entries adjacent to these in the same containing object and objects
+   * concatenated with it.
+   */
+  def adjacentEntriesOccurrences(key: Option[String], reverse: Boolean, resCtx: ResolutionCtx): Iterator[ResolvedField] = {
+    def fromReferenceOrConcat = resCtx match {
+      case tc: ToplevelCtx if reverse =>
+        // going into the contents of auto-included files, e.g. reference.conf
+        tc.referenceIncludeCtxs(reverse = true).flatMap(_.occurrences(key, reverse))
+      case _ =>
+        containingObject.flatMapIt(_.adjacentConcatOccurrences(key, reverse, resCtx))
+    }
+    moreEntries(reverse).flatMap(_.occurrences(key, reverse, resCtx)) ++ fromReferenceOrConcat
+  }
 }
 
 sealed trait HKeyedField extends HEntriesLike with HKeyedFieldParent with HKeyParent {
   type Parent = HKeyedFieldParent
+
+  def containingObject: Option[HObject] = parent match {
+    case of: HObjectField => of.containingObject
+    case _: HKeyedField => None
+  }
 
   def key: Option[HKey] = findChild[HKey]
 
@@ -215,9 +238,9 @@ sealed trait HKeyedField extends HEntriesLike with HKeyedFieldParent with HKeyPa
       case (k1, k2) => k1.stringValue == k2.stringValue
     }
 
-  def nextEntry(reverse: Boolean): Option[HEntriesLike] = parent match {
-    case of: HObjectField => of.nextEntry(reverse)
-    case _: HKeyedField => None
+  def moreEntries(reverse: Boolean): Iterator[HEntriesLike] = parent match {
+    case of: HObjectField => of.moreEntries(reverse)
+    case _: HKeyedField => Iterator.empty
   }
 
   def occurrences(key: Option[String], reverse: Boolean, resCtx: ResolutionCtx): Iterator[ResolvedField] =
@@ -477,7 +500,7 @@ sealed trait HValue extends HoconPsiElement {
     Option(parent).collect { case hc: HConcatenation => hc }
 
   def moreConcatenated(reverse: Boolean): Iterator[HValue] =
-    concatParent.map(_ => moreSiblings(reverse).collectOnly[HValue]).getOrElse(Iterator.empty)
+    concatParent.flatMapIt(_ => moreSiblings(reverse).collectOnly[HValue])
 
   def firstOccurrence(key: Option[String], reverse: Boolean, resCtx: ResolutionCtx): Option[ResolvedField] =
     occurrences(key, reverse, resCtx).nextOption
@@ -493,6 +516,9 @@ sealed trait HValue extends HoconPsiElement {
     case _ =>
       Iterator.empty
   }
+
+  def adjacentConcatOccurrences(key: Option[String], reverse: Boolean, parentCtx: ResolutionCtx): Iterator[ResolvedField] =
+    moreConcatenated(reverse).flatMap(_.occurrences(key, reverse, parentCtx))
 }
 
 final class HObject(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HObjectEntriesParent {
