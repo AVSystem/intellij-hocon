@@ -16,7 +16,7 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
   private def findDocSource(rfOpt: Option[ResolvedField]): Option[HValuedField] = rfOpt.flatMap { rf =>
     rf.field match {
       case vf: HValuedField if vf.enclosingObjectField.docComments.nonEmpty => Some(vf)
-      case _ => findDocSource(rf.nextOccurrence(reverse = true))
+      case _ => findDocSource(rf.nextOccurrence(ResOpts(reverse = true)))
     }
   }
 

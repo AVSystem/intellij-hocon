@@ -27,7 +27,7 @@ abstract class HoconGotoPrevNextAction(reverse: Boolean) extends BaseCodeInsight
     elemAtOffset <- file.findElementAt(editor.getCaretModel.getOffset).opt
     fieldAtOffset <- elemAtOffset.parentOfType[HKeyedField]
     resField <- fieldAtOffset.makeContext
-    nextOccurrence <- resField.nextOccurrence(reverse).map(_.field)
+    nextOccurrence <- resField.nextOccurrence(ResOpts(reverse)).map(_.field)
     containingFile <- nextOccurrence.getContainingFile.opt.flatMap(_.getVirtualFile.opt)
   } {
     val desc = PsiNavigationSupport.getInstance.createNavigatable(

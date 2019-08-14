@@ -11,8 +11,8 @@ import com.intellij.psi.{PsiDocumentManager, PsiElement, PsiWhiteSpace}
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType
 import org.jetbrains.plugins.hocon.psi.HoconPsiElement
 
-import scala.collection.GenTraversableOnce
 import scala.collection.convert.{DecorateAsJava, DecorateAsScala}
+import scala.collection.{AbstractIterator, GenTraversableOnce}
 import scala.language.implicitConversions
 import scala.reflect.{ClassTag, classTag}
 
@@ -89,7 +89,7 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
       val off = elem.getTextOffset
       val line = doc.getLineNumber(off)
       val column = off - doc.getLineStartOffset(line)
-      s"$line:$column"
+      s"${line + 1}:$column"
     }
   }
 
@@ -121,6 +121,11 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
     def collectOnly[T: ClassTag]: Option[T] = option.collect { case t: T => t }
 
     def nullOr[T >: Null](f: A => T): T = option.fold(null: T)(f)
+
+    def flatMapIt[T](f: A => Iterator[T]): Iterator[T] = option match {
+      case Some(a) => f(a)
+      case None => Iterator.empty
+    }
   }
 
   implicit class collectionOps[A](private val coll: GenTraversableOnce[A]) extends AnyVal {
@@ -140,6 +145,22 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
 
     def flatCollect[B](f: PartialFunction[A, TraversableOnce[B]]): Iterator[B] =
       it.flatMap(a => f.applyOrElse(a, (_: A) => Iterator.empty))
+
+    def orElse(other: Iterator[A]): Iterator[A] = new AbstractIterator[A] {
+      private var chosenIt: Iterator[A] = _
+
+      def hasNext: Boolean =
+        if (chosenIt != null) chosenIt.hasNext
+        else {
+          chosenIt = if (it.hasNext) it else other
+          chosenIt.hasNext
+        }
+
+      def next(): A = {
+        hasNext
+        chosenIt.next()
+      }
+    }
   }
 
   private final val quotedCharPattern = "\\\\[\\\\\"/bfnrt]".r
