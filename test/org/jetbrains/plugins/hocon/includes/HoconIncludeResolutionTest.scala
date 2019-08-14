@@ -1,9 +1,7 @@
 package org.jetbrains.plugins.hocon
 package includes
 
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.{LocalFileSystem, VirtualFile}
 import com.intellij.psi.{PsiElement, PsiFile, PsiManager}
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType
@@ -12,13 +10,13 @@ import org.jetbrains.plugins.hocon.ref.IncludedFileReference
 import org.junit.Assert.{assertEquals, assertTrue}
 
 /**
-  * @author ghik
-  */
-trait HoconIncludeResolutionTest {
+ * @author ghik
+ */
+trait HoconIncludeResolutionTest extends HoconTestUtils {
 
   protected def rootPath: String
 
-  protected final def contentRoot: Option[VirtualFile] = {
+  private def contentRoot: Option[VirtualFile] = {
     val fileSystem = LocalFileSystem.getInstance()
     Option(fileSystem.findFileByPath(rootPath))
   }
@@ -79,17 +77,7 @@ trait HoconIncludeResolutionTest {
 }
 
 object HoconIncludeResolutionTest {
-
-  private[includes] def inWriteAction[T](body: => T) =
-    ApplicationManager.getApplication match {
-      case application if application.isWriteAccessAllowed => body
-      case application =>
-        val computable: Computable[T] = () => body
-        application.runWriteAction(computable)
-    }
-
   private class DepthFirstIterator(file: HoconPsiFile) extends Iterator[PsiElement] {
-
     private var stack: List[PsiElement] = Nil
 
     def hasNext: Boolean = stack.nonEmpty
@@ -107,5 +95,4 @@ object HoconIncludeResolutionTest {
       head
     }
   }
-
 }

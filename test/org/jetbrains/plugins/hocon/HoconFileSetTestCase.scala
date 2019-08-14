@@ -10,13 +10,12 @@ import com.intellij.testFramework.EditorTestUtil
 import com.intellij.util.LocalTimeCounter
 import org.jetbrains.plugins.hocon.lang.HoconLanguage
 import org.jetbrains.plugins.hocon.psi.HoconPsiFile
-import org.jetbrains.plugins.scala.util.TestUtils
 
 /**
  * @author ghik
  */
 abstract class HoconFileSetTestCase(subpath: String)
-  extends FileSetTestCase(s"${TestUtils.getTestDataPath}/hocon/$subpath") {
+  extends FileSetTestCase(s"${HoconTestUtils.TestdataPath}/hocon/$subpath") {
 
   override final def transform(testName: String, data: Array[String]): String = {
     val settings = CodeStyle.getSettings(myProject).getCommonSettings(HoconLanguage)

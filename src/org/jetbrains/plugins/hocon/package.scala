@@ -11,8 +11,8 @@ import com.intellij.psi.{PsiDocumentManager, PsiElement, PsiWhiteSpace}
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType
 import org.jetbrains.plugins.hocon.psi.HoconPsiElement
 
-import scala.collection.GenTraversableOnce
 import scala.collection.convert.{DecorateAsJava, DecorateAsScala}
+import scala.collection.{AbstractIterator, GenTraversableOnce}
 import scala.language.implicitConversions
 import scala.reflect.{ClassTag, classTag}
 
@@ -140,6 +140,22 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
 
     def flatCollect[B](f: PartialFunction[A, TraversableOnce[B]]): Iterator[B] =
       it.flatMap(a => f.applyOrElse(a, (_: A) => Iterator.empty))
+
+    def orElse(other: Iterator[A]): Iterator[A] = new AbstractIterator[A] {
+      private var chosenIt: Iterator[A] = _
+
+      def hasNext: Boolean =
+        if (chosenIt != null) chosenIt.hasNext
+        else {
+          chosenIt = if (it.hasNext) it else other
+          chosenIt.hasNext
+        }
+
+      def next(): A = {
+        hasNext
+        chosenIt.next()
+      }
+    }
   }
 
   private final val quotedCharPattern = "\\\\[\\\\\"/bfnrt]".r
