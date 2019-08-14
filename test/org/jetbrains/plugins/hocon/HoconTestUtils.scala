@@ -3,12 +3,38 @@ package org.jetbrains.plugins.hocon
 import java.io.File
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.vfs.{LocalFileSystem, VirtualFile}
+import com.intellij.psi.{PsiFile, PsiManager}
+import org.jetbrains.plugins.hocon.psi.HoconPsiFile
 
 import scala.annotation.tailrec
 
 trait HoconTestUtils {
   def testdataPath: String = HoconTestUtils.TestdataPath
+
+  def rootPath: String
+
+  def pathOf(file: PsiFile): String =
+    file.getVirtualFile.getPath.stripPrefix(contentRoot.getPath).stripPrefix("/")
+
+  lazy val contentRoot: VirtualFile = {
+    val lfs = LocalFileSystem.getInstance()
+    lfs.refresh(false)
+    lfs.findFileByPath(rootPath).opt
+      .getOrElse(throw new IllegalArgumentException(s"root path not found: $rootPath"))
+  }
+
+  def findVirtualFile(path: String): VirtualFile =
+    contentRoot.findFileByRelativePath(path).opt
+      .getOrElse(throw new IllegalArgumentException(s"file not found: $path"))
+
+  def findHoconFile(path: String, project: Project): HoconPsiFile =
+    PsiManager.getInstance(project).findFile(findVirtualFile(path)) match {
+      case file: HoconPsiFile => file
+      case _ => throw new IllegalArgumentException(s"not a HOCON file: $path")
+    }
 
   def inWriteAction[T](body: => T): T =
     ApplicationManager.getApplication match {

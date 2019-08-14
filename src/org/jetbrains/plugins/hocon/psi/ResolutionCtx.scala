@@ -114,13 +114,13 @@ case class ResolvedField(
   def nextOccurrence(reverse: Boolean): Option[ResolvedField] = {
     def nextFrom(entry: HEntriesLike, parentCtx: ResolutionCtx): Option[ResolvedField] = parentCtx match {
       case sc: SubstitutedCtx =>
-        nextFrom(field, sc.localCtx) orElse
+        nextFrom(entry, sc.localCtx) orElse
           sc.backtracedCtx.opt.collectOnly[ResolvedField].flatMap { parentField: ResolvedField =>
             withinConcat(sc.substitution, parentField) orElse fromParentField(parentField)
           }
 
       case ic: IncludeCtx =>
-        withinEntries(field, parentCtx) orElse
+        withinEntries(entry, parentCtx) orElse
           ic.moreFileContexts(reverse).flatMap(_.firstOccurrence(key.opt, reverse)).nextOption orElse
           ic.include.map(nextFrom(_, ic.parentCtx)).getOrElse(
             // proceeding from auto included files into the contents of the toplevel file
@@ -130,12 +130,12 @@ case class ResolvedField(
           )
 
       case parentField: ResolvedField =>
-        withinEntries(field, parentCtx) orElse
-          field.parentOfType[HObjectField].flatMap(_.containingObject).flatMap(withinConcat(_, parentCtx)) orElse
+        withinEntries(entry, parentCtx) orElse
+          entry.parentOfType[HObjectField].flatMap(_.containingObject).flatMap(withinConcat(_, parentCtx)) orElse
           fromParentField(parentField)
 
       case tc: ToplevelCtx =>
-        withinEntries(field, parentCtx) orElse {
+        withinEntries(entry, parentCtx) orElse {
           // proceeding into auto-included files
           if (reverse)
             tc.referenceIncludeCtxs(reverse).flatMap(_.firstOccurrence(key.opt, reverse)).nextOption

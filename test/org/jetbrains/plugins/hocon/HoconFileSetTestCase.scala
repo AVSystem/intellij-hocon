@@ -15,7 +15,9 @@ import org.jetbrains.plugins.hocon.psi.HoconPsiFile
  * @author ghik
  */
 abstract class HoconFileSetTestCase(subpath: String)
-  extends FileSetTestCase(s"${HoconTestUtils.TestdataPath}/hocon/$subpath") {
+  extends FileSetTestCase(s"${HoconTestUtils.TestdataPath}/hocon/$subpath") with HoconTestUtils {
+
+  def rootPath: String = s"$testdataPath/hocon/$subpath"
 
   override final def transform(testName: String, data: Array[String]): String = {
     val settings = CodeStyle.getSettings(myProject).getCommonSettings(HoconLanguage)

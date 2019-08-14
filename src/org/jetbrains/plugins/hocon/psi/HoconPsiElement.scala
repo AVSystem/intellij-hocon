@@ -66,7 +66,7 @@ class HoconPsiFile(provider: FileViewProvider)
 sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement(ast) with HoconPsiParent {
   type Parent <: HoconPsiParent
 
-  override def getContainingFile: HoconPsiFile =
+  def hoconFile: HoconPsiFile =
     super.getContainingFile.asInstanceOf[HoconPsiFile]
 
   def parent: Parent =
@@ -271,7 +271,7 @@ sealed trait HKeyedField extends HEntriesLike with HKeyedFieldParent with HKeyPa
   }
 
   private def toplevelContext: ToplevelCtx = {
-    val file = getContainingFile
+    val file = hoconFile
     ToplevelCtx(file, ToplevelCtx.referenceFilesFor(file))
   }
 
@@ -374,7 +374,7 @@ final class HKey(ast: ASTNode) extends HoconPsiElement(ast) {
   type Parent = HKeyParent
 
   def fullValidContainingPath: Option[(HObjectEntries, List[HKey])] = parent match {
-    case path: HPath => path.allValidKeys.map(keys => (getContainingFile.toplevelEntries, keys))
+    case path: HPath => path.allValidKeys.map(keys => (hoconFile.toplevelEntries, keys))
     case keyedField: HKeyedField => keyedField.fullValidContainingPath
   }
 
@@ -383,7 +383,7 @@ final class HKey(ast: ASTNode) extends HoconPsiElement(ast) {
   }
 
   def enclosingEntries: HObjectEntries = parent match {
-    case _: HPath => getContainingFile.toplevelEntries
+    case _: HPath => hoconFile.toplevelEntries
     case keyedField: HKeyedField => keyedField.enclosingEntries
   }
 
@@ -447,7 +447,7 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
 
   def resolve(): Option[ResolvedField] = {
     val subst = substitution
-    val file = getContainingFile
+    val file = hoconFile
     val resCtx = ToplevelCtx(file, ToplevelCtx.referenceFilesFor(file))
     val resField = subst.resolve(reverse = true, resCtx).nextOption
 

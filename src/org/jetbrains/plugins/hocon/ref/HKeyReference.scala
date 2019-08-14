@@ -34,7 +34,7 @@ class HKeyReference(key: HKey) extends PsiReference {
 
   // completion
   override def getVariants: Array[AnyRef] = {
-    val file = key.getContainingFile
+    val file = key.hoconFile
     val toplevelCtx = ToplevelCtx(file, ToplevelCtx.referenceFilesFor(file))
 
     val variantFields: Iterator[ResolvedField] = key.parent match {

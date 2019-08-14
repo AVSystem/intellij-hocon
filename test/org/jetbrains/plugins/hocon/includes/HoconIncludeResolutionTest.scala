@@ -2,8 +2,7 @@ package org.jetbrains.plugins.hocon
 package includes
 
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.{LocalFileSystem, VirtualFile}
-import com.intellij.psi.{PsiElement, PsiFile, PsiManager}
+import com.intellij.psi.{PsiElement, PsiFile}
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType
 import org.jetbrains.plugins.hocon.psi.{HIncludeTarget, HoconPsiFile}
 import org.jetbrains.plugins.hocon.ref.IncludedFileReference
@@ -13,29 +12,8 @@ import org.junit.Assert.{assertEquals, assertTrue}
  * @author ghik
  */
 trait HoconIncludeResolutionTest extends HoconTestUtils {
-
-  protected def rootPath: String
-
-  private def contentRoot: Option[VirtualFile] = {
-    val fileSystem = LocalFileSystem.getInstance()
-    Option(fileSystem.findFileByPath(rootPath))
-  }
-
-  private def findVirtualFile(path: String): Option[VirtualFile] =
-    contentRoot.flatMap(file => Option(file.findFileByRelativePath(path)))
-
-  protected def findHoconFile(path: String, project: Project): Option[HoconPsiFile] = {
-    def toHoconFile(virtualFile: VirtualFile): Option[HoconPsiFile] =
-      PsiManager.getInstance(project).findFile(virtualFile) match {
-        case file: HoconPsiFile => Some(file)
-        case _ => None
-      }
-
-    findVirtualFile(path).flatMap(toHoconFile)
-  }
-
   protected def checkFile(path: String, project: Project): Unit = {
-    val psiFile = findHoconFile(path, project).getOrElse(throw new RuntimeException)
+    val psiFile = findHoconFile(path, project)
 
     new HoconIncludeResolutionTest.DepthFirstIterator(psiFile).collect {
       case target: HIncludeTarget => target
@@ -59,7 +37,7 @@ trait HoconIncludeResolutionTest extends HoconTestUtils {
         val expectedFiles = prevComments.flatMap(_.getText.stripPrefix("#").split(','))
           .map(_.trim)
           .filter(_.nonEmpty)
-          .flatMap(findVirtualFile)
+          .flatMap(path => findVirtualFile(path).opt)
 
         val actualFiles = resolveResults
           .map(_.getElement)

@@ -19,7 +19,7 @@ class HoconMultiModuleIncludeResolutionTest extends UsefulTestCase with HoconInc
 
   private var fixture: CodeInsightTestFixture = _
 
-  override protected def rootPath = "testdata/hocon/includes/multimodule"
+  def rootPath = "testdata/hocon/includes/multimodule"
 
   import HoconMultiModuleIncludeResolutionTest._
 

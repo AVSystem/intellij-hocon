@@ -4,7 +4,7 @@ package includes
 import com.intellij.testFramework.LightPlatformTestCase.getProject
 
 class HoconSingleModuleIncludeResolutionTest extends HoconSingleModuleTest with HoconIncludeResolutionTest {
-  protected def rootPath = s"$testdataPath/hocon/includes/singlemodule"
+  def rootPath = s"$testdataPath/hocon/includes/singlemodule"
 
   def testIncludesFromTopLevel(): Unit =
     checkFile("including.conf")
