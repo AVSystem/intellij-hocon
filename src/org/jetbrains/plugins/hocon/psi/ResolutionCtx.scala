@@ -2,6 +2,7 @@ package org.jetbrains.plugins.hocon
 package psi
 
 import com.intellij.psi.search.FilenameIndex
+import org.jetbrains.plugins.hocon.psi.SubsType.SelfReferential
 import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet
 import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet.DefaultContexts
 
@@ -57,14 +58,14 @@ sealed abstract class ResolutionCtx {
   }
 
   /**
-    * All currently "open" paths - used for detecting self-referential and circular substitutions.
-    */
+   * All currently "open" paths - used for detecting self-referential and circular substitutions.
+   */
   def pathsInResolution: List[List[String]] = pathsInResolution(Nil, Nil)
 
   /**
-    * Occurrences of given key (or all) adjacent to this resolution context (outside of it, before or after).
-    * Example: sibling fields of an `include`.
-    */
+   * Occurrences of given key (or all) adjacent to this resolution context (outside of it, before or after).
+   * Example: sibling fields of an `include`.
+   */
   def adjacentOccurrences(key: Option[String], opts: ResOpts): Iterator[ResolvedField] = this match {
     case _: ToplevelCtx =>
       Iterator.empty
@@ -154,6 +155,11 @@ case class ResolvedField(
       vf.subScopeValue.flatMapIt(_.occurrences(subkey, opts, this))
   }
 
+  def subOccurrences(path: List[String], opts: ResOpts): Iterator[ResolvedField] =
+    path.foldLeft(Iterator(this)) {
+      case (it, key) => it.flatMap(_.subOccurrences(key.opt, opts))
+    }
+
   val prefixField: Option[ResolvedField] = {
     @tailrec def loop(parentCtx: ResolutionCtx): Option[ResolvedField] = parentCtx match {
       case rf: ResolvedField => Some(rf)
@@ -170,6 +176,14 @@ case class ResolvedField(
 
   def nextOccurrence(opts: ResOpts): Option[ResolvedField] =
     moreOccurrences(opts).nextOption
+
+  lazy val isSelfReferential: Boolean = !inArray && (field match {
+    case vf: HValuedField => vf.isArrayAppend || vf.value.exists {
+      case sub: HSubstitution => sub.subsType(this).isSelfReferential
+      case conc: HConcatenation => conc.findChildren[HSubstitution].exists(_.subsType(this).isSelfReferential)
+    }
+    case _: HPrefixedField => false
+  })
 }
 
 case class IncludeCtx(
@@ -215,7 +229,12 @@ case class ArrayCtx(
   parentCtx: ResolutionCtx
 ) extends ResolutionCtx
 
-sealed abstract class SubsType
+sealed abstract class SubsType {
+  def isSelfReferential: Boolean = this match {
+    case _: SelfReferential => true
+    case _ => false
+  }
+}
 object SubsType {
   case class Full(path: List[String]) extends SubsType
   case class SelfReferential(to: ResolvedField, suffix: List[String]) extends SubsType

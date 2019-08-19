@@ -203,9 +203,9 @@ sealed trait HEntriesLike extends HoconPsiElement {
   def occurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField]
 
   /**
-    * Occurrences of given key (or all) within entries adjacent to these in the same containing object and objects
-    * concatenated with it.
-    */
+   * Occurrences of given key (or all) within entries adjacent to these in the same containing object and objects
+   * concatenated with it.
+   */
   def adjacentEntriesOccurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] = {
     def fromReferenceOrConcat = resCtx match {
       case tc: ToplevelCtx if opts.reverse =>
@@ -256,20 +256,20 @@ sealed trait HKeyedField extends HEntriesLike with HKeyedFieldParent with HKeyPa
   }
 
   /**
-    * Goes up the tree in order to determine full path under which this keyed field is defined.
-    * Stops when encounters file-toplevel entries or an array (including array-append field).
-    *
-    * @return iterator of all encountered keyed fields (in bottom-up order, i.e. starting with itself)
-    */
+   * Goes up the tree in order to determine full path under which this keyed field is defined.
+   * Stops when encounters file-toplevel entries or an array (including array-append field).
+   *
+   * @return iterator of all encountered keyed fields (in bottom-up order, i.e. starting with itself)
+   */
   def prefixingFields: Iterator[HKeyedField] =
     Iterator.iterate(this)(_.prefixingField.orNull).takeWhile(_ != null)
 
   /**
-    * Returns all keys on containing path, assuming they are all valid keys. `None` is returned if not all keys
-    * on containing path are valid. The list is ordered top-down, i.e. `this` key is the last element.
-    * "Containing path" starts at the smallest enclosing array element or at the file toplevel entries if there are
-    * no arrays on the way to this field.
-    */
+   * Returns all keys on containing path, assuming they are all valid keys. `None` is returned if not all keys
+   * on containing path are valid. The list is ordered top-down, i.e. `this` key is the last element.
+   * "Containing path" starts at the smallest enclosing array element or at the file toplevel entries if there are
+   * no arrays on the way to this field.
+   */
   def fullValidContainingPath: Option[(HObjectEntries, List[HKey])] = {
     @tailrec def loop(currentField: HKeyedField, acc: List[HKey]): Option[(HObjectEntries, List[HKey])] =
       currentField.validKey match {
@@ -446,8 +446,8 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
   }
 
   /**
-    * Some(all keys in this path) or None if there's an invalid key in path.
-    */
+   * Some(all keys in this path) or None if there's an invalid key in path.
+   */
   def allValidKeys: Option[List[HKey]] = {
     def allKeysIn(path: HPath, acc: List[HKey]): Option[List[HKey]] =
       path.validKey.flatMap { key =>
@@ -457,10 +457,10 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
   }
 
   /**
-    * If all keys are valid - all keys of this path.
-    * If some keys are invalid - all valid keys from left to right until some invalid key is encountered
-    * (i.e. longest valid prefix path)
-    */
+   * If all keys are valid - all keys of this path.
+   * If some keys are invalid - all valid keys from left to right until some invalid key is encountered
+   * (i.e. longest valid prefix path)
+   */
   def startingValidKeys: List[HKey] =
     allPaths.iterator.takeWhile(_.validKey.nonEmpty).flatMap(_.validKey).toList
 
@@ -546,22 +546,20 @@ final class HArray(ast: ASTNode) extends HoconPsiElement(ast) with HValue with H
 final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HPathParent {
   def path: Option[HPath] = findChild[HPath]
 
-  def subsType(field: ResolvedField): SubsType = path.flatMap(_.allValidKeys).map { keys =>
-    val strPath = keys.map(_.stringValue)
+  def subsType(field: ResolvedField): SubsType =
+    path.flatMap(_.allValidKeys).fold[SubsType](SubsType.Invalid) { keys =>
+      @tailrec def nonFullSubsType(subsPath: List[String], pathInRes: List[String]): Option[SubsType] =
+        (subsPath, pathInRes) match {
+          case (suffix, Nil) if !field.inArray => Some(SubsType.SelfReferential(field, suffix))
+          case (Nil, _) => Some(SubsType.Circular)
+          case (sh :: st, rh :: rt) if sh == rh => nonFullSubsType(st, rt)
+          case _ => None
+        }
 
-    @tailrec def subsTypeIn(subsPath: List[String], pathInRes: List[String]): SubsType =
-      (subsPath, pathInRes) match {
-        case (suffix, Nil) if !field.inArray => SubsType.SelfReferential(field, suffix)
-        case (Nil, _) => SubsType.Circular
-        case (sh :: st, rh :: rt) if sh == rh => subsTypeIn(st, rt)
-        case _ => SubsType.Full(strPath)
-      }
-
-    field.pathsInResolution.iterator.map(subsTypeIn(strPath, _)).collectFirst {
-      case st@(SubsType.Circular | _: SubsType.SelfReferential) => st
-    }.getOrElse(SubsType.Full(strPath))
-
-  }.getOrElse(SubsType.Invalid)
+      val strPath = keys.map(_.stringValue)
+      field.pathsInResolution.iterator.flatMap(nonFullSubsType(strPath, _))
+        .nextOption.getOrElse(SubsType.Full(strPath))
+    }
 
   def resolve(opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] =
     if (resCtx.toplevelCtx.directOnly) Iterator.empty
@@ -571,6 +569,13 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
           val toplevelCtx = resCtx.toplevelCtx
           val newCtx = toplevelCtx.copy(forSubst = Some(OpenSubstitution(resCtx, this)))
           newCtx.occurrences(strPath, opts)
+        case SubsType.SelfReferential(to, suffix) =>
+          if (opts.reverse)
+            to.moreOccurrences(opts).flatMap(_.subOccurrences(suffix, opts))
+          else
+            Iterator.empty //FIXME forward occurrences before self-referenced field
+        case SubsType.Circular | SubsType.Invalid =>
+          Iterator.empty
       }
       case _ => Iterator.empty
     }
