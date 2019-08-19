@@ -14,7 +14,7 @@ import org.jetbrains.plugins.hocon.psi._
 
 class HoconGotoDeclarationHandler extends GotoDeclarationHandler {
   def getGotoDeclarationTargets(sourceElement: PsiElement, offset: Int, editor: Editor): Array[PsiElement] =
-    sourceElement.parentOfType[HPath].fold(PsiElement.EMPTY_ARRAY)(_.resolve().map(_.field).toArray[PsiElement])
+    sourceElement.parentOfType[HPath].flatMap(_.resolve()).map(_.field).toArray[PsiElement]
 }
 
 abstract class HoconGotoPrevNextAction(reverse: Boolean) extends BaseCodeInsightAction with CodeInsightActionHandler {

@@ -17,36 +17,60 @@ sealed abstract class ResolutionCtx {
     case tc: ToplevelCtx => tc
     case rf: ResolvedField => rf.parentCtx.toplevelCtx
     case ic: IncludeCtx => ic.parentCtx.toplevelCtx
-    case sc: SubstitutedCtx => sc.localCtx.toplevelCtx
+    case sc: SubstitutedCtx => sc.localParentCtx.toplevelCtx
+    case ac: ArrayCtx => ac.parentCtx.toplevelCtx
+  }
+
+  val inArray: Boolean = this match {
+    case _: ToplevelCtx => false
+    case rf: ResolvedField => rf.parentCtx.inArray
+    case ic: IncludeCtx => ic.parentCtx.inArray
+    case sc: SubstitutedCtx => sc.localParentCtx.inArray
+    case _: ArrayCtx => true
   }
 
   @tailrec final def isAlreadyIn(file: HoconPsiFile): Boolean = this match {
-    case toplevelCtx: ToplevelCtx =>
-      toplevelCtx.file == file
-    case resolvedField: ResolvedField =>
-      resolvedField.parentCtx.isAlreadyIn(file)
-    case atInclude: IncludeCtx =>
-      atInclude.allFiles.contains(file) || atInclude.parentCtx.isAlreadyIn(file)
-    case substitutedCtx: SubstitutedCtx =>
-      substitutedCtx.localCtx.isAlreadyIn(file)
+    case tc: ToplevelCtx => tc.file == file
+    case rf: ResolvedField => rf.parentCtx.isAlreadyIn(file)
+    case ic: IncludeCtx => ic.allFiles.contains(file) || ic.parentCtx.isAlreadyIn(file)
+    case sc: SubstitutedCtx => sc.localParentCtx.isAlreadyIn(file)
+    case ac: ArrayCtx => ac.parentCtx.isAlreadyIn(file)
   }
 
-  lazy val path: List[String] = {
-    @tailrec def mkPath(suffix: List[String], ctx: ResolutionCtx): List[String] = ctx match {
-      case _: ToplevelCtx => suffix
-      case ic: IncludeCtx => mkPath(suffix, ic.parentCtx)
-      case sc: SubstitutedCtx => mkPath(suffix, sc.backtracedCtx)
-      case rf: ResolvedField => mkPath(rf.key :: suffix, rf.parentCtx)
-    }
-    mkPath(Nil, this)
+  private def pathsInResolution(suffix: List[String], suffixStack: List[List[String]]): List[List[String]] = this match {
+    case tc: ToplevelCtx =>
+      val (newSuffix, newSuffixStack) = suffixStack match {
+        case head :: tail => (head, tail)
+        case Nil => (Nil, Nil)
+      }
+      val fromOpenSubstitutions = tc.forSubst.map(_.ctx.pathsInResolution(newSuffix, newSuffixStack)).getOrElse(Nil)
+      if (suffix.nonEmpty) suffix :: fromOpenSubstitutions else fromOpenSubstitutions
+    case rf: ResolvedField =>
+      rf.parentCtx.pathsInResolution(rf.key :: suffix, suffixStack)
+    case ic: IncludeCtx =>
+      ic.parentCtx.pathsInResolution(suffix, suffixStack)
+    case sc: SubstitutedCtx =>
+      // tricky! backtracedCtx will be handled in the ToplevelCtx case
+      sc.localParentCtx.pathsInResolution(suffix, suffix :: suffixStack)
+    case ac: ArrayCtx =>
+      ac.parentCtx.pathsInResolution
   }
 
   /**
-   * Occurrences of given key (or all) adjacent to this resolution context (outside of it, before or after).
-   */
+    * All currently "open" paths - used for detecting self-referential and circular substitutions.
+    */
+  def pathsInResolution: List[List[String]] = pathsInResolution(Nil, Nil)
+
+  /**
+    * Occurrences of given key (or all) adjacent to this resolution context (outside of it, before or after).
+    * Example: sibling fields of an `include`.
+    */
   def adjacentOccurrences(key: Option[String], opts: ResOpts): Iterator[ResolvedField] = this match {
     case _: ToplevelCtx =>
       Iterator.empty
+
+    case rf: ResolvedField =>
+      rf.moreOccurrences(opts).flatMap(_.subOccurrences(key, opts))
 
     case ic: IncludeCtx =>
       ic.moreFileContexts(opts.reverse).flatMap(_.occurrences(key, opts)) ++ (ic.include match {
@@ -63,8 +87,8 @@ sealed abstract class ResolutionCtx {
       sc.substitution.adjacentConcatOccurrences(key, opts, sc.backtracedCtx) ++
         sc.backtracedCtx.adjacentOccurrences(key, opts)
 
-    case rf: ResolvedField =>
-      rf.moreOccurrences(opts).flatMap(_.subOccurrences(key, opts))
+    case _: ArrayCtx =>
+      Iterator.empty
   }
 }
 
@@ -130,12 +154,12 @@ case class ResolvedField(
       vf.subScopeValue.flatMapIt(_.occurrences(subkey, opts, this))
   }
 
-  def prefixField: Option[ResolvedField] = {
+  val prefixField: Option[ResolvedField] = {
     @tailrec def loop(parentCtx: ResolutionCtx): Option[ResolvedField] = parentCtx match {
       case rf: ResolvedField => Some(rf)
       case sc: SubstitutedCtx => loop(sc.backtracedCtx)
       case ic: IncludeCtx => loop(ic.parentCtx)
-      case _: ToplevelCtx => None
+      case _: ToplevelCtx | _: ArrayCtx => None
     }
     loop(parentCtx)
   }
@@ -182,7 +206,19 @@ object IncludeCtx {
 }
 
 case class SubstitutedCtx(
-  localCtx: ResolutionCtx, // context of local parent, without backtracing substitutions
-  backtracedCtx: ResolutionCtx, // context of where the substitution itself is located
+  localParentCtx: ResolutionCtx, // context of local parent, without backtracing substitutions
+  backtracedCtx: ResolutionCtx, // context of where the substitution itself is located: ResolvedField or ArrayCtx
   substitution: HSubstitution
 ) extends ResolutionCtx
+
+case class ArrayCtx(
+  parentCtx: ResolutionCtx
+) extends ResolutionCtx
+
+sealed abstract class SubsType
+object SubsType {
+  case class Full(path: List[String]) extends SubsType
+  case class SelfReferential(to: ResolvedField, suffix: List[String]) extends SubsType
+  case object Circular extends SubsType
+  case object Invalid extends SubsType
+}

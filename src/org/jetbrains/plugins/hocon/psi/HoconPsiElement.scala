@@ -158,6 +158,8 @@ final class HObjectEntries(ast: ASTNode) extends HoconPsiElement(ast) with HEntr
 sealed trait HObjectEntry extends HoconPsiElement with HEntriesLike {
   type Parent = HObjectEntries
 
+  def containingEntries: HObjectEntries = parent
+
   def containingObject: Option[HObject] = parent.containingObject
 
   override def moreEntries(reverse: Boolean): Iterator[HObjectEntry] =
@@ -201,9 +203,9 @@ sealed trait HEntriesLike extends HoconPsiElement {
   def occurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField]
 
   /**
-   * Occurrences of given key (or all) within entries adjacent to these in the same containing object and objects
-   * concatenated with it.
-   */
+    * Occurrences of given key (or all) within entries adjacent to these in the same containing object and objects
+    * concatenated with it.
+    */
   def adjacentEntriesOccurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] = {
     def fromReferenceOrConcat = resCtx match {
       case tc: ToplevelCtx if opts.reverse =>
@@ -254,20 +256,20 @@ sealed trait HKeyedField extends HEntriesLike with HKeyedFieldParent with HKeyPa
   }
 
   /**
-   * Goes up the tree in order to determine full path under which this keyed field is defined.
-   * Stops when encounters file-toplevel entries or an array (including array-append field).
-   *
-   * @return iterator of all encountered keyed fields (in bottom-up order, i.e. starting with itself)
-   */
+    * Goes up the tree in order to determine full path under which this keyed field is defined.
+    * Stops when encounters file-toplevel entries or an array (including array-append field).
+    *
+    * @return iterator of all encountered keyed fields (in bottom-up order, i.e. starting with itself)
+    */
   def prefixingFields: Iterator[HKeyedField] =
     Iterator.iterate(this)(_.prefixingField.orNull).takeWhile(_ != null)
 
   /**
-   * Returns all keys on containing path, assuming they are all valid keys. `None` is returned if not all keys
-   * on containing path are valid. The list is ordered top-down, i.e. `this` key is the last element.
-   * "Containing path" starts at the smallest enclosing array element or at the file toplevel entries if there are
-   * no arrays on the way to this field.
-   */
+    * Returns all keys on containing path, assuming they are all valid keys. `None` is returned if not all keys
+    * on containing path are valid. The list is ordered top-down, i.e. `this` key is the last element.
+    * "Containing path" starts at the smallest enclosing array element or at the file toplevel entries if there are
+    * no arrays on the way to this field.
+    */
   def fullValidContainingPath: Option[(HObjectEntries, List[HKey])] = {
     @tailrec def loop(currentField: HKeyedField, acc: List[HKey]): Option[(HObjectEntries, List[HKey])] =
       currentField.validKey match {
@@ -293,16 +295,16 @@ sealed trait HKeyedField extends HEntriesLike with HKeyedFieldParent with HKeyPa
     case vf: HValuedField => Iterator(vf)
   }
 
-  private def toplevelContext: ToplevelCtx = {
-    val file = hoconFile
-    ToplevelCtx(file, ToplevelCtx.referenceFilesFor(file))
-  }
-
-  def makeContext: Option[ResolvedField] =
-    validKeyString.map { key =>
-      val parentCtx = prefixingField.flatMap(_.makeContext).getOrElse(toplevelContext)
-      ResolvedField(key, this, parentCtx)
+  def makeContext: Option[ResolvedField] = for {
+    key <- validKeyString
+    parentCtx <- parent match {
+      case prefixField: HKeyedField => prefixField.makeContext
+      case objectField: HObjectField => objectField.containingEntries.parent match {
+        case obj: HObject => obj.makeContext
+        case file: HoconPsiFile => Some(ToplevelCtx(file, ToplevelCtx.referenceFilesFor(file)))
+      }
     }
+  } yield ResolvedField(key, this, parentCtx)
 }
 
 final class HPrefixedField(ast: ASTNode) extends HoconPsiElement(ast) with HKeyedField {
@@ -444,8 +446,8 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
   }
 
   /**
-   * Some(all keys in this path) or None if there's an invalid key in path.
-   */
+    * Some(all keys in this path) or None if there's an invalid key in path.
+    */
   def allValidKeys: Option[List[HKey]] = {
     def allKeysIn(path: HPath, acc: List[HKey]): Option[List[HKey]] =
       path.validKey.flatMap { key =>
@@ -455,10 +457,10 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
   }
 
   /**
-   * If all keys are valid - all keys of this path.
-   * If some keys are invalid - all valid keys from left to right until some invalid key is encountered
-   * (i.e. longest valid prefix path)
-   */
+    * If all keys are valid - all keys of this path.
+    * If some keys are invalid - all valid keys from left to right until some invalid key is encountered
+    * (i.e. longest valid prefix path)
+    */
   def startingValidKeys: List[HKey] =
     allPaths.iterator.takeWhile(_.validKey.nonEmpty).flatMap(_.validKey).toList
 
@@ -470,9 +472,7 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
 
   def resolve(): Option[ResolvedField] = {
     val subst = substitution
-    val file = hoconFile
-    val resCtx = ToplevelCtx(file, ToplevelCtx.referenceFilesFor(file))
-    val resField = subst.resolve(ResOpts(reverse = true), resCtx).nextOption
+    val resField = subst.makeContext.flatMap(resCtx => subst.resolve(ResOpts(reverse = true), resCtx).nextOption)
 
     @tailrec def gotoPrefix(rfOpt: Option[ResolvedField], subpath: HPath): Option[ResolvedField] =
       if (subpath eq this) rfOpt
@@ -501,6 +501,17 @@ sealed trait HValue extends HoconPsiElement {
 
   def moreConcatenated(reverse: Boolean): Iterator[HValue] =
     concatParent.flatMapIt(_ => moreSiblings(reverse).collectOnly[HValue])
+
+  def makeContext: Option[ResolutionCtx] = parent match {
+    case vf: HValuedField =>
+      vf.makeContext.map(ctx => if (vf.isArrayAppend) ArrayCtx(ctx) else ctx)
+    case arr: HArray =>
+      arr.makeContext.map(ArrayCtx)
+    case conc: HConcatenation =>
+      conc.makeContext
+    case file: HoconPsiFile =>
+      Some(ToplevelCtx(file, ToplevelCtx.referenceFilesFor(file)))
+  }
 
   def firstOccurrence(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Option[ResolvedField] =
     occurrences(key, opts, resCtx).nextOption
@@ -535,13 +546,33 @@ final class HArray(ast: ASTNode) extends HoconPsiElement(ast) with HValue with H
 final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HPathParent {
   def path: Option[HPath] = findChild[HPath]
 
+  def subsType(field: ResolvedField): SubsType = path.flatMap(_.allValidKeys).map { keys =>
+    val strPath = keys.map(_.stringValue)
+
+    @tailrec def subsTypeIn(subsPath: List[String], pathInRes: List[String]): SubsType =
+      (subsPath, pathInRes) match {
+        case (suffix, Nil) if !field.inArray => SubsType.SelfReferential(field, suffix)
+        case (Nil, _) => SubsType.Circular
+        case (sh :: st, rh :: rt) if sh == rh => subsTypeIn(st, rt)
+        case _ => SubsType.Full(strPath)
+      }
+
+    field.pathsInResolution.iterator.map(subsTypeIn(strPath, _)).collectFirst {
+      case st@(SubsType.Circular | _: SubsType.SelfReferential) => st
+    }.getOrElse(SubsType.Full(strPath))
+
+  }.getOrElse(SubsType.Invalid)
+
   def resolve(opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] =
     if (resCtx.toplevelCtx.directOnly) Iterator.empty
-    else path.flatMap(_.allValidKeys).fold[Iterator[ResolvedField]](Iterator.empty) { keys =>
-      //TODO: self-referential substitutions!
-      val toplevelCtx = resCtx.toplevelCtx
-      val newCtx = toplevelCtx.copy(forSubst = Some(OpenSubstitution(resCtx, this)))
-      newCtx.occurrences(keys.map(_.stringValue), opts)
+    else resCtx match {
+      case rf: ResolvedField => subsType(rf) match {
+        case SubsType.Full(strPath) =>
+          val toplevelCtx = resCtx.toplevelCtx
+          val newCtx = toplevelCtx.copy(forSubst = Some(OpenSubstitution(resCtx, this)))
+          newCtx.occurrences(strPath, opts)
+      }
+      case _ => Iterator.empty
     }
 }
 
