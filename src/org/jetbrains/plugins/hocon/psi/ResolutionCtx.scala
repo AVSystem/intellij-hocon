@@ -30,6 +30,26 @@ sealed abstract class ResolutionCtx {
     case _: ArrayCtx => true
   }
 
+  val lastInclude: Option[IncludeCtx] = this match {
+    case _: ToplevelCtx => None
+    case rf: ResolvedField => rf.parentCtx.lastInclude
+    case ic: IncludeCtx => Some(ic)
+    case sc: SubstitutedCtx => sc.localParentCtx.lastInclude
+    case ac: ArrayCtx => ac.parentCtx.lastInclude
+  }
+
+  // https://github.com/lightbend/config/blob/master/HOCON.md#include-semantics-substitution
+  def fixupSubstitutionPath(path: List[String]): List[String] = {
+    @tailrec def loop(ctx: ResolutionCtx, suffix: List[String]): List[String] = ctx match {
+      case _: ToplevelCtx => suffix
+      case rf: ResolvedField => loop(rf.parentCtx, rf.key :: suffix)
+      case ic: IncludeCtx => loop(ic.parentCtx, suffix)
+      case sc: SubstitutedCtx => loop(sc.localParentCtx, suffix)
+      case _: ArrayCtx => path
+    }
+    lastInclude.filterNot(_.inArray).map(loop(_, path)).getOrElse(path)
+  }
+
   @tailrec final def isAlreadyIn(file: HoconPsiFile): Boolean = this match {
     case tc: ToplevelCtx => tc.file == file
     case rf: ResolvedField => rf.parentCtx.isAlreadyIn(file)
@@ -93,7 +113,11 @@ sealed abstract class ResolutionCtx {
   }
 }
 
-case class OpenSubstitution(ctx: ResolutionCtx, subst: HSubstitution)
+case class OpenSubstitution(
+  ctx: ResolutionCtx,
+  subst: HSubstitution,
+  path: List[String]
+)
 
 case class ToplevelCtx(
   file: HoconPsiFile,
@@ -176,14 +200,6 @@ case class ResolvedField(
 
   def nextOccurrence(opts: ResOpts): Option[ResolvedField] =
     moreOccurrences(opts).nextOption
-
-  lazy val isSelfReferential: Boolean = !inArray && (field match {
-    case vf: HValuedField => vf.isArrayAppend || vf.value.exists {
-      case sub: HSubstitution => sub.subsType(this).isSelfReferential
-      case conc: HConcatenation => conc.findChildren[HSubstitution].exists(_.subsType(this).isSelfReferential)
-    }
-    case _: HPrefixedField => false
-  })
 }
 
 case class IncludeCtx(
@@ -236,7 +252,7 @@ sealed abstract class SubsType {
   }
 }
 object SubsType {
-  case class Full(path: List[String]) extends SubsType
+  case class Full(path: List[String], fallback: Option[SubsType]) extends SubsType
   case class SelfReferential(to: ResolvedField, suffix: List[String]) extends SubsType
   case object Circular extends SubsType
   case object Invalid extends SubsType

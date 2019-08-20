@@ -41,7 +41,8 @@ class HoconResolutionTest extends HoconSingleModuleTest {
       |moreIncluded.conf:1:0
       |included.conf:3:0
       |application.conf:18:0
-      |application.conf:24:0
+      |application.conf:21:0
+      |application.conf:27:0
       |""".stripMargin
   )
 
@@ -55,8 +56,10 @@ class HoconResolutionTest extends HoconSingleModuleTest {
       |moreIncluded.conf:1:2
       |included.conf:3:2
       |nestedIncluded.conf:1:0
-      |application.conf:21:2
+      |nestedIncluded.conf:2:0
+      |nestedIncluded.conf:3:0
       |application.conf:24:2
+      |application.conf:27:2
       |""".stripMargin
   )
 
@@ -72,8 +75,10 @@ class HoconResolutionTest extends HoconSingleModuleTest {
       |moreIncluded.conf:1:4
       |included.conf:3:4
       |nestedIncluded.conf:1:2
-      |application.conf:21:4
+      |application.conf:18:9
+      |application.conf:19:16
       |application.conf:24:4
+      |application.conf:27:4
       |""".stripMargin
   )
 }

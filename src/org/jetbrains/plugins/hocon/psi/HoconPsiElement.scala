@@ -548,6 +548,8 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
 
   def subsType(field: ResolvedField): SubsType =
     path.flatMap(_.allValidKeys).fold[SubsType](SubsType.Invalid) { keys =>
+
+      // https://github.com/lightbend/config/blob/master/HOCON.md#self-referential-substitutions
       @tailrec def nonFullSubsType(subsPath: List[String], pathInRes: List[String]): Option[SubsType] =
         (subsPath, pathInRes) match {
           case (suffix, Nil) if !field.inArray => Some(SubsType.SelfReferential(field, suffix))
@@ -556,27 +558,37 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
           case _ => None
         }
 
-      val strPath = keys.map(_.stringValue)
-      field.pathsInResolution.iterator.flatMap(nonFullSubsType(strPath, _))
-        .nextOption.getOrElse(SubsType.Full(strPath))
+      val pathsInRes = field.pathsInResolution
+
+      def forPath(path: List[String], fixup: Boolean): SubsType = {
+        val fullPath = if (fixup) field.fixupSubstitutionPath(path) else path
+        val fallbackPath = Option(path).filter(_ != fullPath)
+        pathsInRes.iterator.flatMap(nonFullSubsType(fullPath, _)).nextOption
+          .getOrElse(SubsType.Full(fullPath, fallbackPath.map(forPath(_, fixup = false))))
+      }
+
+      forPath(keys.map(_.stringValue), fixup = true)
     }
 
   def resolve(opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] =
     if (resCtx.toplevelCtx.directOnly) Iterator.empty
     else resCtx match {
-      case rf: ResolvedField => subsType(rf) match {
-        case SubsType.Full(strPath) =>
-          val toplevelCtx = resCtx.toplevelCtx
-          val newCtx = toplevelCtx.copy(forSubst = Some(OpenSubstitution(resCtx, this)))
-          newCtx.occurrences(strPath, opts)
-        case SubsType.SelfReferential(to, suffix) =>
-          if (opts.reverse)
-            to.moreOccurrences(opts).flatMap(_.subOccurrences(suffix, opts))
-          else
-            Iterator.empty //FIXME forward occurrences before self-referenced field
-        case SubsType.Circular | SubsType.Invalid =>
-          Iterator.empty
-      }
+      case rf: ResolvedField =>
+        def forSubsType(subsType: SubsType): Iterator[ResolvedField] = subsType match {
+          case SubsType.Full(strPath, fallbackSubsType) =>
+            val toplevelCtx = resCtx.toplevelCtx
+            val newCtx = toplevelCtx.copy(forSubst = Some(OpenSubstitution(resCtx, this, strPath)))
+            val res = newCtx.occurrences(strPath, opts)
+            fallbackSubsType.fold(res)(ft => res orElse forSubsType(ft))
+          case SubsType.SelfReferential(to, suffix) =>
+            if (opts.reverse)
+              to.moreOccurrences(opts).flatMap(_.subOccurrences(suffix, opts))
+            else
+              Iterator.empty //FIXME forward occurrences before self-referenced field
+          case SubsType.Circular | SubsType.Invalid =>
+            Iterator.empty
+        }
+        forSubsType(subsType(rf))
       case _ => Iterator.empty
     }
 }
