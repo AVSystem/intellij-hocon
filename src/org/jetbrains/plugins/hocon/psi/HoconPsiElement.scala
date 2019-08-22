@@ -344,7 +344,9 @@ final class HInclude(ast: ASTNode) extends HoconPsiElement(ast) with HObjectEntr
     else included.qualified.flatMap(_.fileReferenceSet).fold[Iterator[ResolvedField]](Iterator.empty) { refset =>
       //TODO: search also .json and .properties files
       val allFiles = refset.getLastReference.opt.fold(Vector.empty[HoconPsiFile]) { ref =>
-        ref.multiResolve(false).iterator.map(_.getElement).collectOnly[HoconPsiFile].toVector
+        ref.multiResolve(false).iterator
+          .map(_.getElement).collectOnly[HoconPsiFile].toVector
+          .sortBy(_.getVirtualFile.getPath) // just so that it's deterministic
       }
       IncludeCtx.allContexts(Some(this), allFiles, opts.reverse, resCtx)
         .flatMap(_.occurrences(key, opts))
