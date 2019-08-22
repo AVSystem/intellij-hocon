@@ -12,7 +12,8 @@ import scala.annotation.tailrec
 
 case class ResOpts(
   reverse: Boolean,
-  mergeableOnly: Boolean = false
+  resolveIncludes: Boolean = true,
+  resolveSubstitutions: Boolean = true
 )
 
 sealed abstract class SubstitutionKind
@@ -128,7 +129,8 @@ sealed abstract class ResolutionCtx {
   /**
    * All currently "open" paths - used for detecting self-referential and circular substitutions.
    */
-  def pathsInResolution: List[List[ResolvedField]] = pathsInResolution(Nil, Nil)
+  lazy val pathsInResolution: List[List[ResolvedField]] =
+    pathsInResolution(Nil, Nil)
 
   /**
    * Occurrences of given key (or all) adjacent to this resolution context (outside of it, before or after).
@@ -183,7 +185,6 @@ sealed abstract class ResolutionCtx {
 case class ToplevelCtx(
   file: HoconPsiFile,
   referenceFiles: Vector[HoconPsiFile],
-  directOnly: Boolean = false,
   // indicates that we are resolving a substitution and points to it
   subsCtx: Option[SubstitutionCtx] = None
 ) extends ResolutionCtx {
@@ -191,13 +192,13 @@ case class ToplevelCtx(
   def selfReferenced: Option[ResolvedField] =
     subsCtx.map(_.subsKind).collectOnly[SelfReferential].map(_.selfReferenced)
 
-  def referenceIncludeCtxs(reverse: Boolean): Iterator[IncludeCtx] =
-    if (directOnly) Iterator.empty
-    else IncludeCtx.allContexts(None, referenceFiles, reverse, this)
+  def referenceIncludeCtxs(resOpts: ResOpts): Iterator[IncludeCtx] =
+    if (!resOpts.resolveIncludes) Iterator.empty
+    else IncludeCtx.allContexts(None, referenceFiles, resOpts.reverse, this)
 
   def occurrences(subkey: Option[String], opts: ResOpts): Iterator[ResolvedField] = {
     def autoIncluded =
-      referenceIncludeCtxs(opts.reverse).flatMap(_.occurrences(subkey, opts))
+      referenceIncludeCtxs(opts).flatMap(_.occurrences(subkey, opts))
     def fromActualContents =
       file.toplevelEntries.occurrences(subkey, opts, this)
     if (opts.reverse) fromActualContents ++ autoIncluded

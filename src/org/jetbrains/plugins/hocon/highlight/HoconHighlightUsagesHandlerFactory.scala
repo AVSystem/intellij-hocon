@@ -39,8 +39,8 @@ class HoconHighlightKeyUsagesHandler(editor: Editor, psiFile: PsiFile, hkey: HKe
     val foundKeys = targets.iterator.asScala.flatMap(_.fullValidContainingPath).flatMap {
       case (enclosingEntries, allKeys) =>
         val strPath = allKeys.map(_.stringValue)
-        val resCtx = ToplevelCtx(enclosingEntries.hoconFile, Vector.empty, directOnly = true)
-        val opts = ResOpts(reverse = false)
+        val resCtx = ToplevelCtx(enclosingEntries.hoconFile, Vector.empty)
+        val opts = ResOpts(reverse = false, resolveIncludes = false, resolveSubstitutions = false)
         val fromFields = enclosingEntries.occurrences(strPath, opts, resCtx).flatMap(_.field.key)
 
         @tailrec def fromPath(keys: List[String], pathKeys: List[HKey]): Option[HKey] =

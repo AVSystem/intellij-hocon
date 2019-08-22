@@ -216,7 +216,7 @@ sealed trait HEntriesLike extends HoconPsiElement {
     def fromReferenceOrConcat = resCtx match {
       case tc: ToplevelCtx if opts.reverse =>
         // going into the contents of auto-included files, e.g. reference.conf
-        tc.referenceIncludeCtxs(reverse = true).flatMap(_.occurrences(key, opts))
+        tc.referenceIncludeCtxs(opts).flatMap(_.occurrences(key, opts))
       case _ =>
         containingObject.flatMapIt(_.adjacentConcatOccurrences(key, opts, resCtx))
     }
@@ -340,7 +340,7 @@ final class HInclude(ast: ASTNode) extends HoconPsiElement(ast) with HObjectEntr
       .map(_.getTextOffset).getOrElse(super.getTextOffset)
 
   def occurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] =
-    if (resCtx.toplevelCtx.directOnly) Iterator.empty
+    if (!opts.resolveIncludes) Iterator.empty
     else included.qualified.flatMap(_.fileReferenceSet).fold[Iterator[ResolvedField]](Iterator.empty) { refset =>
       //TODO: search also .json and .properties files
       val allFiles = refset.getLastReference.opt.fold(Vector.empty[HoconPsiFile]) { ref =>
@@ -604,7 +604,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
   }
 
   def resolve(opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] =
-    if (resCtx.toplevelCtx.directOnly) Iterator.empty
+    if (!opts.resolveSubstitutions) Iterator.empty
     else forSubsKind(subsKind(resCtx), resCtx, opts)
 }
 
