@@ -69,6 +69,12 @@ sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement
   def hoconFile: HoconPsiFile =
     super.getContainingFile.asInstanceOf[HoconPsiFile]
 
+  def startOffset: Int =
+    getTextRange.getStartOffset
+
+  def endOffset: Int =
+    getTextRange.getEndOffset
+
   def parent: Parent =
     getParent.asInstanceOf[Parent]
 
@@ -248,6 +254,7 @@ sealed trait HKeyedField extends HEntriesLike with HKeyedFieldParent with HKeyPa
   def occurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] =
     validKeyString.filter(selfKey => key.isEmpty || key.contains(selfKey))
       .map(selfKey => ResolvedField(selfKey, this, resCtx))
+      .filterNot(_.isRemovedBySelfReference)
       .iterator
 
   def prefixingField: Option[HKeyedField] = parent match {
@@ -477,7 +484,7 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
     @tailrec def gotoPrefix(rfOpt: Option[ResolvedField], subpath: HPath): Option[ResolvedField] =
       if (subpath eq this) rfOpt
       else (rfOpt, subpath.prefix) match {
-        case (Some(rf), Some(ppath)) => gotoPrefix(rf.prefixField, ppath)
+        case (Some(rf), Some(ppath)) => gotoPrefix(rf.backtracedPrefixField, ppath)
         case _ => None
       }
 
@@ -504,9 +511,12 @@ sealed trait HValue extends HoconPsiElement {
 
   def makeContext: Option[ResolutionCtx] = parent match {
     case vf: HValuedField =>
-      vf.makeContext.map(ctx => if (vf.isArrayAppend) ArrayCtx(ctx) else ctx)
+      for {
+        ctx <- vf.makeContext
+        value <- vf.value
+      } yield if (vf.isArrayAppend) ArrayCtx(ctx, arrayAppend = true, value) else ctx
     case arr: HArray =>
-      arr.makeContext.map(ArrayCtx)
+      arr.makeContext.map(ArrayCtx(_, arrayAppend = false, arr))
     case conc: HConcatenation =>
       conc.makeContext
     case file: HoconPsiFile =>
@@ -523,7 +533,6 @@ sealed trait HValue extends HoconPsiElement {
       conc.findChildren[HValue](opts.reverse).flatMap(_.occurrences(key, opts, resCtx))
     case subst: HSubstitution =>
       subst.resolve(opts, resCtx).flatMap(_.subOccurrences(key, opts))
-        .map(rf => rf.copy(parentCtx = SubstitutedCtx(rf.parentCtx, resCtx, subst)))
     case _ =>
       Iterator.empty
   }
@@ -546,51 +555,52 @@ final class HArray(ast: ASTNode) extends HoconPsiElement(ast) with HValue with H
 final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HPathParent {
   def path: Option[HPath] = findChild[HPath]
 
-  def subsType(field: ResolvedField): SubsType =
-    path.flatMap(_.allValidKeys).fold[SubsType](SubsType.Invalid) { keys =>
+  def subsKind(resCtx: ResolutionCtx): SubstitutionKind =
+    path.flatMap(_.allValidKeys).fold[SubstitutionKind](SubstitutionKind.Invalid) { keys =>
+      val strPath = keys.map(_.stringValue)
 
       // https://github.com/lightbend/config/blob/master/HOCON.md#self-referential-substitutions
-      @tailrec def nonFullSubsType(subsPath: List[String], pathInRes: List[String]): Option[SubsType] =
+      @tailrec def nonFullSubsType(subsPath: List[String], pathInRes: List[ResolvedField]): Option[SubstitutionKind] =
         (subsPath, pathInRes) match {
-          case (suffix, Nil) if !field.inArray => Some(SubsType.SelfReferential(field, suffix))
-          case (Nil, _) => Some(SubsType.Circular)
-          case (sh :: st, rh :: rt) if sh == rh => nonFullSubsType(st, rt)
+          case (sh :: st, rh :: rt) if sh == rh.key =>
+            if (rt.nonEmpty) nonFullSubsType(st, rt)
+            else Some(SubstitutionKind.SelfReferential(strPath, rh))
+          case (Nil, _) =>
+            Some(SubstitutionKind.Circular)
           case _ => None
         }
 
-      val pathsInRes = field.pathsInResolution
+      val pathsInRes = resCtx.pathsInResolution
 
-      def forPath(path: List[String], fixup: Boolean): SubsType = {
-        val fullPath = if (fixup) field.fixupSubstitutionPath(path) else path
+      def forPath(path: List[String], fixup: Boolean): SubstitutionKind = {
+        val fullPath = if (fixup) resCtx.fixupSubstitutionPath(path) else path
         val fallbackPath = Option(path).filter(_ != fullPath)
         pathsInRes.iterator.flatMap(nonFullSubsType(fullPath, _)).nextOption
-          .getOrElse(SubsType.Full(fullPath, fallbackPath.map(forPath(_, fixup = false))))
+          .getOrElse(SubstitutionKind.Full(fullPath, fallbackPath.map(forPath(_, fixup = false))))
       }
 
-      forPath(keys.map(_.stringValue), fixup = true)
+      forPath(strPath, fixup = true)
     }
+
+  private def forSubsKind(subsKind: SubstitutionKind, resCtx: ResolutionCtx, opts: ResOpts): Iterator[ResolvedField] = {
+    val subsCtx = Some(SubstitutionCtx(resCtx, this, subsKind))
+    val newCtx = resCtx.toplevelCtx.copy(subsCtx = subsCtx)
+    subsKind match {
+      case SubstitutionKind.Full(strPath, fallbackSubsType) =>
+        val res = newCtx.occurrences(strPath, opts).map(_.copy(subsCtx = subsCtx))
+        fallbackSubsType.fold(res)(ft => res orElse forSubsKind(ft, resCtx, opts))
+
+      case SubstitutionKind.SelfReferential(strPath, _) =>
+        newCtx.occurrences(strPath, opts).map(_.copy(subsCtx = subsCtx))
+
+      case SubstitutionKind.Circular | SubstitutionKind.Invalid =>
+        Iterator.empty
+    }
+  }
 
   def resolve(opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] =
     if (resCtx.toplevelCtx.directOnly) Iterator.empty
-    else resCtx match {
-      case rf: ResolvedField =>
-        def forSubsType(subsType: SubsType): Iterator[ResolvedField] = subsType match {
-          case SubsType.Full(strPath, fallbackSubsType) =>
-            val toplevelCtx = resCtx.toplevelCtx
-            val newCtx = toplevelCtx.copy(forSubst = Some(OpenSubstitution(resCtx, this, strPath)))
-            val res = newCtx.occurrences(strPath, opts)
-            fallbackSubsType.fold(res)(ft => res orElse forSubsType(ft))
-          case SubsType.SelfReferential(to, suffix) =>
-            if (opts.reverse)
-              to.moreOccurrences(opts).flatMap(_.subOccurrences(suffix, opts))
-            else
-              Iterator.empty //FIXME forward occurrences before self-referenced field
-          case SubsType.Circular | SubsType.Invalid =>
-            Iterator.empty
-        }
-        forSubsType(subsType(rf))
-      case _ => Iterator.empty
-    }
+    else forSubsKind(subsKind(resCtx), resCtx, opts)
 }
 
 final class HConcatenation(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HValueParent

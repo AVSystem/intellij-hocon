@@ -89,7 +89,7 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
       val off = elem.getTextOffset
       val line = doc.getLineNumber(off)
       val column = off - doc.getLineStartOffset(line)
-      s"${line + 1}:$column"
+      s"${elem.getContainingFile.getName}:${line + 1}:$column"
     }
   }
 

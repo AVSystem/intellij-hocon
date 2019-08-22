@@ -14,7 +14,7 @@ class HoconResolutionTest extends HoconSingleModuleTest {
 
     def test(reverse: Boolean): Unit = {
       def render(occurences: Iterator[ResolvedField]): String = {
-        val rendered = occurences.map(rf => s"${rf.field.hoconFile.getName}:${rf.field.pos}")
+        val rendered = occurences.map(_.trace)
         (if (reverse) rendered.toList.reverseIterator else rendered).mkString("", "\n", "\n")
       }
 
@@ -35,50 +35,61 @@ class HoconResolutionTest extends HoconSingleModuleTest {
   def testSingleKey(): Unit = testPath("application.conf", "a",
     """reference.conf:1:0
       |application.conf:1:0
-      |application.conf:3:0
-      |application.conf:8:0
-      |included.conf:1:0
-      |moreIncluded.conf:1:0
-      |included.conf:3:0
-      |application.conf:18:0
-      |application.conf:21:0
-      |application.conf:27:0
+      |application.conf:2:0
+      |application.conf:5:0
+      |application.conf:7:0
+      |application.conf:12:0
+      |application.conf:20:0->included.conf:1:0
+      |application.conf:20:0->included.conf:2:0->moreIncluded.conf:1:0
+      |application.conf:20:0->included.conf:3:0
+      |application.conf:22:0
+      |application.conf:25:0
+      |application.conf:31:0
+      |application.conf:33:0
       |""".stripMargin
   )
 
   def testMidPath(): Unit = testPath("application.conf", "a.b",
     """reference.conf:1:2
       |application.conf:1:2
-      |application.conf:4:2
+      |application.conf:2:2
       |application.conf:5:2
       |application.conf:8:2
-      |included.conf:1:2
-      |moreIncluded.conf:1:2
-      |included.conf:3:2
-      |nestedIncluded.conf:1:0
-      |nestedIncluded.conf:2:0
-      |nestedIncluded.conf:3:0
-      |application.conf:24:2
-      |application.conf:27:2
+      |application.conf:9:2
+      |application.conf:12:2
+      |application.conf:20:0->included.conf:1:2
+      |application.conf:20:0->included.conf:2:0->moreIncluded.conf:1:2
+      |application.conf:20:0->included.conf:3:2
+      |application.conf:26:2->nestedIncluded.conf:1:0
+      |application.conf:26:2->nestedIncluded.conf:2:0
+      |application.conf:26:2->nestedIncluded.conf:3:0
+      |application.conf:28:2
+      |application.conf:31:2
+      |application.conf:33:2
       |""".stripMargin
   )
 
   def testFullPath(): Unit = testPath("application.conf", "a.b.c",
+    // some entries duplicated due to self-referential substitutions
     """reference.conf:1:4
       |application.conf:1:4
-      |application.conf:4:4
       |application.conf:5:7
-      |application.conf:5:15
+      |reference.conf:1:4
+      |application.conf:1:4
+      |application.conf:2:6
+      |application.conf:8:4
+      |application.conf:9:7
+      |application.conf:9:15
+      |application.conf:17:2
       |application.conf:13:2
-      |application.conf:9:2
-      |included.conf:1:4
-      |moreIncluded.conf:1:4
-      |included.conf:3:4
-      |nestedIncluded.conf:1:2
-      |application.conf:18:9
-      |application.conf:19:16
-      |application.conf:24:4
-      |application.conf:27:4
+      |application.conf:20:0->included.conf:1:4
+      |application.conf:20:0->included.conf:2:0->moreIncluded.conf:1:4
+      |application.conf:20:0->included.conf:3:4
+      |application.conf:26:2->nestedIncluded.conf:1:2
+      |application.conf:22:9
+      |application.conf:23:16
+      |application.conf:28:4
+      |application.conf:31:4
       |""".stripMargin
   )
 }
