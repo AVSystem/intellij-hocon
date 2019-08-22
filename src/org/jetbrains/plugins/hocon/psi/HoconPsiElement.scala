@@ -481,14 +481,17 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
     val subst = substitution
     val resField = subst.makeContext.flatMap(resCtx => subst.resolve(ResOpts(reverse = true), resCtx).nextOption)
 
-    @tailrec def gotoPrefix(rfOpt: Option[ResolvedField], subpath: HPath): Option[ResolvedField] =
+    @tailrec def gotoPrefix(rfOpt: Option[ResolvedField], subpath: HPath, first: Boolean): Option[ResolvedField] =
       if (subpath eq this) rfOpt
       else (rfOpt, subpath.prefix) match {
-        case (Some(rf), Some(ppath)) => gotoPrefix(rf.backtracedPrefixField, ppath)
+        case (Some(rf), Some(ppath)) =>
+          // prevent going back to field that contains original substitution
+          val prefix = if (first) rf.prefixField else rf.backtracedPrefixField
+          gotoPrefix(prefix, ppath, first = false)
         case _ => None
       }
 
-    subst.path.flatMap(fullPath => gotoPrefix(resField, fullPath))
+    subst.path.flatMap(fullPath => gotoPrefix(resField, fullPath, first = true))
   }
 }
 
