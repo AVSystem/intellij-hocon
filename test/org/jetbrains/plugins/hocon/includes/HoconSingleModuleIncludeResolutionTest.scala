@@ -1,8 +1,6 @@
 package org.jetbrains.plugins.hocon
 package includes
 
-import com.intellij.testFramework.LightPlatformTestCase.getProject
-
 class HoconSingleModuleIncludeResolutionTest extends HoconSingleModuleTest with HoconIncludeResolutionTest {
   def rootPath = s"$testdataPath/hocon/includes/singlemodule"
 
