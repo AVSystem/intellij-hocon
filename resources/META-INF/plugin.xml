@@ -41,9 +41,9 @@
         <psi.referenceContributor implementation="org.jetbrains.plugins.hocon.ref.HoconReferenceContributor"/>
         <qualifiedNameProvider implementation="org.jetbrains.plugins.hocon.ref.HoconQualifiedNameProvider"/>
 
-        <projectService serviceInterface="org.jetbrains.plugins.hocon.settings.HoconProjectSettings"
-                        serviceImplementation="org.jetbrains.plugins.hocon.settings.HoconProjectSettings"/>
-        <projectConfigurable groupId="language" instance="org.jetbrains.plugins.hocon.settings.HoconProjectSettingsConfigurable"/>
+        <projectService serviceImplementation="org.jetbrains.plugins.hocon.settings.HoconProjectSettings"/>
+        <projectConfigurable groupId="language"
+                             instance="org.jetbrains.plugins.hocon.settings.HoconProjectSettingsConfigurable"/>
 
         <localInspection language="HOCON"
                          implementationClass="org.jetbrains.plugins.hocon.ref.HoconIncludeResolutionInspection"
@@ -74,11 +74,11 @@
 
     <actions>
         <action class="org.jetbrains.plugins.hocon.navigation.HoconGotoNextAction" id="HoconGotoNext"
-                text="HOCON: Go to next definition"
+                text="HOCON: Go to Next Definition"
                 description="Navigates to the next definition of a property in a HOCON file"
                 use-shortcut-of="GotoImplementation"/>
         <action class="org.jetbrains.plugins.hocon.navigation.HoconGotoPrevAction" id="HoconGotoPrev"
-                text="HOCON: Go to previous definition"
+                text="HOCON: Go to Previous Definition"
                 description="Navigates to the previous definition of a property in a HOCON file"
                 use-shortcut-of="GotoSuperMethod"/>
     </actions>
