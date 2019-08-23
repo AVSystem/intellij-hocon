@@ -8,9 +8,11 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.tree.{IElementType, TokenSet}
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.{PsiDocumentManager, PsiElement, PsiWhiteSpace}
+import com.intellij.util.text.CharSequenceSubSequence
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType
 import org.jetbrains.plugins.hocon.psi.HoconPsiElement
 
+import scala.annotation.tailrec
 import scala.collection.convert.{DecorateAsJava, DecorateAsScala}
 import scala.collection.{AbstractIterator, GenTraversableOnce}
 import scala.language.implicitConversions
@@ -59,8 +61,16 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
   implicit def token2TokenSetOps(token: IElementType): TokenSetOps = new TokenSetOps(token)
 
   implicit class CharSequenceOps(private val cs: CharSequence) extends AnyVal {
+    /** Like `subSequence` but makes sure a wrapper is created instead of making a copy */
+    def subSeqView(start: Int, end: Int = cs.length): CharSequence =
+      new CharSequenceSubSequence(cs, start, end)
+
     def startsWith(str: String): Boolean =
-      cs.length >= str.length && str.contentEquals(cs.subSequence(0, str.length))
+      cs.length >= str.length && {
+        @tailrec def loop(i: Int): Boolean =
+          i >= str.length || (str.charAt(i) == cs.charAt(i) && loop(i + 1))
+        loop(0)
+      }
 
     def charIterator: Iterator[Char] =
       Iterator.range(0, cs.length).map(cs.charAt)

@@ -63,7 +63,7 @@ class HoconFormatter(settings: CodeStyleSettings) {
     val lineBreakEnsuringSpacing =
       Spacing.createSpacing(0, 0, 1, keepLineBreaks, maxBlankLines)
 
-    val isLineBreakBetween = parent.getText.subSequence(
+    val isLineBreakBetween = parent.getText.subSeqView(
       leftChild.getTextRange.getEndOffset - parent.getTextRange.getStartOffset,
       rightChild.getTextRange.getStartOffset - parent.getTextRange.getStartOffset)
       .charIterator.contains('\n')
