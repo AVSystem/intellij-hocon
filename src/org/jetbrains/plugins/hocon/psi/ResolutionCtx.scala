@@ -105,7 +105,10 @@ sealed abstract class ResolutionCtx {
   ): List[List[ResolvedField]] = this match {
     case tc: ToplevelCtx =>
       val fromOpenSubstitutions = tc.subsCtx.fold(Nil: List[List[ResolvedField]]) { sc =>
-        val newSuffix :: newSuffixStack = suffixStack
+        val (newSuffix, newSuffixStack) = suffixStack match {
+          case h :: t => (h, t)
+          case Nil => (Nil, Nil)
+        }
         sc.ctx.pathsInResolution(newSuffix, newSuffixStack)
       }
 
