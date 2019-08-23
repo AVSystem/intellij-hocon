@@ -106,6 +106,32 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
       val column = off - doc.getLineStartOffset(line)
       s"${elem.getContainingFile.getName}:${line + 1}:$column"
     }
+
+    def depthFirst: Iterator[PsiElement] = new DepthFirstIterator(elem)
+  }
+
+  private class DepthFirstIterator(root: PsiElement) extends AbstractIterator[PsiElement] {
+    private var _next: PsiElement = root
+
+    def hasNext: Boolean = _next ne null
+
+    def next(): PsiElement =
+      if (!hasNext) throw new NoSuchElementException
+      else {
+        val res = _next
+        _next = res.getFirstChild match {
+          case null => findNextSibling(res)
+          case child => child
+        }
+        res
+      }
+
+    @tailrec private def findNextSibling(cur: PsiElement): PsiElement =
+      if (cur eq root) null
+      else cur.getNextSibling match {
+        case null => findNextSibling(cur.getParent)
+        case sibling => sibling
+      }
   }
 
   implicit class StringOps(private val str: String) extends AnyVal {

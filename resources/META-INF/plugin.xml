@@ -65,6 +65,8 @@
         <gotoDeclarationHandler implementation="org.jetbrains.plugins.hocon.navigation.HoconGotoDeclarationHandler"/>
         <actionPromoter implementation="org.jetbrains.plugins.hocon.navigation.HoconGotoPrevNextPromoter"/>
         <documentationProvider implementation="org.jetbrains.plugins.hocon.misc.HoconDocumentationProvider"/>
+        <fileBasedIndex implementation="org.jetbrains.plugins.hocon.navigation.HoconKeyIndex"/>
+        <fileBasedIndex implementation="org.jetbrains.plugins.hocon.navigation.HoconPathIndex"/>
     </extensions>
 
     <actions>
