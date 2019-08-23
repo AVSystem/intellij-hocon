@@ -2,7 +2,6 @@ package org.jetbrains.plugins.hocon
 package parser
 
 import java.net.{MalformedURLException, URL}
-import java.{util => ju}
 
 import com.intellij.lang.PsiBuilder.Marker
 import com.intellij.lang.WhitespacesAndCommentsBinder.TokenTextGetter
@@ -27,7 +26,7 @@ class HoconPsiParser extends PsiParser {
   class Parser(builder: PsiBuilder) {
 
     object DocumentationCommentsBinder extends WhitespacesAndCommentsBinder {
-      override def getEdgePosition(tokens: ju.List[IElementType], atStreamEdge: Boolean, getter: TokenTextGetter): Int = {
+      override def getEdgePosition(tokens: JList[IElementType], atStreamEdge: Boolean, getter: TokenTextGetter): Int = {
 
         @tailrec
         def goThrough(commentToken: IElementType, resultSoFar: Int, i: Int): Int = {
