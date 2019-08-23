@@ -28,7 +28,7 @@ class HoconHighlightKeyUsagesHandler(editor: Editor, psiFile: PsiFile, hkey: HKe
   def computeUsages(targets: ju.List[HKey]): Unit = {
     def findPaths(el: PsiElement): Iterator[HPath] = el match {
       case path: HPath => Iterator(path)
-      case hoconFile: HoconPsiFile => findPaths(hoconFile.toplevelEntries)
+      case hoconFile: HoconPsiFile => hoconFile.toplevelEntries.flatMapIt(findPaths)
       case _: HInclude | _: HLiteralValue => Iterator.empty
       case hoconElement: HoconPsiElement => hoconElement.nonWhitespaceChildren.flatMap(findPaths)
       case _ => Iterator.empty

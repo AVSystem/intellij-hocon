@@ -109,6 +109,8 @@ class HoconPsiParser extends PsiParser {
     def parseFile(): Unit = {
       if (matches(LBrace))
         parseObject()
+      else if (matches(LBracket))
+        parseArray()
       else
         parseObjectEntries(insideObject = false)
       errorUntil(Empty.orEof, "expected end of file", onlyNonEmpty = true)

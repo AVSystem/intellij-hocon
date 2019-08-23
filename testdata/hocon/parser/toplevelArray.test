@@ -1,0 +1,14 @@
+[1,2,3]
+-----
+HOCON_FILE
+  HArray(ARRAY)
+    PsiElement(LBRACKET)('[')
+    HNumber(NUMBER)
+      PsiElement(UNQUOTED_CHARS)('1')
+    PsiElement(COMMA)(',')
+    HNumber(NUMBER)
+      PsiElement(UNQUOTED_CHARS)('2')
+    PsiElement(COMMA)(',')
+    HNumber(NUMBER)
+      PsiElement(UNQUOTED_CHARS)('3')
+    PsiElement(RBRACKET)(']')

@@ -40,17 +40,15 @@ class HoconPsiFile(provider: FileViewProvider)
   def getFileType: FileType =
     HoconFileType
 
-  def toplevelEntries: HObjectEntries = {
-    @tailrec
-    def entriesInner(child: PsiElement): HObjectEntries = child match {
-      case obj: HObject => obj.entries
-      case ets: HObjectEntries => ets
-      case comment: PsiComment =>
-        val sibling = notWhiteSpaceSibling(comment)(_.getNextSibling)
-        entriesInner(sibling)
+  def toplevelChild: HoconPsiElement =
+    findChildByClass(classOf[HoconPsiElement])
+
+  def toplevelEntries: Option[HObjectEntries] =
+    toplevelChild match {
+      case entries: HObjectEntries => Some(entries)
+      case obj: HObject => Some(obj.entries)
+      case _ => None
     }
-    entriesInner(getFirstChild)
-  }
 
   def toplevelObject: Option[HObject] = getFirstChild match {
     case obj: HObject => Some(obj)
@@ -408,17 +406,17 @@ final class HKey(ast: ASTNode) extends HoconPsiElement(ast) {
   type Parent = HKeyParent
 
   def fullValidContainingPath: Option[(HObjectEntries, List[HKey])] = parent match {
-    case path: HPath => path.allValidKeys.map(keys => (hoconFile.toplevelEntries, keys))
-    case keyedField: HKeyedField => keyedField.fullValidContainingPath
+    case path: HPath =>
+      for {
+        entries <- hoconFile.toplevelEntries
+        keys <- path.allValidKeys
+      } yield (entries, keys)
+    case keyedField: HKeyedField =>
+      keyedField.fullValidContainingPath
   }
 
   def fullValidContainingPathString: Option[String] = fullValidContainingPath.map {
     case (_, path) => path.iterator.map(_.getText).mkString(".")
-  }
-
-  def enclosingEntries: HObjectEntries = parent match {
-    case _: HPath => hoconFile.toplevelEntries
-    case keyedField: HKeyedField => keyedField.enclosingEntries
   }
 
   def stringValue: String = allChildren(reverse = false).collect {

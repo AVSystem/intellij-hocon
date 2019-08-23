@@ -158,7 +158,7 @@ sealed abstract class ResolutionCtx {
 
         case None if !opts.reverse =>
           // proceeding from last auto-included file into the contents of toplevel file itself
-          ic.toplevelCtx.file.toplevelEntries.occurrences(key, opts, ic.toplevelCtx)
+          ic.toplevelCtx.file.toplevelEntries.flatMapIt(_.occurrences(key, opts, ic.toplevelCtx))
 
         case _ =>
           Iterator.empty
@@ -200,7 +200,7 @@ case class ToplevelCtx(
     def autoIncluded =
       referenceIncludeCtxs(opts).flatMap(_.occurrences(subkey, opts))
     def fromActualContents =
-      file.toplevelEntries.occurrences(subkey, opts, this)
+      file.toplevelEntries.flatMapIt(_.occurrences(subkey, opts, this))
     if (opts.reverse) fromActualContents ++ autoIncluded
     else autoIncluded ++ fromActualContents
   }
@@ -365,7 +365,7 @@ case class IncludeCtx(
 
   def occurrences(key: Option[String], opts: ResOpts): Iterator[ResolvedField] =
     if (parentCtx.isAlreadyIn(file)) Iterator.empty
-    else file.toplevelEntries.occurrences(key, opts, this)
+    else file.toplevelEntries.flatMapIt(_.occurrences(key, opts, this))
 
   def firstOccurrence(key: Option[String], opts: ResOpts): Option[ResolvedField] =
     occurrences(key, opts).nextOption
