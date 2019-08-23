@@ -67,6 +67,10 @@
         <documentationProvider implementation="org.jetbrains.plugins.hocon.misc.HoconDocumentationProvider"/>
         <fileBasedIndex implementation="org.jetbrains.plugins.hocon.navigation.HoconKeyIndex"/>
         <fileBasedIndex implementation="org.jetbrains.plugins.hocon.navigation.HoconPathIndex"/>
+        <findUsagesHandlerFactory
+                implementation="org.jetbrains.plugins.hocon.navigation.HoconFindUsagesHandlerFactory"/>
+        <lang.findUsagesProvider language="HOCON"
+                                 implementationClass="org.jetbrains.plugins.hocon.navigation.HoconFindUsagesProvider"/>
     </extensions>
 
     <actions>

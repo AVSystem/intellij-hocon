@@ -14,12 +14,7 @@ import scala.collection.JavaConverters.asScalaIteratorConverter
 
 class HoconHighlightUsagesHandlerFactory extends HighlightUsagesHandlerFactoryBase {
   def createHighlightUsagesHandler(editor: Editor, file: PsiFile, target: PsiElement): HoconHighlightKeyUsagesHandler =
-    Iterator.iterate(target)(_.getParent).takeWhile {
-      case null | _: PsiFile => false
-      case _ => true
-    }.collectFirst {
-      case hkey: HKey => new HoconHighlightKeyUsagesHandler(editor, file, hkey)
-    }.orNull
+    target.parentOfType[HKey].map(new HoconHighlightKeyUsagesHandler(editor, file, _)).orNull
 }
 
 class HoconHighlightKeyUsagesHandler(editor: Editor, psiFile: PsiFile, hkey: HKey)
