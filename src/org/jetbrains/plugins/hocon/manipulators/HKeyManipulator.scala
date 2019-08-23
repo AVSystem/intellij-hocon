@@ -23,7 +23,7 @@ class HKeyManipulator extends AbstractElementManipulator[HKey] {
 
     lazy val needsQuoting =
       newContent.isEmpty || newContent.startsWith(" ") || newContent.endsWith(" ") ||
-        escapedContent != newContent || newContent.exists(HoconLexer.KeyForbiddenChars.contains)
+        escapedContent != newContent || newContent.exists(HoconLexer.KeyForbiddenChars.contains(_))
 
     val quotedEscapedContent =
       if (allStringTypes.contains(MultilineString))

@@ -66,11 +66,16 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
       new CharSequenceSubSequence(cs, start, end)
 
     def startsWith(str: String): Boolean =
-      cs.length >= str.length && {
+      containsAt(0, str)
+
+    def containsAt(index: Int, str: String): Boolean = {
+      val strEndIdx = index + str.length
+      cs.length >= strEndIdx && {
         @tailrec def loop(i: Int): Boolean =
-          i >= str.length || (str.charAt(i) == cs.charAt(i) && loop(i + 1))
-        loop(0)
+          i >= strEndIdx || (str.charAt(i - index) == cs.charAt(i) && loop(i + 1))
+        loop(index)
       }
+    }
 
     def charIterator: Iterator[Char] =
       Iterator.range(0, cs.length).map(cs.charAt)
