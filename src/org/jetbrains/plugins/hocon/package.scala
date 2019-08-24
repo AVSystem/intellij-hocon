@@ -8,6 +8,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.tree.{IElementType, TokenSet}
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.{PsiDocumentManager, PsiElement, PsiWhiteSpace}
+import com.intellij.ui.IconManager
 import com.intellij.util.text.CharSequenceSubSequence
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType
 import org.jetbrains.plugins.hocon.psi.HoconPsiElement
@@ -21,6 +22,8 @@ import scala.reflect.{ClassTag, classTag}
 package object hocon extends DecorateAsJava with DecorateAsScala {
   type JList[T] = java.util.List[T]
   type JMap[K, V] = java.util.Map[K, V]
+
+  final val PropertyIcon = IconManager.getInstance.getIcon("/icons/property.svg", getClass)
 
   def notWhiteSpaceSibling(element: PsiElement)
     (sibling: PsiElement => PsiElement): PsiElement = {

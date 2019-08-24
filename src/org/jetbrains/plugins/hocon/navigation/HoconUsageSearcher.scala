@@ -17,7 +17,7 @@ import com.intellij.util.Processor
 import com.intellij.util.indexing.FileBasedIndex
 import com.intellij.util.indexing.FileBasedIndex.ValueProcessor
 import org.jetbrains.plugins.hocon.lexer.{HoconLexer, HoconTokenSets, HoconTokenType}
-import org.jetbrains.plugins.hocon.psi.{HKey, HKeyedField, HPath, HoconPsiFile}
+import org.jetbrains.plugins.hocon.psi.{HKey, HoconPsiFile}
 
 class HoconFindUsagesProvider extends FindUsagesProvider {
   def getWordsScanner: WordsScanner = new DefaultWordsScanner(new HoconLexer,
@@ -62,12 +62,9 @@ class HoconUsageSearcher extends CustomUsageSearcher {
             range <- ranges
             foundKey <- hoconFile.findElementAt(range.getStartOffset).parentOfType[HKey]
           } {
-            val forReading = foundKey.parent match {
-              case _: HPath => true
-              case _: HKeyedField => false
-            }
             val usageInfo = new UsageInfo(foundKey, 0, foundKey.getTextLength, true)
-            processor.process(new ReadWriteAccessUsageInfo2UsageAdapter(usageInfo, forReading, !forReading))
+            processor.process(new ReadWriteAccessUsageInfo2UsageAdapter(
+              usageInfo, foundKey.inSubstitution, foundKey.inField))
           }
           true
         }

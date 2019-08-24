@@ -4,7 +4,6 @@ package ref
 import com.intellij.codeInsight.lookup.{LookupElement, LookupElementPresentation}
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.{ElementManipulators, PsiElement, PsiReference}
-import org.jetbrains.plugins.hocon.lang.HoconFileType
 import org.jetbrains.plugins.hocon.psi._
 
 import scala.collection.mutable
@@ -77,7 +76,7 @@ class HoconFieldLookupElement(resField: ResolvedField) extends LookupElement {
 
   override def renderElement(presentation: LookupElementPresentation): Unit = {
     super.renderElement(presentation)
-    presentation.setIcon(HoconFileType.getIcon)
+    presentation.setIcon(PropertyIcon)
   }
 
   override def getObject: ResolvedField = resField

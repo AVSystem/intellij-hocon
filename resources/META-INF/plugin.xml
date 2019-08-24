@@ -70,6 +70,7 @@
         <customUsageSearcher implementation="org.jetbrains.plugins.hocon.navigation.HoconUsageSearcher"/>
         <lang.findUsagesProvider language="HOCON"
                                  implementationClass="org.jetbrains.plugins.hocon.navigation.HoconFindUsagesProvider"/>
+        <gotoSymbolContributor implementation="org.jetbrains.plugins.hocon.navigation.HoconGotoSymbolContributor"/>
     </extensions>
 
     <actions>
