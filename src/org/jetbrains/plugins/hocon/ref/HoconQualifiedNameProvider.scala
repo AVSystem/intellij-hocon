@@ -8,13 +8,13 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.plugins.hocon.psi.HKey
 
 /**
- * @author ghik
- */
+  * @author ghik
+  */
 class HoconQualifiedNameProvider extends QualifiedNameProvider {
   def adjustElementToCopy(element: PsiElement): PsiElement = element
 
   def getQualifiedName(element: PsiElement): String = element match {
-    case key: HKey => key.fullValidContainingPathString.orNull
+    case key: HKey => key.fullValidPathRepr.orNull
     case _ => null
   }
 

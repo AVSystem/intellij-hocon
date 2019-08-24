@@ -101,10 +101,7 @@ object HoconPathIndex extends HKeyIndexCompanion[List[String]]("hoconPaths") {
 }
 
 class HoconPathIndex extends HKeyIndex[List[String]](HoconPathIndex) {
-  def indexKey(hkey: HKey): Option[List[String]] =
-    hkey.fullValidContainingPath.map {
-      case (_, path) => path.map(_.stringValue)
-    }
+  def indexKey(hkey: HKey): Option[List[String]] = hkey.fullValidStringPath
 }
 
 object HoconKeyIndex extends HKeyIndexCompanion[String]("hoconKeys") {

@@ -6,6 +6,7 @@ import com.intellij.lang.HelpID
 import com.intellij.lang.cacheBuilder.{DefaultWordsScanner, WordsScanner}
 import com.intellij.lang.findUsages.FindUsagesProvider
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.tree.TokenSet
@@ -28,9 +29,17 @@ class HoconFindUsagesProvider extends FindUsagesProvider {
   }
 
   def getHelpId(psiElement: PsiElement): String = HelpID.FIND_OTHER_USAGES
+
   def getType(element: PsiElement): String = "property"
-  def getDescriptiveName(element: PsiElement): String = element.getText
-  def getNodeText(element: PsiElement, useFullName: Boolean): String = element.getText
+
+  def getDescriptiveName(element: PsiElement): String =
+    getNodeText(element, useFullName = true)
+
+  def getNodeText(element: PsiElement, useFullName: Boolean): String = element match {
+    case key: HKey =>
+      if (useFullName) key.getQualifiedName else key.getName
+    case _ => null
+  }
 }
 
 class HoconUsageSearcher extends CustomUsageSearcher {
@@ -39,6 +48,7 @@ class HoconUsageSearcher extends CustomUsageSearcher {
   ): Unit = element match {
     case hkey: HKey => ReadAction.run { () =>
       val manager = PsiManager.getInstance(hkey.getProject)
+      val pfi = ProjectFileIndex.getInstance(hkey.getProject)
       for {
         globalSearchScope <- options.searchScope.opt.collectOnly[GlobalSearchScope]
         key <- element.opt.collectOnly[HKey]
@@ -47,7 +57,8 @@ class HoconUsageSearcher extends CustomUsageSearcher {
         val pathStr = keyPath.map(_.stringValue)
         val indexProcessor: ValueProcessor[List[TextRange]] = (file, ranges) => {
           for {
-            hoconFile <- manager.findFile(file).opt.collectOnly[HoconPsiFile]
+            f <- file.opt.filterNot(pfi.isInLibrarySource)
+            hoconFile <- manager.findFile(f).opt.collectOnly[HoconPsiFile]
             range <- ranges
             foundKey <- hoconFile.findElementAt(range.getStartOffset).parentOfType[HKey]
           } {

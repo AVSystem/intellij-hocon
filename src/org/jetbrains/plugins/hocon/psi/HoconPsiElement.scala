@@ -12,6 +12,7 @@ import com.intellij.psi._
 import com.intellij.psi.impl.source.PsiFileImpl
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReference
 import com.intellij.psi.tree.IElementType
+import com.intellij.util.IncorrectOperationException
 import org.jetbrains.plugins.hocon.HoconConstants._
 import org.jetbrains.plugins.hocon.lang.HoconFileType
 import org.jetbrains.plugins.hocon.lexer.{HoconTokenSets, HoconTokenType}
@@ -76,11 +77,17 @@ sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement
   def parent: Parent =
     getParent.asInstanceOf[Parent]
 
-  def parents: Iterator[HoconPsiElement] =
+  def hoconParents: Iterator[HoconPsiElement] =
     Iterator.iterate(this)(_.getParent match {
       case he: HoconPsiElement => he
       case _ => null
     }).takeWhile(_ != null)
+
+  def inArray: Boolean = hoconParents.exists {
+    case _: HArray => true
+    case v: HValue => v.prefixingField.exists(_.isArrayAppend)
+    case _ => false
+  }
 
   def elementType: IElementType =
     getNode.getElementType
@@ -222,7 +229,9 @@ sealed trait HEntriesLike extends HoconPsiElement {
   }
 }
 
-sealed trait HKeyedField extends HEntriesLike with HKeyedFieldParent with HKeyParent {
+sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
+  with HEntriesLike with HKeyedFieldParent with HKeyParent with PsiQualifiedNamedElement {
+
   type Parent = HKeyedFieldParent
 
   def containingObject: Option[HObject] = parent match {
@@ -235,6 +244,12 @@ sealed trait HKeyedField extends HEntriesLike with HKeyedFieldParent with HKeyPa
   def validKey: Option[HKey] = key.filter(_.isValidKey)
 
   def validKeyString: Option[String] = validKey.map(_.stringValue)
+
+  override def getName: String = getText
+
+  override def getQualifiedName: String = fullValidPathRepr.orNull
+
+  def setName(name: String): PsiElement = throw new IncorrectOperationException
 
   def hasKeyValue(key: String): Boolean =
     validKeyString.contains(key)
@@ -287,6 +302,10 @@ sealed trait HKeyedField extends HEntriesLike with HKeyedFieldParent with HKeyPa
     loop(this, Nil)
   }
 
+  def fullValidPathRepr: Option[String] = fullValidContainingPath.map {
+    case (_, path) => path.iterator.map(_.getText).mkString(".")
+  }
+
   def enclosingObjectField: HObjectField = parent match {
     case keyedParent: HKeyedField => keyedParent.enclosingObjectField
     case objectField: HObjectField => objectField
@@ -312,11 +331,11 @@ sealed trait HKeyedField extends HEntriesLike with HKeyedFieldParent with HKeyPa
   } yield ResolvedField(key, this, parentCtx)
 }
 
-final class HPrefixedField(ast: ASTNode) extends HoconPsiElement(ast) with HKeyedField {
+final class HPrefixedField(ast: ASTNode) extends HKeyedField(ast) {
   def subField: HKeyedField = getChild[HKeyedField]
 }
 
-final class HValuedField(ast: ASTNode) extends HoconPsiElement(ast) with HKeyedField with HValueParent {
+final class HValuedField(ast: ASTNode) extends HKeyedField(ast) with HValueParent {
   def value: Option[HValue] = findChild[HValue]
 
   def subScopeValue: Option[HValue] =
@@ -402,7 +421,7 @@ final class HQualifiedIncluded(ast: ASTNode) extends HoconPsiElement(ast) {
     } yield rs
 }
 
-final class HKey(ast: ASTNode) extends HoconPsiElement(ast) {
+final class HKey(ast: ASTNode) extends HoconPsiElement(ast) with PsiQualifiedNamedElement {
   type Parent = HKeyParent
 
   def fullValidContainingPath: Option[(HObjectEntries, List[HKey])] = parent match {
@@ -415,7 +434,11 @@ final class HKey(ast: ASTNode) extends HoconPsiElement(ast) {
       keyedField.fullValidContainingPath
   }
 
-  def fullValidContainingPathString: Option[String] = fullValidContainingPath.map {
+  def fullValidStringPath: Option[List[String]] = fullValidContainingPath.map {
+    case (_, keyPath) => keyPath.map(_.stringValue)
+  }
+
+  def fullValidPathRepr: Option[String] = fullValidContainingPath.map {
     case (_, path) => path.iterator.map(_.getText).mkString(".")
   }
 
@@ -434,6 +457,12 @@ final class HKey(ast: ASTNode) extends HoconPsiElement(ast) {
   def isValidKey: Boolean = findChild[PsiErrorElement].isEmpty
 
   override def getReference = new HKeyReference(this)
+
+  override def getName: String = getText
+
+  override def getQualifiedName: String = fullValidPathRepr.orNull
+
+  def setName(name: String): PsiElement = throw new IncorrectOperationException
 }
 
 final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent with HPathParent {
