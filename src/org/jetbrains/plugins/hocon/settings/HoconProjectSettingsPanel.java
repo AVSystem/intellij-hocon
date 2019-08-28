@@ -14,6 +14,7 @@ public class HoconProjectSettingsPanel {
     private JPanel mainPanel;
     private JCheckBox classReferencesUnquotedCheckBox;
     private JCheckBox classReferencesQuotedCheckBox;
+    private JCheckBox searchInGotoSymbol;
 
     public HoconProjectSettingsPanel(Project project) {
         this.project = project;
@@ -24,6 +25,7 @@ public class HoconProjectSettingsPanel {
         HoconProjectSettings settings = HoconProjectSettings.getInstance(project);
         classReferencesUnquotedCheckBox.setSelected(settings.getClassReferencesOnUnquotedStrings());
         classReferencesQuotedCheckBox.setSelected(settings.getClassReferencesOnQuotedStrings());
+        searchInGotoSymbol.setSelected(settings.getSearchInGotoSymbol());
     }
 
     public JComponent getMainComponent() {
@@ -33,13 +35,15 @@ public class HoconProjectSettingsPanel {
     public boolean isModified() {
         HoconProjectSettings settings = HoconProjectSettings.getInstance(project);
         return classReferencesUnquotedCheckBox.isSelected() != settings.getClassReferencesOnUnquotedStrings() ||
-                classReferencesQuotedCheckBox.isSelected() != settings.getClassReferencesOnQuotedStrings();
+                classReferencesQuotedCheckBox.isSelected() != settings.getClassReferencesOnQuotedStrings() ||
+                searchInGotoSymbol.isSelected() != settings.getSearchInGotoSymbol();
     }
 
     public void apply() {
         HoconProjectSettings settings = HoconProjectSettings.getInstance(project);
         settings.setClassReferencesOnUnquotedStrings(classReferencesUnquotedCheckBox.isSelected());
         settings.setClassReferencesOnQuotedStrings(classReferencesQuotedCheckBox.isSelected());
+        settings.setSearchInGotoSymbol(searchInGotoSymbol.isSelected());
     }
 
     {
@@ -58,7 +62,7 @@ public class HoconProjectSettingsPanel {
      */
     private void $$$setupUI$$$() {
         mainPanel = new JPanel();
-        mainPanel.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
+        mainPanel.setLayout(new GridLayoutManager(6, 2, new Insets(0, 0, 0, 0), -1, -1));
         final JLabel label1 = new JLabel();
         label1.setText("Detect class references in:");
         mainPanel.add(label1, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -73,7 +77,15 @@ public class HoconProjectSettingsPanel {
         classReferencesQuotedCheckBox.setDisplayedMnemonicIndex(0);
         mainPanel.add(classReferencesQuotedCheckBox, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final Spacer spacer1 = new Spacer();
-        mainPanel.add(spacer1, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        mainPanel.add(spacer1, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        searchInGotoSymbol = new JCheckBox();
+        searchInGotoSymbol.setSelected(false);
+        searchInGotoSymbol.setText("Search for HOCON properties in Go To Symbol");
+        searchInGotoSymbol.setMnemonic('S');
+        searchInGotoSymbol.setDisplayedMnemonicIndex(0);
+        mainPanel.add(searchInGotoSymbol, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JSeparator separator1 = new JSeparator();
+        mainPanel.add(separator1, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**
@@ -82,4 +94,5 @@ public class HoconProjectSettingsPanel {
     public JComponent $$$getRootComponent$$$() {
         return mainPanel;
     }
+
 }

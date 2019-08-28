@@ -1,6 +1,8 @@
 package org.jetbrains.plugins.hocon
 package settings
 
+import java.io.File
+
 import com.github.ghik.silencer.silent
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components._
@@ -25,11 +27,12 @@ class HoconProjectSettings extends PersistentStateComponent[HoconProjectSettings
 
   def getPresentableName = "HOCON Project Settings"
 
-  def getExportFiles =
+  def getExportFiles: Array[File] =
     Array(PathManager.getOptionsFile("hocon_project_settings"))
 
   @BeanProperty var classReferencesOnUnquotedStrings = true
   @BeanProperty var classReferencesOnQuotedStrings = true
+  @BeanProperty var searchInGotoSymbol = false
 }
 
 object HoconProjectSettings {

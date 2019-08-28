@@ -35,11 +35,11 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
     }
 
   override def getQuickNavigateInfo(element: PsiElement, originalElement: PsiElement): String =
-    key(originalElement).flatMap(_.fullValidPathRepr).orNull
+    key(originalElement).flatMap(_.fullPathRepr).orNull
 
   override def generateDoc(element: PsiElement, originalElement: PsiElement): String = element match {
     case vf: HValuedField =>
-      val fullPath = vf.key.flatMap(_.fullValidPathRepr).getOrElse("")
+      val fullPath = vf.key.flatMap(_.fullPathRepr).getOrElse("")
       val definition = DocumentationMarkup.DEFINITION_START + fullPath + DocumentationMarkup.DEFINITION_END
       val content = vf.enclosingObjectField.docComments
         .map(c => StringEscapeUtils.escapeHtml4(c.getText.stripPrefix("#")))

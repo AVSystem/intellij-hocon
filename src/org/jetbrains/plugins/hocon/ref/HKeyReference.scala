@@ -41,7 +41,7 @@ class HKeyReference(key: HKey) extends PsiReference {
     val variantFields: Iterator[ResolvedField] = key.parent match {
       case path: HPath => path.prefix match {
         case Some(prefixPath) =>
-          prefixPath.allValidKeys.flatMapIt { path =>
+          prefixPath.allKeys.flatMapIt { path =>
             val strPath = path.map(_.stringValue)
             toplevelCtx.occurrences(strPath, opts).flatMap(_.subOccurrences(None, opts))
           }
@@ -49,7 +49,7 @@ class HKeyReference(key: HKey) extends PsiReference {
           toplevelCtx.occurrences(None, opts)
       }
       case field: HKeyedField => field.prefixingField match {
-        case Some(prefixField) => prefixField.fullValidContainingPath.iterator.flatMap {
+        case Some(prefixField) => prefixField.fullContainingPath.iterator.flatMap {
           case (entries, path) =>
             val strPath = path.map(_.stringValue)
             val prefixOccurrences =

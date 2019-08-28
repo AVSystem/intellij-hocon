@@ -3,6 +3,7 @@ package org.jetbrains.plugins
 import java.net.{MalformedURLException, URL}
 import java.{lang => jl, util => ju}
 
+import com.intellij.icons.AllIcons
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.tree.{IElementType, TokenSet}
@@ -23,6 +24,7 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
   type JList[T] = java.util.List[T]
   type JMap[K, V] = java.util.Map[K, V]
 
+  final val HoconIcon = AllIcons.FileTypes.Config
   final val PropertyIcon = IconManager.getInstance.getIcon("/icons/property.svg", getClass)
 
   def notWhiteSpaceSibling(element: PsiElement)

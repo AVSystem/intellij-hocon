@@ -14,7 +14,7 @@ class HoconQualifiedNameProvider extends QualifiedNameProvider {
   def adjustElementToCopy(element: PsiElement): PsiElement = element
 
   def getQualifiedName(element: PsiElement): String = element match {
-    case key: HKey => key.fullValidPathRepr.orNull
+    case key: HKey => key.fullPathRepr.orNull
     case _ => null
   }
 

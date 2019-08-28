@@ -243,21 +243,19 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
 
   def key: Option[HKey] = findChild[HKey]
 
-  def validKey: Option[HKey] = key.filter(_.isValidKey)
+  def keyString: Option[String] = key.map(_.stringValue)
 
-  def validKeyString: Option[String] = validKey.map(_.stringValue)
+  override def getName: String = key.map(_.getName).orNull
 
-  override def getName: String = getText
-
-  override def getQualifiedName: String = fullValidPathRepr.orNull
+  override def getQualifiedName: String = fullPathRepr.orNull
 
   def setName(name: String): PsiElement = throw new IncorrectOperationException
 
   def hasKeyValue(key: String): Boolean =
-    validKeyString.contains(key)
+    keyString.contains(key)
 
   def sameKeyAs(other: HKeyedField): Boolean =
-    (validKey zip other.validKey).exists {
+    (key zip other.key).exists {
       case (k1, k2) => k1.stringValue == k2.stringValue
     }
 
@@ -267,7 +265,7 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
   }
 
   def occurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] =
-    validKeyString.filter(selfKey => key.isEmpty || key.contains(selfKey))
+    keyString.filter(selfKey => key.isEmpty || key.contains(selfKey))
       .map(selfKey => ResolvedField(selfKey, this, resCtx))
       .filterNot(_.isRemovedBySelfReference)
       .iterator
@@ -292,9 +290,9 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
    * "Containing path" starts at the smallest enclosing array element or at the file toplevel entries if there are
    * no arrays on the way to this field.
    */
-  def fullValidContainingPath: Option[(HObjectEntries, List[HKey])] = {
+  def fullContainingPath: Option[(HObjectEntries, List[HKey])] = {
     @tailrec def loop(currentField: HKeyedField, acc: List[HKey]): Option[(HObjectEntries, List[HKey])] =
-      currentField.validKey match {
+      currentField.key match {
         case Some(key) => currentField.prefixingField match {
           case Some(parentField) => loop(parentField, key :: acc)
           case None => Some((currentField.enclosingEntries, key :: acc))
@@ -304,7 +302,7 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
     loop(this, Nil)
   }
 
-  def fullValidPathRepr: Option[String] = fullValidContainingPath.map {
+  def fullPathRepr: Option[String] = fullContainingPath.map {
     case (_, path) => path.iterator.map(_.getText).mkString(".")
   }
 
@@ -322,7 +320,7 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
   }
 
   def makeContext: Option[ResolvedField] = for {
-    key <- validKeyString
+    key <- keyString
     parentCtx <- parent match {
       case prefixField: HKeyedField => prefixField.makeContext
       case objectField: HObjectField => objectField.containingEntries.parent match {
@@ -429,21 +427,24 @@ final class HKey(ast: ASTNode) extends HoconPsiElement(ast) with PsiQualifiedNam
   def inField: Boolean = parent.isInstanceOf[HKeyedField]
   def inSubstitution: Boolean = parent.isInstanceOf[HPath]
 
-  def fullValidContainingPath: Option[(HObjectEntries, List[HKey])] = parent match {
+  def field: Option[HKeyedField] = parent.opt.collectOnly[HKeyedField]
+  def path: Option[HPath] = parent.opt.collectOnly[HPath]
+
+  def fullContainingPath: Option[(HObjectEntries, List[HKey])] = parent match {
     case path: HPath =>
       for {
         entries <- hoconFile.toplevelEntries
-        keys <- path.allValidKeys
+        keys <- path.allKeys
       } yield (entries, keys)
     case keyedField: HKeyedField =>
-      keyedField.fullValidContainingPath
+      keyedField.fullContainingPath
   }
 
-  def fullValidStringPath: Option[List[String]] = fullValidContainingPath.map {
+  def fullStringPath: Option[List[String]] = fullContainingPath.map {
     case (_, keyPath) => keyPath.map(_.stringValue)
   }
 
-  def fullValidPathRepr: Option[String] = fullValidContainingPath.map {
+  def fullPathRepr: Option[String] = fullContainingPath.map {
     case (_, path) => path.iterator.map(_.getText).mkString(".")
   }
 
@@ -467,13 +468,13 @@ final class HKey(ast: ASTNode) extends HoconPsiElement(ast) with PsiQualifiedNam
 
   def setName(name: String): PsiElement = throw new IncorrectOperationException
 
-  def getQualifiedName: String = fullValidPathRepr.orNull
+  def getQualifiedName: String = fullPathRepr.orNull
 
   override def getPresentation: ItemPresentation = new ItemPresentation {
     def getPresentableText: String = getText
     def getLocationString: String = parent match {
-      case path: HPath => path.prefix.flatMap(_.validKey).flatMap(_.fullValidPathRepr).orNull
-      case keyedField: HKeyedField => keyedField.prefixingField.flatMap(_.fullValidPathRepr).orNull
+      case path: HPath => path.prefix.flatMap(_.key).flatMap(_.fullPathRepr).orNull
+      case keyedField: HKeyedField => keyedField.prefixingField.flatMap(_.fullPathRepr).orNull
     }
     def getIcon(unused: Boolean): Icon = PropertyIcon
   }
@@ -498,9 +499,9 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
   /**
    * Some(all keys in this path) or None if there's an invalid key in path.
    */
-  def allValidKeys: Option[List[HKey]] = {
+  def allKeys: Option[List[HKey]] = {
     def allKeysIn(path: HPath, acc: List[HKey]): Option[List[HKey]] =
-      path.validKey.flatMap { key =>
+      path.key.flatMap { key =>
         path.prefix.map(prePath => allKeysIn(prePath, key :: acc)).getOrElse(Some(key :: acc))
       }
     allKeysIn(this, Nil)
@@ -511,14 +512,14 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
    * If some keys are invalid - all valid keys from left to right until some invalid key is encountered
    * (i.e. longest valid prefix path)
    */
-  def startingValidKeys: List[HKey] =
-    allPaths.iterator.takeWhile(_.validKey.nonEmpty).flatMap(_.validKey).toList
+  def startingKeys: List[HKey] =
+    allPaths.iterator.takeWhile(_.key.nonEmpty).flatMap(_.key).toList
 
   def startingPath: HPath = prefix.map(_.startingPath).getOrElse(this)
 
   def prefix: Option[HPath] = findChild[HPath]
 
-  def validKey: Option[HKey] = findChild[HKey].filter(_.isValidKey)
+  def key: Option[HKey] = findChild[HKey]
 
   def resolve(): Option[ResolvedField] = {
     val subst = substitution
@@ -602,7 +603,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
   def path: Option[HPath] = findChild[HPath]
 
   def subsKind(resCtx: ResolutionCtx): SubstitutionKind =
-    path.flatMap(_.allValidKeys).fold[SubstitutionKind](SubstitutionKind.Invalid) { keys =>
+    path.flatMap(_.allKeys).fold[SubstitutionKind](SubstitutionKind.Invalid) { keys =>
       val strPath = keys.map(_.stringValue)
 
       // https://github.com/lightbend/config/blob/master/HOCON.md#self-referential-substitutions

@@ -7,7 +7,6 @@ import com.intellij.lang.cacheBuilder.{DefaultWordsScanner, WordsScanner}
 import com.intellij.lang.findUsages.FindUsagesProvider
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.roots.ProjectFileIndex
-import com.intellij.openapi.util.TextRange
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.{PsiElement, PsiManager}
@@ -52,14 +51,14 @@ class HoconUsageSearcher extends CustomUsageSearcher {
       for {
         globalSearchScope <- options.searchScope.opt.collectOnly[GlobalSearchScope]
         key <- element.opt.collectOnly[HKey]
-        (entries, keyPath) <- key.fullValidContainingPath if entries.isToplevel
+        (entries, keyPath) <- key.fullContainingPath if entries.isToplevel
       } {
         val pathStr = keyPath.map(_.stringValue)
-        val indexProcessor: ValueProcessor[List[TextRange]] = (file, ranges) => {
+        val indexProcessor: ValueProcessor[HKeyOccurrences] = (file, occurrences) => {
           for {
             f <- file.opt.filterNot(pfi.isInLibrarySource)
             hoconFile <- manager.findFile(f).opt.collectOnly[HoconPsiFile]
-            range <- ranges
+            range <- occurrences.all
             foundKey <- hoconFile.findElementAt(range.getStartOffset).parentOfType[HKey]
           } {
             val usageInfo = new UsageInfo(foundKey, 0, foundKey.getTextLength, true)
