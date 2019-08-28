@@ -29,14 +29,13 @@ class HoconFindUsagesProvider extends FindUsagesProvider {
 
   def getHelpId(psiElement: PsiElement): String = HelpID.FIND_OTHER_USAGES
 
-  def getType(element: PsiElement): String = "property"
+  def getType(element: PsiElement): String = "config property"
 
   def getDescriptiveName(element: PsiElement): String =
     getNodeText(element, useFullName = true)
 
   def getNodeText(element: PsiElement, useFullName: Boolean): String = element match {
-    case key: HKey =>
-      if (useFullName) key.getQualifiedName else key.getName
+    case key: HKey => key.fullPathText.orNull
     case _ => null
   }
 }

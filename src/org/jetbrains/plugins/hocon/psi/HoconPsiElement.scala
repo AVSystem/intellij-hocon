@@ -5,7 +5,6 @@ import java.{lang => jl}
 
 import com.intellij.extapi.psi.ASTWrapperPsiElement
 import com.intellij.lang.ASTNode
-import com.intellij.navigation.ItemPresentation
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.text.StringUtil
@@ -13,7 +12,6 @@ import com.intellij.psi._
 import com.intellij.psi.impl.source.PsiFileImpl
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReference
 import com.intellij.psi.tree.IElementType
-import com.intellij.util.IncorrectOperationException
 import javax.swing.Icon
 import org.jetbrains.plugins.hocon.HoconConstants._
 import org.jetbrains.plugins.hocon.lang.HoconFileType
@@ -232,7 +230,7 @@ sealed trait HEntriesLike extends HoconPsiElement {
 }
 
 sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
-  with HEntriesLike with HKeyedFieldParent with HKeyParent with PsiQualifiedNamedElement {
+  with HEntriesLike with HKeyedFieldParent with HKeyParent {
 
   type Parent = HKeyedFieldParent
 
@@ -244,12 +242,6 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
   def key: Option[HKey] = findChild[HKey]
 
   def keyString: Option[String] = key.map(_.stringValue)
-
-  override def getName: String = key.map(_.getName).orNull
-
-  override def getQualifiedName: String = fullPathRepr.orNull
-
-  def setName(name: String): PsiElement = throw new IncorrectOperationException
 
   def hasKeyValue(key: String): Boolean =
     keyString.contains(key)
@@ -302,7 +294,7 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
     loop(this, Nil)
   }
 
-  def fullPathRepr: Option[String] = fullContainingPath.map {
+  def fullPathText: Option[String] = fullContainingPath.map {
     case (_, path) => path.iterator.map(_.getText).mkString(".")
   }
 
@@ -329,6 +321,8 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
       }
     }
   } yield ResolvedField(key, this, parentCtx)
+
+  override def getIcon(flags: Int): Icon = PropertyIcon
 }
 
 final class HPrefixedField(ast: ASTNode) extends HKeyedField(ast) {
@@ -421,7 +415,7 @@ final class HQualifiedIncluded(ast: ASTNode) extends HoconPsiElement(ast) {
     } yield rs
 }
 
-final class HKey(ast: ASTNode) extends HoconPsiElement(ast) with PsiQualifiedNamedElement {
+final class HKey(ast: ASTNode) extends HoconPsiElement(ast) {
   type Parent = HKeyParent
 
   def inField: Boolean = parent.isInstanceOf[HKeyedField]
@@ -444,7 +438,7 @@ final class HKey(ast: ASTNode) extends HoconPsiElement(ast) with PsiQualifiedNam
     case (_, keyPath) => keyPath.map(_.stringValue)
   }
 
-  def fullPathRepr: Option[String] = fullContainingPath.map {
+  def fullPathText: Option[String] = fullContainingPath.map {
     case (_, path) => path.iterator.map(_.getText).mkString(".")
   }
 
@@ -462,22 +456,9 @@ final class HKey(ast: ASTNode) extends HoconPsiElement(ast) with PsiQualifiedNam
 
   def isValidKey: Boolean = findChild[PsiErrorElement].isEmpty
 
+  override def getIcon(flags: Int): Icon = PropertyIcon
+
   override def getReference = new HKeyReference(this)
-
-  override def getName: String = getText
-
-  def setName(name: String): PsiElement = throw new IncorrectOperationException
-
-  def getQualifiedName: String = fullPathRepr.orNull
-
-  override def getPresentation: ItemPresentation = new ItemPresentation {
-    def getPresentableText: String = getText
-    def getLocationString: String = parent match {
-      case path: HPath => path.prefix.flatMap(_.key).flatMap(_.fullPathRepr).orNull
-      case keyedField: HKeyedField => keyedField.prefixingField.flatMap(_.fullPathRepr).orNull
-    }
-    def getIcon(unused: Boolean): Icon = PropertyIcon
-  }
 }
 
 final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent with HPathParent {

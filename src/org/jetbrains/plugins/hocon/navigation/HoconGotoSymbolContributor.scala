@@ -53,16 +53,18 @@ class HoconGotoSymbolContributor extends ChooseByNameContributorEx {
 
 case class HoconGotoSymbolItem(field: HKeyedField) extends PsiElementNavigationItem with ItemPresentation {
   def getTargetElement: PsiElement = field
-  def getName: String = field.getName
+  def getName: String = field.key.map(_.getText).orNull
   def navigate(requestFocus: Boolean): Unit = field.navigate(requestFocus)
   def canNavigate: Boolean = field.canNavigate
   def canNavigateToSource: Boolean = field.canNavigateToSource
   def getPresentation: ItemPresentation = this
-  def getPresentableText: String = field.getQualifiedName
+  def getPresentableText: String = field.fullPathText.orNull
   def getIcon(unused: Boolean): Icon = PropertyIcon
   def getLocationString: String =
     field.hoconFile.getVirtualFile.opt.map { vf =>
-      val rootPath = ProjectFileIndex.getInstance(field.getProject).getContentRootForFile(vf).opt.fold("")(_.getPath)
+      val pfi = ProjectFileIndex.getInstance(field.getProject)
+      val rootDir = pfi.getContentRootForFile(vf).opt orElse pfi.getClassRootForFile(vf).opt
+      val rootPath = rootDir.fold("")(_.getPath)
       s"(in ${vf.getPath.stripPrefix(rootPath).stripPrefix(File.separator)})"
     }.orNull
 }
