@@ -5,6 +5,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.FilenameIndex
 import org.jetbrains.plugins.hocon.psi.SubstitutionKind.SelfReferential
+import org.jetbrains.plugins.hocon.psi.ToplevelCtx.ReferenceFile
 import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet
 import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet.DefaultContexts
 
@@ -187,10 +188,18 @@ sealed abstract class ResolutionCtx {
 
 case class ToplevelCtx(
   file: HoconPsiFile,
-  referenceFiles: Vector[HoconPsiFile],
   // indicates that we are resolving a substitution and points to it
   subsCtx: Option[SubstitutionCtx] = None
 ) extends ResolutionCtx {
+
+  lazy val referenceFiles: Vector[HoconPsiFile] = {
+    val DefaultContexts(scope, contexts) = IncludedFileReferenceSet.classpathDefaultContexts(file, "")
+    val res = FilenameIndex.getFilesByName(file.getProject, ReferenceFile, scope)
+      .iterator.collectOnly[HoconPsiFile].filter(f => contexts.contains(f.getParent))
+      .toVector
+    // return empty if the file itself is a reference file
+    if (!res.contains(file)) res else Vector.empty
+  }
 
   def selfReferenced: Option[ResolvedField] =
     subsCtx.map(_.subsKind).collectOnly[SelfReferential].map(_.selfReferenced)
@@ -220,15 +229,6 @@ case class ToplevelCtx(
 
 object ToplevelCtx {
   final val ReferenceFile = "reference.conf" //TODO: configurable in project settings
-
-  def referenceFilesFor(file: HoconPsiFile): Vector[HoconPsiFile] = {
-    val DefaultContexts(scope, contexts) = IncludedFileReferenceSet.classpathDefaultContexts(file, "")
-    val res = FilenameIndex.getFilesByName(file.getProject, ReferenceFile, scope)
-      .iterator.collectOnly[HoconPsiFile].filter(f => contexts.contains(f.getParent))
-      .toVector
-    // return empty if the file itself is a reference file
-    if (!res.contains(file)) res else Vector.empty
-  }
 }
 
 case class ResolvedField(
@@ -237,6 +237,9 @@ case class ResolvedField(
   parentCtx: ResolutionCtx,
   subsCtx: Option[SubstitutionCtx] = None // indicates that this field is a result of substitution resolution
 ) extends ResolutionCtx {
+
+  def hkey: HKey =
+    field.key.getOrElse(throw new IllegalStateException("ResolvedField must have a HKey"))
 
   def backtracedField: Option[ResolvedField] =
     subsCtx.map(_.ctx).collectOnly[ResolvedField]
@@ -271,6 +274,16 @@ case class ResolvedField(
 
   def backtracedPrefixField: Option[ResolvedField] =
     fullyBacktraced.prefixField
+
+  @tailrec final def ancestorField(levels: Int, backtraced: Boolean = true): Option[ResolvedField] =
+    if (levels == 0) Some(this)
+    else {
+      val prefix = if (backtraced) backtracedPrefixField else prefixField
+      prefix match {
+        case Some(pf) => pf.ancestorField(levels - 1)
+        case None => None
+      }
+    }
 
   @tailrec private def path(suffix: List[String], backtraced: Boolean): List[String] = {
     val self = if (backtraced) fullyBacktraced else this

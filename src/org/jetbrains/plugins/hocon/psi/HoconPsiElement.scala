@@ -317,7 +317,7 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
       case prefixField: HKeyedField => prefixField.makeContext
       case objectField: HObjectField => objectField.containingEntries.parent match {
         case obj: HObject => obj.makeContext
-        case file: HoconPsiFile => Some(ToplevelCtx(file, ToplevelCtx.referenceFilesFor(file)))
+        case file: HoconPsiFile => Some(ToplevelCtx(file))
       }
     }
   } yield ResolvedField(key, this, parentCtx)
@@ -488,6 +488,9 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
     allKeysIn(this, Nil)
   }
 
+  def fullStringPath: Option[List[String]] =
+    allKeys.map(_.map(_.stringValue))
+
   /**
    * If all keys are valid - all keys of this path.
    * If some keys are invalid - all valid keys from left to right until some invalid key is encountered
@@ -548,7 +551,7 @@ sealed trait HValue extends HoconPsiElement {
     case conc: HConcatenation =>
       conc.makeContext
     case file: HoconPsiFile =>
-      Some(ToplevelCtx(file, ToplevelCtx.referenceFilesFor(file)))
+      Some(ToplevelCtx(file))
   }
 
   def firstOccurrence(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Option[ResolvedField] =
@@ -633,7 +636,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
 
 final class HConcatenation(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HValueParent
 
-sealed trait HLiteralValue extends HValue with PsiLiteralValue
+sealed trait HLiteralValue extends HValue with PsiLiteral
 
 final class HNull(ast: ASTNode) extends HoconPsiElement(ast) with HLiteralValue {
   def getValue: Object = null
@@ -661,7 +664,7 @@ object HNumber {
 
 final class HUnquotedString(ast: ASTNode) extends HoconPsiElement(ast)
 
-sealed trait HString extends HoconPsiElement with PsiLiteralValue with ContributedReferenceHost {
+sealed trait HString extends HoconPsiElement with PsiLiteral with ContributedReferenceHost {
   def stringType: IElementType = getFirstChild.getNode.getElementType
 
   def getValue: Object = stringValue

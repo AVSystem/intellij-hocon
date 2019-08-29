@@ -16,13 +16,12 @@ class HKeyReference(key: HKey) extends PsiReference {
 
   def getElement: PsiElement = key
 
-  def isReferenceTo(element: PsiElement): Boolean =
-    element == resolve()
+  def isReferenceTo(element: PsiElement): Boolean = element == key
 
   def bindToElement(element: PsiElement): PsiElement = null
 
   def handleElementRename(newElementName: String): PsiElement =
-    ElementManipulators.getManipulator(key).handleContentChange(key, newElementName)
+    ElementManipulators.handleContentChange(key, newElementName)
 
   def isSoft = true
 
@@ -35,7 +34,7 @@ class HKeyReference(key: HKey) extends PsiReference {
   // completion
   override def getVariants: Array[AnyRef] = {
     val file = key.hoconFile
-    val toplevelCtx = ToplevelCtx(file, ToplevelCtx.referenceFilesFor(file))
+    val toplevelCtx = ToplevelCtx(file)
     val opts = ResOpts(reverse = true)
 
     val variantFields: Iterator[ResolvedField] = key.parent match {

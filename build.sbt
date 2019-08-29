@@ -25,7 +25,7 @@ lazy val hocon = project.in(file(".")).settings(
   ideBasePackages := Seq("org.jetbrains.plugins.hocon"),
   ideOutputDirectory in Compile := Some(file("out/production")),
   ideOutputDirectory in Test := Some(file("out/test")),
-  ideaInternalPlugins := Seq("properties", "java"),
+  ideaInternalPlugins := Seq("properties", "java", "java-i18n"),
   libraryDependencies ++= Seq(
     "com.novocode" % "junit-interface" % junitInterfaceVersion % Test,
     "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full,

@@ -4,9 +4,13 @@ package indexing
 import java.io.{DataInput, DataOutput}
 import java.util.{Collections, Comparator}
 
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.indexing.FileBasedIndex.InputFilter
+import com.intellij.psi.PsiManager
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.indexing.FileBasedIndex.{InputFilter, ValueProcessor}
 import com.intellij.util.indexing._
 import com.intellij.util.io.{DataExternalizer, EnumeratorStringDescriptor, KeyDescriptor}
 import org.jetbrains.plugins.hocon.lang.HoconFileType
@@ -73,6 +77,32 @@ abstract class HKeyIndexCompanion[K](name: String) {
 
   def Version: Int
   def KeyDescriptor: KeyDescriptor[K]
+
+  def processHKeys(
+    dataKey: K,
+    project: Project,
+    filter: GlobalSearchScope = GlobalSearchScope.EMPTY_SCOPE,
+    fieldsOnly: Boolean = false,
+    lastFieldOnly: Boolean = false
+  )(processor: HKey => Unit): Unit = {
+    val manager = PsiManager.getInstance(project)
+    val pfi = ProjectFileIndex.getInstance(project)
+    val indexProcessor: ValueProcessor[HKeyOccurrences] = (file, occurrences) => {
+      for {
+        f <- file.opt.filterNot(pfi.isInLibrarySource)
+        hoconFile <- manager.findFile(f).opt.collectOnly[HoconPsiFile]
+        range <-
+          if (lastFieldOnly) occurrences.inFields.lastOption.iterator
+          else if (fieldsOnly) occurrences.inFields.iterator
+          else occurrences.inFields ++ occurrences.inSubstitutions
+        foundKey <- hoconFile.findElementAt(range.getStartOffset).parentOfType[HKey]
+      } {
+        processor(foundKey)
+      }
+      true
+    }
+    FileBasedIndex.getInstance.processValues(Id, dataKey, null, indexProcessor, filter)
+  }
 }
 
 abstract class HKeyIndex[K](companion: HKeyIndexCompanion[K])

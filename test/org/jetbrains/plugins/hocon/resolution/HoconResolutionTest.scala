@@ -9,7 +9,7 @@ class HoconResolutionTest extends HoconSingleModuleTest {
 
   private def testPath(file: String, hoconPath: String, expected: String): Unit = {
     val hoconFile = findHoconFile(file, project)
-    val ctx = ToplevelCtx(hoconFile, ToplevelCtx.referenceFilesFor(hoconFile))
+    val ctx = ToplevelCtx(hoconFile)
     val path = hoconPath.split('.').toList
 
     def test(reverse: Boolean): Unit = {
