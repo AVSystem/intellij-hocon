@@ -12,6 +12,7 @@ import com.intellij.util.Processor
 import com.intellij.util.indexing.FileBasedIndex.ValueProcessor
 import com.intellij.util.indexing.{FileBasedIndex, FindSymbolParameters, IdFilter}
 import javax.swing.Icon
+import org.jetbrains.plugins.hocon.indexing.{HKeyOccurrences, HoconKeyIndex}
 import org.jetbrains.plugins.hocon.psi.{HKeyedField, HObjectEntries, HoconPsiFile}
 import org.jetbrains.plugins.hocon.settings.HoconProjectSettings
 

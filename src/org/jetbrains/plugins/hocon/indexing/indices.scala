@@ -1,5 +1,5 @@
 package org.jetbrains.plugins.hocon
-package navigation
+package indexing
 
 import java.io.{DataInput, DataOutput}
 import java.util.{Collections, Comparator}
@@ -125,7 +125,7 @@ abstract class HKeyIndex[K](companion: HKeyIndexCompanion[K])
   }
 }
 
-object HoconPathIndex extends HKeyIndexCompanion[List[String]]("hoconPaths") {
+object HoconPathIndex extends HKeyIndexCompanion[List[String]]("hocon.paths") {
   final val Version = 0
 
   object KeyDescriptor extends DataExternalizer[List[String]]
@@ -156,7 +156,7 @@ class HoconPathIndex extends HKeyIndex[List[String]](HoconPathIndex) {
   def indexKey(hkey: HKey): Option[List[String]] = hkey.fullStringPath
 }
 
-object HoconKeyIndex extends HKeyIndexCompanion[String]("hoconKeys") {
+object HoconKeyIndex extends HKeyIndexCompanion[String]("hocon.keys") {
   final val Version = 0
   final def KeyDescriptor: KeyDescriptor[String] = EnumeratorStringDescriptor.INSTANCE
 }
