@@ -12,6 +12,7 @@ import com.intellij.psi._
 import com.intellij.psi.impl.source.PsiFileImpl
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReference
 import com.intellij.psi.tree.IElementType
+import com.intellij.util.IncorrectOperationException
 import javax.swing.Icon
 import org.jetbrains.plugins.hocon.HoconConstants._
 import org.jetbrains.plugins.hocon.lang.HoconFileType
@@ -415,7 +416,7 @@ final class HQualifiedIncluded(ast: ASTNode) extends HoconPsiElement(ast) {
     } yield rs
 }
 
-final class HKey(ast: ASTNode) extends HoconPsiElement(ast) {
+final class HKey(ast: ASTNode) extends HoconPsiElement(ast) with PsiQualifiedNamedElement {
   type Parent = HKeyParent
 
   def inField: Boolean = parent.isInstanceOf[HKeyedField]
@@ -455,6 +456,15 @@ final class HKey(ast: ASTNode) extends HoconPsiElement(ast) {
   def keyParts: Iterator[HKeyPart] = findChildren[HKeyPart]
 
   def isValidKey: Boolean = findChild[PsiErrorElement].isEmpty
+
+  override def getQualifiedName: String = fullPathText.orNull
+
+  // Implementing PsiNamedElement is required for Find Usages to be triggered on ctrl+click (GotoDeclaration action)
+  // see: com.intellij.codeInsight.navigation.actions.GotoDeclarationAction.invoke
+  // see: com.intellij.codeInsight.TargetElementUtil.doFindTargetElement
+  override def getName: String = getText
+
+  override def setName(name: String): PsiElement = throw new IncorrectOperationException
 
   override def getIcon(flags: Int): Icon = PropertyIcon
 
