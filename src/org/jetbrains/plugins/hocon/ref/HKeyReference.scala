@@ -16,7 +16,8 @@ class HKeyReference(key: HKey) extends PsiReference {
 
   def getElement: PsiElement = key
 
-  def isReferenceTo(element: PsiElement): Boolean = element == key
+  def isReferenceTo(element: PsiElement): Boolean =
+    element == resolve()
 
   def bindToElement(element: PsiElement): PsiElement = null
 
@@ -27,9 +28,8 @@ class HKeyReference(key: HKey) extends PsiReference {
 
   def getRangeInElement: TextRange = ElementManipulators.getValueTextRange(key)
 
-  // There's no single definition of a key that we could point to, just resolve to itself and leave the
-  // job to each particular action, e.g. HoconGotoDeclarationHandler
-  def resolve(): PsiElement = key
+  def resolve(): PsiElement =
+    key.resolved.map(_.hkey).orNull
 
   // completion
   override def getVariants: Array[AnyRef] = {
@@ -47,20 +47,19 @@ class HKeyReference(key: HKey) extends PsiReference {
         case None =>
           toplevelCtx.occurrences(None, opts)
       }
-      case field: HKeyedField => field.prefixingField match {
-        case Some(prefixField) => prefixField.fullContainingPath.iterator.flatMap {
-          case (entries, path) =>
-            val strPath = path.map(_.stringValue)
+      case field: HKeyedField =>
+        val entries = field.outermostEntries
+        field.prefixingField match {
+          case Some(prefixField) => prefixField.fullStringPath.iterator.flatMap { strPath =>
             val prefixOccurrences =
               if (entries.isToplevel) toplevelCtx.occurrences(strPath, opts)
               else entries.occurrences(strPath, opts, toplevelCtx)
             prefixOccurrences.flatMap(_.subOccurrences(None, opts))
+          }
+          case None =>
+            if (entries.isToplevel) toplevelCtx.occurrences(None, opts)
+            else entries.occurrences(None, opts, toplevelCtx)
         }
-        case None =>
-          val entries = field.enclosingEntries
-          if (entries.isToplevel) toplevelCtx.occurrences(None, opts)
-          else entries.occurrences(None, opts, toplevelCtx)
-      }
     }
 
     val seenKeys = new mutable.HashSet[String]

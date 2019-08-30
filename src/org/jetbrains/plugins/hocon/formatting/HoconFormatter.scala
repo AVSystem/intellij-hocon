@@ -120,13 +120,13 @@ class HoconFormatter(settings: CodeStyleSettings) {
       case (UnquotedChars, Included) =>
         normalSpacing(shouldBeSpace = true)
 
-      case (Key, Object) =>
+      case (FieldKey, Object) =>
         normalSpacing(customSettings.SPACE_BEFORE_LBRACE_AFTER_PATH)
 
-      case (Key, Colon) =>
+      case (FieldKey, Colon) =>
         normalSpacing(customSettings.SPACE_BEFORE_COLON)
 
-      case (Key, Equals | PlusEquals) =>
+      case (FieldKey, Equals | PlusEquals) =>
         normalSpacing(customSettings.SPACE_BEFORE_ASSIGNMENT)
 
       case (Colon, Value.extractor()) =>

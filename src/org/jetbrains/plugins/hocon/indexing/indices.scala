@@ -14,7 +14,7 @@ import com.intellij.util.indexing.FileBasedIndex.{InputFilter, ValueProcessor}
 import com.intellij.util.indexing._
 import com.intellij.util.io.{DataExternalizer, EnumeratorStringDescriptor, KeyDescriptor}
 import org.jetbrains.plugins.hocon.lang.HoconFileType
-import org.jetbrains.plugins.hocon.psi.{HKey, HKeyedField, HPath, HoconPsiFile}
+import org.jetbrains.plugins.hocon.psi.{HFieldKey, HKey, HSubstitutionKey, HoconPsiFile}
 
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
@@ -82,8 +82,7 @@ abstract class HKeyIndexCompanion[K](name: String) {
     dataKey: K,
     project: Project,
     filter: GlobalSearchScope = GlobalSearchScope.EMPTY_SCOPE,
-    fieldsOnly: Boolean = false,
-    lastFieldOnly: Boolean = false
+    select: HKeyOccurrences => Iterator[TextRange] = occ => occ.inFields.iterator ++ occ.inSubstitutions.iterator
   )(processor: HKey => Unit): Unit = {
     val manager = PsiManager.getInstance(project)
     val pfi = ProjectFileIndex.getInstance(project)
@@ -91,10 +90,7 @@ abstract class HKeyIndexCompanion[K](name: String) {
       for {
         f <- file.opt.filterNot(pfi.isInLibrarySource)
         hoconFile <- manager.findFile(f).opt.collectOnly[HoconPsiFile]
-        range <-
-          if (lastFieldOnly) occurrences.inFields.lastOption.iterator
-          else if (fieldsOnly) occurrences.inFields.iterator
-          else occurrences.inFields ++ occurrences.inSubstitutions
+        range <- select(occurrences)
         foundKey <- hoconFile.findElementAt(range.getStartOffset).parentOfType[HKey]
       } {
         processor(foundKey)
@@ -135,9 +131,9 @@ abstract class HKeyIndex[K](companion: HKeyIndexCompanion[K])
         ikey <- indexKey(hkey)
       } {
         val occurrences = result.getOrElseUpdate(ikey, HKeyOccurrences.mkEmpty)
-        val buf = hkey.parent match {
-          case _: HPath => occurrences.inSubstitutions
-          case _: HKeyedField => occurrences.inFields
+        val buf = hkey match {
+          case _: HFieldKey => occurrences.inSubstitutions
+          case _: HSubstitutionKey => occurrences.inFields
         }
         buf += hkey.getTextRange
       }
@@ -183,7 +179,8 @@ object HoconPathIndex extends HKeyIndexCompanion[List[String]]("hocon.paths") {
 }
 
 class HoconPathIndex extends HKeyIndex[List[String]](HoconPathIndex) {
-  def indexKey(hkey: HKey): Option[List[String]] = hkey.fullStringPath
+  def indexKey(hkey: HKey): Option[List[String]] =
+    hkey.opt.filterNot(_.inFieldInArray).flatMap(_.fullStringPath)
 }
 
 object HoconKeyIndex extends HKeyIndexCompanion[String]("hocon.keys") {

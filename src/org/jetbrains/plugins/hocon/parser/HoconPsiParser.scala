@@ -244,7 +244,7 @@ class HoconPsiParser extends PsiParser {
       }
 
       val marker = builder.mark()
-      tryParseKey(first)
+      tryParseKey(first, substitution = false)
 
       if (pass(Period.noNewLine)) {
         parseKeyedField(first = false)
@@ -277,21 +277,21 @@ class HoconPsiParser extends PsiParser {
           pass(Period.noNewLine)
         }
         val marker = prefixMarker.map(_.precede()).getOrElse(builder.mark())
-        tryParseKey(first)
+        tryParseKey(first, substitution = true)
         marker.done(Path)
         parsePath(Some(marker))
       }
     }
 
-    def tryParseKey(first: Boolean): Unit = {
+    def tryParseKey(first: Boolean, substitution: Boolean): Unit = {
       if (!matches(KeyEnding.orNewLineOrEof)) {
-        parseKey(first)
+        parseKey(first, substitution)
       } else {
         builder.error("expected key (use quoted \"\" if you want empty key)")
       }
     }
 
-    def parseKey(first: Boolean): Unit = {
+    def parseKey(first: Boolean, substitution: Boolean): Unit = {
       val marker = builder.mark()
 
       @tailrec
@@ -312,7 +312,7 @@ class HoconPsiParser extends PsiParser {
       suppressNewLine()
       parseKeyParts(first)
 
-      marker.done(Key)
+      marker.done(if(substitution) SubstitutionKey else FieldKey)
 
       setEdgeTokenBinders(marker, first, matches(PathEnding.orNewLineOrEof))
     }

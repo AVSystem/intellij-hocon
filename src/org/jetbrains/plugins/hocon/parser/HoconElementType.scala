@@ -101,7 +101,12 @@ object HoconElementType {
   /**
     * Key inside substitution path or keyed entry (prefixed entry or valued entry).
     */
-  val Key = new HoconElementType("KEY")
+  val FieldKey = new HoconElementType("FIELD_KEY")
+
+  /**
+   * Key inside substitution path or keyed entry (prefixed entry or valued entry).
+   */
+  val SubstitutionKey = new HoconElementType("SUBSTITUTION_KEY")
 
   /**
     * HOCON array, i.e. brackets with sequence of values inside.

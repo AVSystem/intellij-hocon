@@ -24,9 +24,12 @@ object HoconPsiElementFactory {
   def createIncludeTarget(contents: String, manager: PsiManager): HIncludeTarget =
     createElement[HIncludeTarget](manager, s"include $contents", 8).orNull
 
-  def createKey(contents: String, manager: PsiManager): HKey =
-    createElement[HKey](manager, s"$contents = null", 0).orNull
+  def createFieldKey(contents: String, manager: PsiManager): HFieldKey =
+    createElement[HFieldKey](manager, s"$contents = null", 0).orNull
+
+  def createSubstitutionKey(contents: String, manager: PsiManager): HSubstitutionKey =
+    createElement[HSubstitutionKey](manager, s"__k = $${$contents}}", 8).orNull
 
   def createPath(path: String, manager: PsiManager): HPath =
-    createElement[HSubstitution](manager, s"__k = $${$path}", 7).flatMap(_.path).orNull
+    createElement[HSubstitution](manager, s"__k = $${$path}", 8).flatMap(_.path).orNull
 }

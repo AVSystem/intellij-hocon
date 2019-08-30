@@ -14,7 +14,7 @@ import com.intellij.usages.{ReadWriteAccessUsageInfo2UsageAdapter, Usage}
 import com.intellij.util.Processor
 import org.jetbrains.plugins.hocon.indexing.HoconPathIndex
 import org.jetbrains.plugins.hocon.lexer.{HoconLexer, HoconTokenSets, HoconTokenType}
-import org.jetbrains.plugins.hocon.psi.HKey
+import org.jetbrains.plugins.hocon.psi.{HKey, HKeyedField, HObjectEntries, HPath}
 
 class HoconFindUsagesProvider extends FindUsagesProvider {
   def getWordsScanner: WordsScanner = new DefaultWordsScanner(new HoconLexer,
@@ -38,6 +38,22 @@ class HoconFindUsagesProvider extends FindUsagesProvider {
   }
 }
 
+
+object HoconUsageSearcher {
+  private def localUsageEntries(hkey: HKey): Option[HObjectEntries] = hkey.parent match {
+    case _: HPath => hkey.hoconFile.toplevelEntries
+    case kf: HKeyedField => Some(kf.outermostEntries)
+  }
+
+  def localUsagesOf(hkey: HKey): Iterator[HKey] = for {
+    strPath <- hkey.fullStringPath.iterator
+    entriesOpt = localUsageEntries(hkey) // None is only for substitutions inside files with toplevel arrays
+    occkey <- hkey.hoconFile.depthFirst.collectOnly[HKey]
+    occStrPath <- occkey.fullStringPath.iterator
+    if localUsageEntries(occkey) == entriesOpt && occStrPath == strPath
+  } yield occkey
+
+}
 class HoconUsageSearcher extends CustomUsageSearcher {
   def processElementUsages(
     element: PsiElement, processor: Processor[Usage], options: FindUsagesOptions
@@ -45,15 +61,21 @@ class HoconUsageSearcher extends CustomUsageSearcher {
     case hkey: HKey => ReadAction.run { () =>
       for {
         globalSearchScope <- options.searchScope.opt.collectOnly[GlobalSearchScope]
-        key <- element.opt.collectOnly[HKey]
-        (entries, keyPath) <- key.fullContainingPath if entries.isToplevel
+        keyPath <- hkey.fullContainingPath
+        referentiable = !hkey.inFieldInArray
       } {
         val strPath = keyPath.map(_.stringValue)
-        HoconPathIndex.processHKeys(strPath, hkey.getProject, globalSearchScope) { foundKey =>
+
+        def onKeyFound(foundKey: HKey): Unit = {
           val usageInfo = new UsageInfo(foundKey, 0, foundKey.getTextLength, true)
           processor.process(new ReadWriteAccessUsageInfo2UsageAdapter(
             usageInfo, foundKey.inSubstitution, foundKey.inField))
         }
+
+        if (referentiable)
+          HoconPathIndex.processHKeys(strPath, hkey.getProject, globalSearchScope)(onKeyFound)
+        else
+          HoconUsageSearcher.localUsagesOf(hkey).foreach(onKeyFound)
       }
     }
     case _ =>

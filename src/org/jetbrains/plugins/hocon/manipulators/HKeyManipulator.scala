@@ -5,7 +5,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.{AbstractElementManipulator, PsiManager}
 import org.jetbrains.plugins.hocon.lexer.HoconLexer
-import org.jetbrains.plugins.hocon.psi.{HKey, HoconPsiElementFactory}
+import org.jetbrains.plugins.hocon.psi.{HFieldKey, HKey, HSubstitutionKey, HoconPsiElementFactory}
 
 /**
   * @author ghik
@@ -33,7 +33,10 @@ class HKeyManipulator extends AbstractElementManipulator[HKey] {
       else
         newContent
 
-    val newKey = HoconPsiElementFactory.createKey(quotedEscapedContent, psiManager)
+    val newKey = key match {
+      case _: HFieldKey => HoconPsiElementFactory.createFieldKey(quotedEscapedContent, psiManager)
+      case _: HSubstitutionKey => HoconPsiElementFactory.createSubstitutionKey(quotedEscapedContent, psiManager)
+    }
     key.replace(newKey)
     newKey
   }

@@ -146,7 +146,7 @@ sealed abstract class ResolutionCtx {
 
     case rf: ResolvedField => rf.subsCtx match {
       case Some(sc) =>
-        rf.moreUnbacktracedOccurrences(opts).flatMap(_.copy(subsCtx = rf.subsCtx).subOccurrences(key, opts)) ++
+        rf.moreOccurrences(opts, withBacktraced = false).flatMap(_.subOccurrences(key, opts)) ++
           sc.subst.adjacentConcatOccurrences(key, opts, sc.ctx) ++
           sc.ctx.adjacentOccurrences(key, opts)
 
@@ -238,8 +238,8 @@ case class ResolvedField(
   subsCtx: Option[SubstitutionCtx] = None // indicates that this field is a result of substitution resolution
 ) extends ResolutionCtx {
 
-  def hkey: HKey =
-    field.key.getOrElse(throw new IllegalStateException("ResolvedField must have a HKey"))
+  def hkey: HFieldKey =
+    field.key.getOrElse(throw new IllegalStateException("ResolvedField must have a key"))
 
   def backtracedField: Option[ResolvedField] =
     subsCtx.map(_.ctx).collectOnly[ResolvedField]
@@ -358,12 +358,16 @@ case class ResolvedField(
       loop(this)
     }
 
-  def moreUnbacktracedOccurrences(opts: ResOpts): Iterator[ResolvedField] =
-    field.adjacentEntriesOccurrences(key.opt, opts, parentCtx) ++
-      parentCtx.adjacentOccurrences(key.opt, opts)
+  def moreOccurrences(opts: ResOpts, withBacktraced: Boolean = true): Iterator[ResolvedField] = {
+    val unbacktraced =
+      field.adjacentEntriesOccurrences(key.opt, opts, parentCtx) ++
+        parentCtx.adjacentOccurrences(key.opt, opts)
 
-  def moreOccurrences(opts: ResOpts): Iterator[ResolvedField] = {
-    val res = moreUnbacktracedOccurrences(opts) ++ backtracedField.flatMapIt(_.moreOccurrences(opts))
+    val backtraced =
+      if (withBacktraced) backtracedField.flatMapIt(_.moreOccurrences(opts))
+      else Iterator.empty
+
+    val res = unbacktraced ++ backtraced
     subsCtx.fold(res)(_ => res.map(_.copy(subsCtx = subsCtx)))
   }
 

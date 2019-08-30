@@ -66,7 +66,7 @@ class HoconPropertyReference(
     val builder = new mutable.ArrayBuilder.ofRef[ResolveResult]
     val scope = IncludedFileReferenceSet.classpathDefaultContexts(lit.getContainingFile, "").scope
     val seen = new mutable.HashSet[HKey]
-    HoconPathIndex.processHKeys(fullPath, lit.getProject, scope, lastFieldOnly = true) { foundKey =>
+    HoconPathIndex.processHKeys(fullPath, lit.getProject, scope, _.inFields.lastOption.iterator) { foundKey =>
       foundKey.field.flatMap(_.makeContext).flatMap(_.ancestorField(reverseIndex)).foreach { resField =>
         if (seen.add(resField.hkey)) {
           builder += new PsiElementResolveResult(resField.hkey)

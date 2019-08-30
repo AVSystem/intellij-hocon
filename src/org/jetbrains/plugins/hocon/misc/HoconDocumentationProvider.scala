@@ -7,17 +7,20 @@ import com.intellij.psi.{PsiElement, PsiFile, PsiManager}
 import org.apache.commons.lang3.StringEscapeUtils
 import org.jetbrains.plugins.hocon.psi._
 
+import scala.annotation.tailrec
+
 class HoconDocumentationProvider extends DocumentationProviderEx {
   private def key(origElem: PsiElement): Option[HKey] = origElem match {
     case key: HKey => Some(key)
     case _ => origElem.parentOfType[HKey]
   }
 
-  private def findDocSource(rfOpt: Option[ResolvedField]): Option[HValuedField] = rfOpt.flatMap { rf =>
-    rf.field match {
+  @tailrec private def findDocSource(rfOpt: Option[ResolvedField]): Option[HValuedField] = rfOpt match {
+    case Some(rf) => rf.field match {
       case vf: HValuedField if vf.enclosingObjectField.docComments.nonEmpty => Some(vf)
       case _ => findDocSource(rf.nextOccurrence(ResOpts(reverse = true)))
     }
+    case None => None
   }
 
   override def getDocumentationElementForLookupItem(psiManager: PsiManager, obj: Any, element: PsiElement): PsiElement =
@@ -39,12 +42,15 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
 
   override def generateDoc(element: PsiElement, originalElement: PsiElement): String = element match {
     case vf: HValuedField =>
-      val fullPath = vf.key.flatMap(_.fullPathText).getOrElse("")
-      val definition = DocumentationMarkup.DEFINITION_START + fullPath + DocumentationMarkup.DEFINITION_END
-      val content = vf.enclosingObjectField.docComments
-        .map(c => StringEscapeUtils.escapeHtml4(c.getText.stripPrefix("#")))
-        .mkString(DocumentationMarkup.CONTENT_START, "<br/>", DocumentationMarkup.CONTENT_END)
-      definition + content
+      val docComments = vf.enclosingObjectField.docComments
+      if (docComments.nonEmpty) {
+        val fullPath = vf.key.flatMap(_.fullPathText).getOrElse("")
+        val definition = DocumentationMarkup.DEFINITION_START + fullPath + DocumentationMarkup.DEFINITION_END
+        val content = docComments
+          .map(c => StringEscapeUtils.escapeHtml4(c.getText.stripPrefix("#")))
+          .mkString(DocumentationMarkup.CONTENT_START, "<br/>", DocumentationMarkup.CONTENT_END)
+        definition + content
+      } else null
     case _ => null
   }
 }
