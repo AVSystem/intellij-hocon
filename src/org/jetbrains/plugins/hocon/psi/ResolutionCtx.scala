@@ -3,11 +3,10 @@ package psi
 
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.search.FilenameIndex
+import com.intellij.psi.PsiElement
+import com.intellij.psi.search.{FilenameIndex, GlobalSearchScope}
 import org.jetbrains.plugins.hocon.psi.SubstitutionKind.SelfReferential
-import org.jetbrains.plugins.hocon.psi.ToplevelCtx.ReferenceFile
 import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet
-import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet.DefaultContexts
 
 import scala.annotation.tailrec
 
@@ -64,12 +63,13 @@ sealed abstract class ResolutionCtx {
     (file.getVirtualFile, tr.getStartOffset, tr.getEndOffset)
 
   private lazy val localTextRange = this match {
-    case tc: ToplevelCtx => textRangeTuple(tc.file, tc.file.getTextRange)
+    case _: ToplevelCtx => (null, 0, 0)
     case rf: ResolvedField => textRangeTuple(rf.field.hoconFile, rf.field.getTextRange)
     case ic: IncludeCtx =>
-      // -1 for auto-included so that it comes before file contents
-      ic.include.fold((ic.toplevelCtx.file.getVirtualFile, -1, -1))(inc =>
-        textRangeTuple(inc.hoconFile, inc.getTextRange))
+      ic.source match {
+        case IncludeSource.Element(inc) => textRangeTuple(inc.hoconFile, inc.getTextRange)
+        case _ => (ic.file.getVirtualFile, 0, ic.file.getTextLength)
+      }
     case ac: ArrayCtx => textRangeTuple(ac.value.hoconFile, ac.value.getTextRange)
   }
 
@@ -98,7 +98,7 @@ sealed abstract class ResolutionCtx {
 
   @tailrec final def isAlreadyIn(file: HoconPsiFile): Boolean = lastInclude match {
     case Some(ic) => ic.allFiles.contains(file) || ic.parentCtx.isAlreadyIn(file)
-    case None => toplevelCtx.file == file
+    case None => toplevelCtx.files.contains(file)
   }
 
   private def pathsInResolution(
@@ -155,15 +155,10 @@ sealed abstract class ResolutionCtx {
     }
 
     case ic: IncludeCtx =>
-      ic.moreFileContexts(opts.reverse).flatMap(_.occurrences(key, opts)) ++ (ic.include match {
-        case Some(inc) =>
+      ic.moreFileContexts(opts.reverse).flatMap(_.occurrences(key, opts)) ++ (ic.source match {
+        case IncludeSource.Element(inc) =>
           inc.adjacentEntriesOccurrences(key, opts, ic.parentCtx) ++
             ic.parentCtx.adjacentOccurrences(key, opts)
-
-        case None if !opts.reverse =>
-          // proceeding from last auto-included file into the contents of toplevel file itself
-          ic.toplevelCtx.file.toplevelEntries.flatMapIt(_.occurrences(key, opts, ic.toplevelCtx))
-
         case _ =>
           Iterator.empty
       })
@@ -175,10 +170,14 @@ sealed abstract class ResolutionCtx {
   def trace: String = {
     def loop(ic: Option[IncludeCtx], suffix: String): String =
       ic.fold(suffix) { incCtx =>
-        incCtx.include.fold(suffix)(inc => loop(incCtx.parentCtx.lastInclude, s"${inc.pos}->$suffix"))
+        incCtx.source match {
+          case IncludeSource.Element(inc) =>
+            loop(incCtx.parentCtx.lastInclude, s"${inc.pos}->$suffix")
+          case _ => suffix
+        }
       }
     loop(lastInclude, this match {
-      case tc: ToplevelCtx => tc.file.getName
+      case tc: ToplevelCtx => s"<toplevel:${tc.context.pos}>"
       case ic: IncludeCtx => ic.file.getName
       case rf: ResolvedField => rf.field.pos
       case ac: ArrayCtx => ac.value.pos
@@ -187,35 +186,23 @@ sealed abstract class ResolutionCtx {
 }
 
 case class ToplevelCtx(
-  file: HoconPsiFile,
+  context: PsiElement,
+  files: Vector[HoconPsiFile],
   // indicates that we are resolving a substitution and points to it
   subsCtx: Option[SubstitutionCtx] = None
 ) extends ResolutionCtx {
 
-  lazy val referenceFiles: Vector[HoconPsiFile] = {
-    val DefaultContexts(scope, contexts) = IncludedFileReferenceSet.classpathDefaultContexts(file, "")
-    val res = FilenameIndex.getFilesByName(file.getProject, ReferenceFile, scope)
-      .iterator.collectOnly[HoconPsiFile].filter(f => contexts.contains(f.getParent))
-      .toVector
-    // return empty if the file itself is a reference file
-    if (!res.contains(file)) res else Vector.empty
-  }
+  lazy val scope: GlobalSearchScope =
+    IncludedFileReferenceSet.classpathScope(context.getContainingFile)
+
+  def toplevelIncludes(reverse: Boolean): Iterator[IncludeCtx] =
+    IncludeCtx.allContexts(IncludeSource.ToplevelFile(this), files, reverse, this)
 
   def selfReferenced: Option[ResolvedField] =
     subsCtx.map(_.subsKind).collectOnly[SelfReferential].map(_.selfReferenced)
 
-  def referenceIncludeCtxs(resOpts: ResOpts): Iterator[IncludeCtx] =
-    if (!resOpts.resolveIncludes) Iterator.empty
-    else IncludeCtx.allContexts(None, referenceFiles, resOpts.reverse, this)
-
-  def occurrences(subkey: Option[String], opts: ResOpts): Iterator[ResolvedField] = {
-    def autoIncluded =
-      referenceIncludeCtxs(opts).flatMap(_.occurrences(subkey, opts))
-    def fromActualContents =
-      file.toplevelEntries.flatMapIt(_.occurrences(subkey, opts, this))
-    if (opts.reverse) fromActualContents ++ autoIncluded
-    else autoIncluded ++ fromActualContents
-  }
+  def occurrences(subkey: Option[String], opts: ResOpts): Iterator[ResolvedField] =
+    toplevelIncludes(opts.reverse).flatMap(_.occurrences(subkey, opts))
 
   def occurrences(path: List[String], opts: ResOpts): Iterator[ResolvedField] = path match {
     case Nil => Iterator.empty
@@ -229,6 +216,20 @@ case class ToplevelCtx(
 
 object ToplevelCtx {
   final val ReferenceFile = "reference.conf" //TODO: configurable in project settings
+
+  def referenceFiles(context: PsiElement): Vector[HoconPsiFile] = {
+    val scope: GlobalSearchScope =
+      IncludedFileReferenceSet.classpathScope(context.getContainingFile)
+    val rootDirs = IncludedFileReferenceSet.classpathPackageDirs(scope, "")
+    val res = FilenameIndex.getFilesByName(context.getProject, ReferenceFile, scope)
+      .iterator.collectOnly[HoconPsiFile].filter(f => rootDirs.contains(f.getParent))
+      .toVector
+    // return empty if the context file is already a reference file
+    if (!res.contains(context.getContainingFile)) res else Vector.empty
+  }
+
+  def apply(file: HoconPsiFile): ToplevelCtx =
+    ToplevelCtx(file, referenceFiles(file) :+ file)
 }
 
 case class ResolvedField(
@@ -375,8 +376,14 @@ case class ResolvedField(
     moreOccurrences(opts).nextOption
 }
 
+sealed trait IncludeSource
+object IncludeSource {
+  case class Element(inc: HInclude) extends IncludeSource
+  case class ToplevelFile(toplevelCtx: ToplevelCtx) extends IncludeSource
+}
+
 case class IncludeCtx(
-  include: Option[HInclude], // None means auto-included file, e.g. reference.conf
+  source: IncludeSource, // None means auto-included file, e.g. reference.conf
   allFiles: Vector[HoconPsiFile],
   fileIdx: Int,
   parentCtx: ResolutionCtx
@@ -397,14 +404,14 @@ case class IncludeCtx(
 }
 object IncludeCtx {
   def allContexts(
-    include: Option[HInclude],
+    source: IncludeSource,
     files: Vector[HoconPsiFile],
     reverse: Boolean,
     parentCtx: ResolutionCtx
   ): Iterator[IncludeCtx] =
     if (files.isEmpty) Iterator.empty else {
       val idxIt = if (reverse) files.indices.reverseIterator else files.indices.iterator
-      idxIt.map(idx => IncludeCtx(include, files, idx, parentCtx))
+      idxIt.map(idx => IncludeCtx(source, files, idx, parentCtx))
     }
 }
 

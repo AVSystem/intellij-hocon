@@ -24,6 +24,10 @@ class HoconPropertiesReferenceProvider extends PsiReferenceProvider {
       def makeRefs(off: Int, keys: List[String]): List[HoconPropertyReference] = keys match {
         case Nil => Nil
         case key :: tail =>
+          // Each key may be itself quoted inside the string and we don't know exactly what quoting scheme is used
+          // by given string (e.g. unquoted, quoted, multiline...). For this reason we can never assume any
+          // representation of given key within the string literal. Therefore, we just split the string contents by
+          // dot, taking into account that keys themselves may also contain dots which must be omitted when splitting.
           @tailrec def keyEndOffset(keyStart: Int, keyInnerDots: Int): Int =
             text.indexOf('.', keyStart) match {
               case -1 => fullRange.getEndOffset
@@ -64,7 +68,7 @@ class HoconPropertyReference(
 
   def multiResolve(incompleteCode: Boolean): Array[ResolveResult] = {
     val builder = new mutable.ArrayBuilder.ofRef[ResolveResult]
-    val scope = IncludedFileReferenceSet.classpathDefaultContexts(lit.getContainingFile, "").scope
+    val scope = IncludedFileReferenceSet.classpathScope(lit.getContainingFile)
     val seen = new mutable.HashSet[HKey]
     HoconPathIndex.processHKeys(fullPath, lit.getProject, scope, _.inFields.lastOption.iterator) { foundKey =>
       foundKey.field.flatMap(_.makeContext).flatMap(_.ancestorField(reverseIndex)).foreach { resField =>

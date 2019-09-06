@@ -11,6 +11,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi._
 import com.intellij.psi.impl.source.PsiFileImpl
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReference
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.tree.IElementType
 import com.intellij.util.IncorrectOperationException
 import javax.swing.Icon
@@ -221,16 +222,9 @@ sealed trait HEntriesLike extends HoconPsiElement {
    * Occurrences of given key (or all) within entries adjacent to these in the same containing object and objects
    * concatenated with it.
    */
-  def adjacentEntriesOccurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] = {
-    def fromReferenceOrConcat = resCtx match {
-      case tc: ToplevelCtx if opts.reverse =>
-        // going into the contents of auto-included files, e.g. reference.conf
-        tc.referenceIncludeCtxs(opts).flatMap(_.occurrences(key, opts))
-      case _ =>
-        containingObject.flatMapIt(_.adjacentConcatOccurrences(key, opts, resCtx))
-    }
-    moreEntries(opts.reverse).flatMap(_.occurrences(key, opts, resCtx)) ++ fromReferenceOrConcat
-  }
+  def adjacentEntriesOccurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] =
+    moreEntries(opts.reverse).flatMap(_.occurrences(key, opts, resCtx)) ++
+      containingObject.flatMapIt(_.adjacentConcatOccurrences(key, opts, resCtx))
 }
 
 sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
@@ -369,16 +363,18 @@ final class HInclude(ast: ASTNode) extends HoconPsiElement(ast) with HObjectEntr
 
   def occurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] =
     if (!opts.resolveIncludes) Iterator.empty
-    else included.qualified.flatMap(_.fileReferenceSet).fold[Iterator[ResolvedField]](Iterator.empty) { refset =>
-      //TODO: search also .json and .properties files
-      val allFiles = refset.getLastReference.opt.fold(Vector.empty[HoconPsiFile]) { ref =>
-        ref.multiResolve(false).iterator
-          .map(_.getElement).collectOnly[HoconPsiFile].toVector
-          .sortBy(_.getVirtualFile.getPath) // just so that it's deterministic
+    else included.qualified
+      .flatMap(_.fileReferenceSet(resCtx.toplevelCtx.scope))
+      .flatMapIt { refset =>
+        //TODO: search also .json and .properties files
+        val files = refset.getLastReference.opt.fold(Vector.empty[HoconPsiFile]) { ref =>
+          ref.multiResolve(false).iterator
+            .map(_.getElement).collectOnly[HoconPsiFile].toVector
+            .sortBy(_.getVirtualFile.getPath) // just so that it's deterministic
+        }
+        IncludeCtx.allContexts(IncludeSource.Element(this), files, opts.reverse, resCtx)
+          .flatMap(_.occurrences(key, opts))
       }
-      IncludeCtx.allContexts(Some(this), allFiles, opts.reverse, resCtx)
-        .flatMap(_.occurrences(key, opts))
-    }
 }
 
 final class HIncluded(ast: ASTNode) extends HoconPsiElement(ast) {
@@ -404,7 +400,7 @@ final class HQualifiedIncluded(ast: ASTNode) extends HoconPsiElement(ast) {
 
   def target: Option[HIncludeTarget] = findChild[HIncludeTarget]
 
-  def fileReferenceSet: Option[IncludedFileReferenceSet] =
+  def fileReferenceSet(scope: GlobalSearchScope): Option[IncludedFileReferenceSet] =
     for {
       hs <- target
       vf <- Option(getContainingFile.getOriginalFile.getVirtualFile)
@@ -425,7 +421,7 @@ final class HQualifiedIncluded(ast: ASTNode) extends HoconPsiElement(ast) {
         // - unqualified includes in classpath (source or library) files
         // - relative unqualified includes in non-classpath files
         if (!absolute || fromClasspath)
-          Some(new IncludedFileReferenceSet(strVal, hs, forcedAbsolute, fromClasspath))
+          Some(new IncludedFileReferenceSet(strVal, hs, forcedAbsolute, fromClasspath, scope))
         else
           None
       }
@@ -742,5 +738,6 @@ final class HIncludeTarget(ast: ASTNode) extends HoconPsiElement(ast) with HStri
   type Parent = HQualifiedIncluded
 
   def getFileReferences: Array[FileReference] =
-    parent.fileReferenceSet.map(_.getAllReferences).getOrElse(FileReference.EMPTY)
+    parent.fileReferenceSet(IncludedFileReferenceSet.classpathScope(hoconFile))
+      .map(_.getAllReferences).getOrElse(FileReference.EMPTY)
 }

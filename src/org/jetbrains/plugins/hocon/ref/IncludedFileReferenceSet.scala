@@ -10,7 +10,7 @@ import com.intellij.psi._
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.{FileReference, FileReferenceSet}
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.plugins.hocon.HoconConstants._
-import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet.classpathDefaultContexts
+import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet._
 
 /**
  * FileReferenceSet subclass that tries to simulate how Typesafe Config handles includes with its
@@ -41,17 +41,14 @@ object IncludedFileReferenceSet {
     contexts: ju.Collection[PsiFileSystemItem]
   )
 
-  def classpathDefaultContexts(file: PsiFile, pkgName: String): DefaultContexts = {
-    val empty = DefaultContexts(GlobalSearchScope.EMPTY_SCOPE, ju.Collections.emptyList[PsiFileSystemItem])
-
-    val proj = file.getProject
-    val vfile = file.getOriginalFile.getVirtualFile
-    if (vfile == null) return empty
+  def classpathScope(context: PsiFile): GlobalSearchScope = {
+    val proj = context.getProject
+    val vfile = context.getOriginalFile.getVirtualFile
+    if (vfile == null) return GlobalSearchScope.EMPTY_SCOPE
 
     val parent = vfile.getParent
-    if (parent == null) return empty
+    if (parent == null) return GlobalSearchScope.EMPTY_SCOPE
 
-    val psiManager = PsiManager.getInstance(proj)
     val pfi = ProjectRootManager.getInstance(proj).getFileIndex
 
     // If including file is in a module source, add classpath of that module
@@ -65,26 +62,26 @@ object IncludedFileReferenceSet {
     }
 
     def orderEntryScope = allScopes.reduceOption(_ union _)
-
     def moduleScope = pfi.getModuleForFile(parent).opt.map(_.getModuleRuntimeScope(false))
 
-    (orderEntryScope orElse moduleScope).fold(empty) { scope =>
-      // If there are any source roots with package prefix and that package is a subpackage of
-      // including file's package, they will be omitted because `getDirectoriesByPackageName` doesn't find them.
-      // I tried to fix this by manually searching for package-prefixed source dirs and representing them with
-      // `PackagePrefixFileSystemItem` instances, but implementation of `FileReference#innerResolveInContext`
-      // straight away negates my efforts by explicitly ignoring package prefixes - not sure why.
-      // TODO: possibly fix this in some other way?
-      val contexts = DirectoryIndex.getInstance(proj).getDirectoriesByPackageName(pkgName, false).iterator.asScala
-        .filter(scope.contains).flatMap(dir => Option(psiManager.findDirectory(dir)))
-        .toJList[PsiFileSystemItem]
-      DefaultContexts(scope, contexts)
-    }
+    orderEntryScope orElse moduleScope getOrElse GlobalSearchScope.EMPTY_SCOPE
+  }
+
+  def classpathPackageDirs(scope: GlobalSearchScope, pkgName: String): JList[PsiFileSystemItem] = {
+    val psiManager = PsiManager.getInstance(scope.getProject)
+    DirectoryIndex.getInstance(scope.getProject).getDirectoriesByPackageName(pkgName, false).iterator.asScala
+      .filter(scope.contains).flatMap(dir => Option(psiManager.findDirectory(dir)))
+      .toJList[PsiFileSystemItem]
   }
 }
 
-class IncludedFileReferenceSet(text: String, element: PsiElement, forcedAbsolute: Boolean, fromClasspath: Boolean)
-  extends FileReferenceSet(text, element, 1, null, true) {
+class IncludedFileReferenceSet(
+  text: String,
+  element: PsiElement,
+  forcedAbsolute: Boolean,
+  fromClasspath: Boolean,
+  scope: GlobalSearchScope
+) extends FileReferenceSet(text, element, 1, null, true) {
 
   setEmptyPathAllowed(false)
 
@@ -130,7 +127,7 @@ class IncludedFileReferenceSet(text: String, element: PsiElement, forcedAbsolute
     val psiManager = PsiManager.getInstance(proj)
 
     if (fromClasspath)
-      classpathDefaultContexts(containingFile, pkgName).contexts
+      classpathPackageDirs(scope, pkgName)
     else if (!isAbsolutePathReference)
       Option(psiManager.findDirectory(parent)).map(single).getOrElse(empty)
     else
