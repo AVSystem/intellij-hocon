@@ -80,7 +80,7 @@ sealed abstract class ResolutionCtx {
   final def sameAs(other: ResolutionCtx): Boolean =
     (this eq other) ||
       depth == other.depth && localTextRange == other.localTextRange && ((lastInclude, other.lastInclude) match {
-        case (Some(inc1), Some(inc2)) => inc1.sameAs(inc2)
+        case (Some(inc1), Some(inc2)) => inc1.parentCtx.sameAs(inc2.parentCtx)
         case (None, None) => true
         case _ => false
       })
@@ -98,7 +98,7 @@ sealed abstract class ResolutionCtx {
 
   @tailrec final def isAlreadyIn(file: HoconPsiFile): Boolean = lastInclude match {
     case Some(ic) => ic.allFiles.contains(file) || ic.parentCtx.isAlreadyIn(file)
-    case None => toplevelCtx.files.contains(file)
+    case None => false
   }
 
   private def pathsInResolution(
@@ -221,11 +221,10 @@ object ToplevelCtx {
     val scope: GlobalSearchScope =
       IncludedFileReferenceSet.classpathScope(context.getContainingFile)
     val rootDirs = IncludedFileReferenceSet.classpathPackageDirs(scope, "")
-    val res = FilenameIndex.getFilesByName(context.getProject, ReferenceFile, scope)
+    FilenameIndex.getFilesByName(context.getProject, ReferenceFile, scope)
       .iterator.collectOnly[HoconPsiFile].filter(f => rootDirs.contains(f.getParent))
-      .toVector
-    // return empty if the context file is already a reference file
-    if (!res.contains(context.getContainingFile)) res else Vector.empty
+      .toVector.sortBy(_.getVirtualFile.getPath)
+      .takeWhile(_ != context) // if context if one of the reference files, take only "previous" ones
   }
 
   def apply(file: HoconPsiFile): ToplevelCtx =
