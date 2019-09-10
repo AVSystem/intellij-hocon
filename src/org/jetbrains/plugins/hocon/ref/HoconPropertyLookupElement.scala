@@ -3,7 +3,7 @@ package ref
 
 import com.intellij.codeInsight.lookup.{LookupElement, LookupElementPresentation}
 import com.intellij.psi.PsiElement
-import org.jetbrains.plugins.hocon.psi.ResolvedField
+import org.jetbrains.plugins.hocon.semantics.ResolvedField
 
 class HoconPropertyLookupElement(resField: ResolvedField) extends LookupElement {
   def getLookupString: String = resField.field.key.fold("")(_.getText)

@@ -6,6 +6,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.psi.{PsiElement, PsiFile, PsiManager}
 import org.apache.commons.lang3.StringEscapeUtils
 import org.jetbrains.plugins.hocon.psi._
+import org.jetbrains.plugins.hocon.semantics.{ResOpts, ResolvedField}
 
 import scala.annotation.tailrec
 

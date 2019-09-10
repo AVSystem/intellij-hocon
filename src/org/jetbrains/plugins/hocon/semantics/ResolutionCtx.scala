@@ -1,12 +1,13 @@
 package org.jetbrains.plugins.hocon
-package psi
+package semantics
 
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.{FilenameIndex, GlobalSearchScope}
-import org.jetbrains.plugins.hocon.psi.SubstitutionKind.SelfReferential
+import org.jetbrains.plugins.hocon.psi._
 import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet
+import org.jetbrains.plugins.hocon.semantics.SubstitutionKind.SelfReferential
 
 import scala.annotation.tailrec
 
@@ -227,7 +228,7 @@ object ToplevelCtx {
   def apply(file: HoconPsiFile): ToplevelCtx = {
     val scope = IncludedFileReferenceSet.classpathScope(file)
     val referenceFiles = resolveResource(scope, ReferenceResource)
-    val files = if(referenceFiles.contains(file)) referenceFiles else referenceFiles :+ file
+    val files = if (referenceFiles.contains(file)) referenceFiles else referenceFiles :+ file
     ToplevelCtx(file, scope, files)
   }
 

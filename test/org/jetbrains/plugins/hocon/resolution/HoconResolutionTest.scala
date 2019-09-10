@@ -1,7 +1,7 @@
 package org.jetbrains.plugins.hocon
 package resolution
 
-import org.jetbrains.plugins.hocon.psi._
+import org.jetbrains.plugins.hocon.semantics.{ResOpts, ResolvedField, ToplevelCtx}
 import org.junit.Assert
 
 class HoconResolutionTest extends HoconSingleModuleTest {

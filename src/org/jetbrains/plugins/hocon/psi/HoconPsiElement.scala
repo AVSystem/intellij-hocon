@@ -21,6 +21,7 @@ import org.jetbrains.plugins.hocon.lexer.{HoconTokenSets, HoconTokenType}
 import org.jetbrains.plugins.hocon.parser.HoconElementType
 import org.jetbrains.plugins.hocon.parser.HoconElementType.HoconFileElementType
 import org.jetbrains.plugins.hocon.ref.{HKeyReference, IncludedFileReferenceSet}
+import org.jetbrains.plugins.hocon.semantics._
 
 import scala.annotation.tailrec
 import scala.reflect.{ClassTag, classTag}
@@ -259,7 +260,7 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
 
   def occurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] =
     keyString.filter(selfKey => key.isEmpty || key.contains(selfKey))
-      .map(selfKey => ResolvedField(selfKey, this, resCtx))
+      .map(selfKey => semantics.ResolvedField(selfKey, this, resCtx))
       .filterNot(_.isRemovedBySelfReference)
       .iterator
 
@@ -334,7 +335,7 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
         case file: HoconPsiFile => Some(file.makeContext)
       }
     }
-  } yield ResolvedField(key, this, parentCtx)
+  } yield semantics.ResolvedField(key, this, parentCtx)
 
   override def getIcon(flags: Int): Icon = PropertyIcon
 }
@@ -574,7 +575,7 @@ sealed trait HValue extends HoconPsiElement {
         value <- vf.value
       } yield if (vf.isArrayAppend) ArrayCtx(ctx, arrayAppend = true, value) else ctx
     case arr: HArray =>
-      arr.makeContext.map(ArrayCtx(_, arrayAppend = false, arr))
+      arr.makeContext.map(semantics.ArrayCtx(_, arrayAppend = false, arr))
     case conc: HConcatenation =>
       conc.makeContext
     case file: HoconPsiFile =>

@@ -5,7 +5,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi._
 import com.intellij.util.ProcessingContext
-import org.jetbrains.plugins.hocon.psi.{HoconPsiElementFactory, ResOpts, ToplevelCtx}
+import org.jetbrains.plugins.hocon.psi.HoconPsiElementFactory
+import org.jetbrains.plugins.hocon.semantics.{ResOpts, ToplevelCtx}
 import org.jetbrains.plugins.hocon.settings.HoconProjectSettings
 
 import scala.annotation.tailrec

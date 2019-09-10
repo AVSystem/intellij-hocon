@@ -11,6 +11,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.{PsiElement, PsiFile}
 import org.jetbrains.plugins.hocon.lang.HoconLanguage
 import org.jetbrains.plugins.hocon.psi._
+import org.jetbrains.plugins.hocon.semantics.ResOpts
 
 class HoconGotoDeclarationHandler extends GotoDeclarationHandler {
   def getGotoDeclarationTargets(sourceElement: PsiElement, offset: Int, editor: Editor): Array[PsiElement] =
