@@ -383,6 +383,15 @@ case class ResolvedField(
 
   def nextOccurrence(opts: ResOpts): Option[ResolvedField] =
     moreOccurrences(opts).nextOption
+
+  def resolveValue: Option[ConfigValue] = field match {
+    case _: HPrefixedField =>
+      Some(ObjectValue)
+    case vf: HValuedField if vf.isArrayAppend =>
+      Some(ArrayValue)
+    case vf: HValuedField =>
+      vf.value.flatMap(_.resolveValue(this))
+  }
 }
 
 sealed trait IncludeSource

@@ -598,6 +598,17 @@ sealed trait HValue extends HoconPsiElement {
 
   def adjacentConcatOccurrences(key: Option[String], opts: ResOpts, parentCtx: ResolutionCtx): Iterator[ResolvedField] =
     moreConcatenated(opts.reverse).flatMap(_.occurrences(key, opts, parentCtx))
+
+  def resolveValue(resCtx: ResolutionCtx): Option[ConfigValue] = this match {
+    case lit: HLiteralValue => Some(lit.configValue)
+    case _: HArray => Some(ArrayValue)
+    case _: HObject => Some(ObjectValue)
+    case hc: HConcatenation =>
+      //FIXME: actually concatenate values
+      hc.concatenated(reverse = true).flatMap(_.resolveValue(resCtx)).nextOption
+    case hs: HSubstitution =>
+      hs.resolve(ResOpts(reverse = true), resCtx).flatMap(_.resolveValue).nextOption
+  }
 }
 
 final class HObject(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HObjectEntriesParent {
@@ -668,18 +679,27 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
     else forSubsKind(subsKind(resCtx), resCtx, opts, backtrace)
 }
 
-final class HConcatenation(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HValueParent
+final class HConcatenation(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HValueParent {
+  def concatenated(reverse: Boolean): Iterator[HValue] =
+    findChildren[HValue](reverse) // does not include whitespaces which may be significant!
+}
 
-sealed trait HLiteralValue extends HValue with PsiLiteral
+sealed trait HLiteralValue extends HValue with PsiLiteral {
+  def configValue: ConfigValue
+}
 
 final class HNull(ast: ASTNode) extends HoconPsiElement(ast) with HLiteralValue {
   def getValue: Object = null
+
+  def configValue: ConfigValue = NullValue
 }
 
 final class HBoolean(ast: ASTNode) extends HoconPsiElement(ast) with HLiteralValue {
   def getValue: Object = jl.Boolean.valueOf(booleanValue)
 
   def booleanValue: Boolean = getText.toBoolean
+
+  def configValue: ConfigValue = BooleanValue(booleanValue)
 }
 
 final class HNumber(ast: ASTNode) extends HoconPsiElement(ast) with HLiteralValue {
@@ -690,6 +710,8 @@ final class HNumber(ast: ASTNode) extends HoconPsiElement(ast) with HLiteralValu
       jl.Double.parseDouble(getText)
     else
       jl.Long.parseLong(getText)
+
+  def configValue: ConfigValue = NumberValue(numberValue)
 }
 
 object HNumber {
@@ -732,7 +754,9 @@ sealed trait HString extends HoconPsiElement with PsiLiteral with ContributedRef
     PsiReferenceService.getService.getContributedReferences(this)
 }
 
-final class HStringValue(ast: ASTNode) extends HoconPsiElement(ast) with HString with HLiteralValue
+final class HStringValue(ast: ASTNode) extends HoconPsiElement(ast) with HString with HLiteralValue {
+  def configValue: ConfigValue = StringValue(stringValue)
+}
 
 final class HKeyPart(ast: ASTNode) extends HoconPsiElement(ast) with HString {
   type Parent = HKey

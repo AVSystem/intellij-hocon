@@ -26,7 +26,7 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
 
   override def getDocumentationElementForLookupItem(psiManager: PsiManager, obj: Any, element: PsiElement): PsiElement =
     obj match {
-      case rf: ResolvedField => // see HoconFieldLookupElement.getObject
+      case rf: ResolvedField => // see HoconPropertyLookupElement.getObject
         findDocSource(Some(rf)).getOrElse(rf.field)
       case _ =>
         null
