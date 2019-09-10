@@ -187,13 +187,11 @@ sealed abstract class ResolutionCtx {
 
 case class ToplevelCtx(
   context: PsiElement,
+  scope: GlobalSearchScope,
   files: Vector[HoconPsiFile],
   // indicates that we are resolving a substitution and points to it
   subsCtx: Option[SubstitutionCtx] = None
 ) extends ResolutionCtx {
-
-  lazy val scope: GlobalSearchScope =
-    IncludedFileReferenceSet.classpathScope(context.getContainingFile)
 
   def toplevelIncludes(reverse: Boolean): Iterator[IncludeCtx] =
     IncludeCtx.allContexts(IncludeSource.ToplevelFile(this), files, reverse, this)
@@ -215,20 +213,31 @@ case class ToplevelCtx(
 }
 
 object ToplevelCtx {
-  final val ReferenceFile = "reference.conf" //TODO: configurable in project settings
+  //TODO: configurable in project settings
+  final val ReferenceResource = "reference.conf"
+  final val ApplicationResource = "application.conf"
 
-  def referenceFiles(context: PsiElement): Vector[HoconPsiFile] = {
-    val scope: GlobalSearchScope =
-      IncludedFileReferenceSet.classpathScope(context.getContainingFile)
+  def resolveResource(scope: GlobalSearchScope, resource: String): Vector[HoconPsiFile] = {
     val rootDirs = IncludedFileReferenceSet.classpathPackageDirs(scope, "")
-    FilenameIndex.getFilesByName(context.getProject, ReferenceFile, scope)
+    FilenameIndex.getFilesByName(scope.getProject, resource, scope)
       .iterator.collectOnly[HoconPsiFile].filter(f => rootDirs.contains(f.getParent))
       .toVector.sortBy(_.getVirtualFile.getPath)
-      .takeWhile(_ != context) // if context if one of the reference files, take only "previous" ones
   }
 
-  def apply(file: HoconPsiFile): ToplevelCtx =
-    ToplevelCtx(file, referenceFiles(file) :+ file)
+  def apply(file: HoconPsiFile): ToplevelCtx = {
+    val scope = IncludedFileReferenceSet.classpathScope(file)
+    val referenceFiles = resolveResource(scope, ReferenceResource)
+    val files = if(referenceFiles.contains(file)) referenceFiles else referenceFiles :+ file
+    ToplevelCtx(file, scope, files)
+  }
+
+  def apply(context: PsiElement, resource: String): ToplevelCtx = {
+    val scope = IncludedFileReferenceSet.classpathScope(context.getContainingFile)
+    val referenceFiles =
+      if (resource == ReferenceResource) Vector.empty
+      else resolveResource(scope, ReferenceResource)
+    ToplevelCtx(context, scope, referenceFiles ++ resolveResource(scope, resource))
+  }
 }
 
 case class ResolvedField(

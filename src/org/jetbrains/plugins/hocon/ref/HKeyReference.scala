@@ -1,7 +1,6 @@
 package org.jetbrains.plugins.hocon
 package ref
 
-import com.intellij.codeInsight.lookup.{LookupElement, LookupElementPresentation}
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.{ElementManipulators, PsiElement, PsiReference}
 import org.jetbrains.plugins.hocon.psi._
@@ -64,20 +63,7 @@ class HKeyReference(key: HKey) extends PsiReference {
 
     val seenKeys = new mutable.HashSet[String]
     variantFields.filter(sf => seenKeys.add(sf.key)) // dirty, stateful filter
-      .map(sf => new HoconFieldLookupElement(sf))
+      .map(sf => new HoconPropertyLookupElement(sf))
       .toArray[AnyRef]
   }
-}
-
-class HoconFieldLookupElement(resField: ResolvedField) extends LookupElement {
-  def getLookupString: String = resField.field.key.fold("")(_.getText)
-
-  override def renderElement(presentation: LookupElementPresentation): Unit = {
-    super.renderElement(presentation)
-    presentation.setIcon(PropertyIcon)
-  }
-
-  override def getObject: ResolvedField = resField
-
-  override def getPsiElement: PsiElement = resField.field
 }

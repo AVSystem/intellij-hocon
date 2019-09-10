@@ -83,19 +83,17 @@ abstract class HKeyIndexCompanion[K](name: String) {
     project: Project,
     filter: GlobalSearchScope = GlobalSearchScope.EMPTY_SCOPE,
     select: HKeyOccurrences => Iterator[TextRange] = occ => occ.inFields.iterator ++ occ.inSubstitutions.iterator
-  )(processor: HKey => Unit): Unit = {
+  )(processor: HKey => Boolean): Boolean = {
     val manager = PsiManager.getInstance(project)
     val pfi = ProjectFileIndex.getInstance(project)
     val indexProcessor: ValueProcessor[HKeyOccurrences] = (file, occurrences) => {
-      for {
-        f <- file.opt.filterNot(pfi.isInLibrarySource)
-        hoconFile <- manager.findFile(f).opt.collectOnly[HoconPsiFile]
+      val allFoundKeys = for {
+        f <- file.opt.filterNot(pfi.isInLibrarySource).iterator
+        hoconFile <- manager.findFile(f).opt.collectOnly[HoconPsiFile].iterator
         range <- select(occurrences)
-        foundKey <- hoconFile.findElementAt(range.getStartOffset).parentOfType[HKey]
-      } {
-        processor(foundKey)
-      }
-      true
+        foundKey <- hoconFile.findElementAt(range.getStartOffset).parentOfType[HKey].iterator
+      } yield foundKey
+      allFoundKeys.forall(processor)
     }
     FileBasedIndex.getInstance.processValues(Id, dataKey, null, indexProcessor, filter)
   }

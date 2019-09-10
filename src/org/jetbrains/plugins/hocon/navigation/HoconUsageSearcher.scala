@@ -66,7 +66,7 @@ class HoconUsageSearcher extends CustomUsageSearcher {
       } {
         val strPath = keyPath.map(_.stringValue)
 
-        def onKeyFound(foundKey: HKey): Unit = {
+        def onKeyFound(foundKey: HKey): Boolean = {
           val usageInfo = new UsageInfo(foundKey, 0, foundKey.getTextLength, true)
           processor.process(new ReadWriteAccessUsageInfo2UsageAdapter(
             usageInfo, foundKey.inSubstitution, foundKey.inField))

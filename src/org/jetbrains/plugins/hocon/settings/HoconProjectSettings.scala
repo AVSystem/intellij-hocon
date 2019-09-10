@@ -32,6 +32,7 @@ class HoconProjectSettings extends PersistentStateComponent[HoconProjectSettings
 
   @BeanProperty var classReferencesOnUnquotedStrings = true
   @BeanProperty var classReferencesOnQuotedStrings = true
+  @BeanProperty var propertyReferencesOnStrings = true
   @BeanProperty var searchInGotoSymbol = false
 }
 

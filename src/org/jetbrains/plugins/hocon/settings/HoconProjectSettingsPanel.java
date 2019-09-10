@@ -14,6 +14,7 @@ public class HoconProjectSettingsPanel {
     private JPanel mainPanel;
     private JCheckBox classReferencesUnquotedCheckBox;
     private JCheckBox classReferencesQuotedCheckBox;
+    private JCheckBox propertyReferencesCheckBox;
     private JCheckBox searchInGotoSymbol;
 
     public HoconProjectSettingsPanel(Project project) {
@@ -25,6 +26,7 @@ public class HoconProjectSettingsPanel {
         HoconProjectSettings settings = HoconProjectSettings.getInstance(project);
         classReferencesUnquotedCheckBox.setSelected(settings.getClassReferencesOnUnquotedStrings());
         classReferencesQuotedCheckBox.setSelected(settings.getClassReferencesOnQuotedStrings());
+        propertyReferencesCheckBox.setSelected(settings.getPropertyReferencesOnStrings());
         searchInGotoSymbol.setSelected(settings.getSearchInGotoSymbol());
     }
 
@@ -36,6 +38,7 @@ public class HoconProjectSettingsPanel {
         HoconProjectSettings settings = HoconProjectSettings.getInstance(project);
         return classReferencesUnquotedCheckBox.isSelected() != settings.getClassReferencesOnUnquotedStrings() ||
                 classReferencesQuotedCheckBox.isSelected() != settings.getClassReferencesOnQuotedStrings() ||
+                propertyReferencesCheckBox.isSelected() != settings.getPropertyReferencesOnStrings() ||
                 searchInGotoSymbol.isSelected() != settings.getSearchInGotoSymbol();
     }
 
@@ -43,6 +46,7 @@ public class HoconProjectSettingsPanel {
         HoconProjectSettings settings = HoconProjectSettings.getInstance(project);
         settings.setClassReferencesOnUnquotedStrings(classReferencesUnquotedCheckBox.isSelected());
         settings.setClassReferencesOnQuotedStrings(classReferencesQuotedCheckBox.isSelected());
+        settings.setPropertyReferencesOnStrings(propertyReferencesCheckBox.isSelected());
         settings.setSearchInGotoSymbol(searchInGotoSymbol.isSelected());
     }
 
@@ -62,30 +66,30 @@ public class HoconProjectSettingsPanel {
      */
     private void $$$setupUI$$$() {
         mainPanel = new JPanel();
-        mainPanel.setLayout(new GridLayoutManager(6, 2, new Insets(0, 0, 0, 0), -1, -1));
-        final JLabel label1 = new JLabel();
-        label1.setText("Detect class references in:");
-        mainPanel.add(label1, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        mainPanel.setLayout(new GridLayoutManager(5, 1, new Insets(0, 0, 0, 0), -1, -1));
         classReferencesUnquotedCheckBox = new JCheckBox();
-        classReferencesUnquotedCheckBox.setText("Unquoted strings");
+        classReferencesUnquotedCheckBox.setText("Detect class references in unquoted strings in HOCON files");
         classReferencesUnquotedCheckBox.setMnemonic('U');
-        classReferencesUnquotedCheckBox.setDisplayedMnemonicIndex(0);
-        mainPanel.add(classReferencesUnquotedCheckBox, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        classReferencesUnquotedCheckBox.setDisplayedMnemonicIndex(27);
+        mainPanel.add(classReferencesUnquotedCheckBox, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         classReferencesQuotedCheckBox = new JCheckBox();
-        classReferencesQuotedCheckBox.setText("Quoted strings");
+        classReferencesQuotedCheckBox.setText("Detect class references in quoted strings in HOCON files");
         classReferencesQuotedCheckBox.setMnemonic('Q');
-        classReferencesQuotedCheckBox.setDisplayedMnemonicIndex(0);
-        mainPanel.add(classReferencesQuotedCheckBox, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        classReferencesQuotedCheckBox.setDisplayedMnemonicIndex(27);
+        mainPanel.add(classReferencesQuotedCheckBox, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final Spacer spacer1 = new Spacer();
-        mainPanel.add(spacer1, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        mainPanel.add(spacer1, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         searchInGotoSymbol = new JCheckBox();
         searchInGotoSymbol.setSelected(false);
-        searchInGotoSymbol.setText("Search for HOCON properties in Go To Symbol");
-        searchInGotoSymbol.setMnemonic('S');
+        searchInGotoSymbol.setText("Navigate to HOCON properties using Go To Symbol action");
+        searchInGotoSymbol.setMnemonic('N');
         searchInGotoSymbol.setDisplayedMnemonicIndex(0);
-        mainPanel.add(searchInGotoSymbol, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final JSeparator separator1 = new JSeparator();
-        mainPanel.add(separator1, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        mainPanel.add(searchInGotoSymbol, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        propertyReferencesCheckBox = new JCheckBox();
+        propertyReferencesCheckBox.setText("Detect HOCON property references in string literals");
+        propertyReferencesCheckBox.setMnemonic('P');
+        propertyReferencesCheckBox.setDisplayedMnemonicIndex(13);
+        mainPanel.add(propertyReferencesCheckBox, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**

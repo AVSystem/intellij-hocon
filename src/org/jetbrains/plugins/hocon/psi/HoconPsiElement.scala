@@ -62,6 +62,9 @@ class HoconPsiFile(provider: FileViewProvider)
     val leaf = findElementAt(offset)
     Iterator.iterate(leaf)(_.getParent).takeWhile(e => e != null && (e ne this))
   }
+
+  def makeContext: IncludeCtx =
+    ToplevelCtx(this).toplevelIncludes(reverse = true).find(_.file == this).get
 }
 
 sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement(ast) with HoconPsiParent {
@@ -167,7 +170,7 @@ final class HObjectEntries(ast: ASTNode) extends HoconPsiElement(ast) with HEntr
 
   def makeContext: Option[ResolutionCtx] = parent match {
     case obj: HObject => obj.makeContext
-    case file: HoconPsiFile => Some(ToplevelCtx(file))
+    case file: HoconPsiFile => Some(file.makeContext)
   }
 }
 
@@ -328,7 +331,7 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
       case prefixField: HKeyedField => prefixField.makeContext
       case objectField: HObjectField => objectField.containingEntries.parent match {
         case obj: HObject => obj.makeContext
-        case file: HoconPsiFile => Some(ToplevelCtx(file))
+        case file: HoconPsiFile => Some(file.makeContext)
       }
     }
   } yield ResolvedField(key, this, parentCtx)
@@ -575,7 +578,7 @@ sealed trait HValue extends HoconPsiElement {
     case conc: HConcatenation =>
       conc.makeContext
     case file: HoconPsiFile =>
-      Some(ToplevelCtx(file))
+      Some(file.makeContext)
   }
 
   def firstOccurrence(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Option[ResolvedField] =

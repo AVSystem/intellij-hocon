@@ -30,13 +30,12 @@ class HoconGotoSymbolContributor extends ChooseByNameContributorEx {
       val scope = parameters.getSearchScope
       val locationsSeen = new mutable.HashSet[(HObjectEntries, List[String])]
       HoconKeyIndex.processHKeys(name, project, scope, _.inFields.reverseIterator) { foundKey =>
-        for {
+        val item = for {
           entries <- foundKey.field.map(_.outermostEntries)
           keyPath <- foundKey.fullContainingPath
           if locationsSeen.add((entries, keyPath.map(_.stringValue)))
-        } {
-          processor.process(HoconGotoSymbolItem(foundKey))
-        }
+        } yield HoconGotoSymbolItem(foundKey)
+        item.forall(processor.process)
       }
     }
 }
