@@ -37,7 +37,7 @@ final case class StringValue(value: String, concatWhitespace: Boolean = false) e
 }
 // keeping numeric value as String to preserve exact representation
 final case class NumberValue(value: String) extends SimpleValue(value) {
-  val number: Number = HNumber.parse(value)
+  def number: Number = HNumber.parse(value)
 }
 final case class BooleanValue(value: Boolean) extends SimpleValue(value.toString)
 case object NullValue extends SimpleValue("null")

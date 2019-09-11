@@ -715,10 +715,10 @@ final class HNumber(ast: ASTNode) extends HoconPsiElement(ast) with HLiteralValu
 }
 
 object HNumber {
-  private final val DecimalIndicators = Set('.', 'e', 'E')
+  private final val DecimalIndicators = ".eE"
 
   def parse(value: String): Number =
-    if (value.exists(DecimalIndicators.contains))
+    if (value.exists(DecimalIndicators.contains(_)))
       jl.Double.parseDouble(value)
     else
       jl.Long.parseLong(value)
