@@ -95,9 +95,6 @@ sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement
     case _ => false
   }
 
-  def elementType: IElementType =
-    getNode.getElementType
-
   def getChild[T >: Null : ClassTag]: T =
     findChildByClass(classTag[T].runtimeClass.asInstanceOf[Class[T]])
 

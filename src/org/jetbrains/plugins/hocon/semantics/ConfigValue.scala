@@ -8,12 +8,20 @@ sealed abstract class ConfigValue {
     case (InvalidValue, _) | (_, InvalidValue) => InvalidValue
     case (_, NoValue) => this
     case (NoValue, _) => other
-    case (SimpleValue(ltext, cwl), SimpleValue(rtext, cwr)) => StringValue(ltext + rtext, cwl && cwr)
+    case (SimpleValue(ltext, concatWsLeft), SimpleValue(rtext, concatWsRight)) =>
+      StringValue(ltext + rtext, concatWsLeft && concatWsRight)
     case (ArrayValue, ArrayValue) => ArrayValue
     case (ObjectValue, ObjectValue) => ObjectValue
     case (ArrayValue | ObjectValue, StringValue(_, true)) => this
     case (StringValue(_, true), ArrayValue | ObjectValue) => other
     case _ => InvalidValue
+  }
+
+  def hintString: String = this match {
+    case SimpleValue(value, _) => s" = ${HStringValue.quoteIfNecessary(value)}"
+    case ArrayValue => " = [...]"
+    case ObjectValue => " = {...}"
+    case _ => ""
   }
 }
 sealed abstract class SimpleValue(val text: String) extends ConfigValue

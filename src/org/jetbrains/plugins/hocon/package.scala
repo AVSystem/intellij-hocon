@@ -98,6 +98,9 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
   }
 
   implicit class PsiElementOps(private val elem: PsiElement) extends AnyVal {
+    def elementType: IElementType =
+      elem.getNode.getElementType
+
     def parentOfType[T <: HoconPsiElement : ClassTag]: Option[T] =
       Option(PsiTreeUtil.getParentOfType(elem, classTag[T].runtimeClass.asInstanceOf[Class[T]]))
 

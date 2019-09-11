@@ -16,42 +16,50 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
     case _ => origElem.parentOfType[HKey]
   }
 
-  @tailrec private def findDocSource(rfOpt: Option[ResolvedField]): Option[HValuedField] = rfOpt match {
+  @tailrec private def findDocField(rfOpt: Option[ResolvedField]): Option[HValuedField] = rfOpt match {
     case Some(rf) => rf.field match {
       case vf: HValuedField if vf.enclosingObjectField.docComments.nonEmpty => Some(vf)
-      case _ => findDocSource(rf.nextOccurrence(ResOpts(reverse = true)))
+      case _ => findDocField(rf.nextOccurrence(ResOpts(reverse = true)))
     }
     case None => None
   }
 
   override def getDocumentationElementForLookupItem(psiManager: PsiManager, obj: Any, element: PsiElement): PsiElement =
     obj match {
-      case rf: ResolvedField => // see HoconPropertyLookupElement.getObject
-        findDocSource(Some(rf)).getOrElse(rf.field)
-      case _ =>
-        null
+      case rf: ResolvedField => rf.hkey // see HoconPropertyLookupElement.getObject
+      case _ => null
     }
 
   override def getCustomDocumentationElement(editor: Editor, file: PsiFile, contextElement: PsiElement): PsiElement =
-    key(contextElement).nullOr { key =>
-      val resField = key.resolved
-      findDocSource(resField).orElse(resField.map(_.field)).orNull
-    }
+    key(contextElement).orNull
 
-  override def getQuickNavigateInfo(element: PsiElement, originalElement: PsiElement): String =
-    key(originalElement).flatMap(_.fullPathText).orNull
+  override def getQuickNavigateInfo(element: PsiElement, originalElement: PsiElement): String = {
+    val res = for {
+      hkey <- key(originalElement)
+      fullPathText <- hkey.fullPathText
+    } yield fullPathText + hkey.resolved.fold("")(_.resolveValue.hintString)
+    res.orNull
+  }
 
-  override def generateDoc(element: PsiElement, originalElement: PsiElement): String = element match {
-    case vf: HValuedField =>
-      val docComments = vf.enclosingObjectField.docComments
-      if (docComments.nonEmpty) {
-        val fullPath = vf.key.flatMap(_.fullPathText).getOrElse("")
-        val definition = DocumentationMarkup.DEFINITION_START + fullPath + DocumentationMarkup.DEFINITION_END
-        val content = docComments
+  override def generateDoc(element: PsiElement, originalElement: PsiElement): String = {
+    import DocumentationMarkup._
+    val res = for {
+      hkey <- element.opt.collectOnly[HKey]
+      resolved <- hkey.resolved
+    } yield {
+      val docField = findDocField(Some(resolved)).getOrElse(resolved.field)
+      val fullPath = docField.key.flatMap(_.fullPathText).getOrElse("")
+      val hintString = resolved.resolveValue.hintString
+      val hintRepr = if (hintString.nonEmpty) s"$GRAYED_START$hintString$GRAYED_END" else ""
+      val definition = s"$DEFINITION_START$fullPath$hintRepr$DEFINITION_END"
+      val docComments = docField.enclosingObjectField.docComments
+      val content =
+        if (docComments.isEmpty) ""
+        else docComments
           .map(c => StringEscapeUtils.escapeHtml4(c.getText.stripPrefix("#")))
-          .mkString(DocumentationMarkup.CONTENT_START, "<br/>", DocumentationMarkup.CONTENT_END)
-        definition + content
-      } else null
-    case _ => null
+          .mkString(CONTENT_START, "<br/>", CONTENT_END)
+      definition + content
+    }
+    res.orNull
   }
 }
