@@ -5,6 +5,7 @@ import java.io.File
 
 import com.intellij.navigation.{ChooseByNameContributorEx, ItemPresentation, NavigationItem, PsiElementNavigationItem}
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
@@ -18,14 +19,14 @@ import org.jetbrains.plugins.hocon.settings.HoconProjectSettings
 import scala.collection.mutable
 
 class HoconGotoSymbolContributor extends ChooseByNameContributorEx {
-  private def enabled(scope: GlobalSearchScope): Boolean =
-    scope.getProject.opt.exists(proj => HoconProjectSettings.getInstance(proj).searchInGotoSymbol)
+  private def enabled(project: Project): Boolean =
+    HoconProjectSettings.getInstance(project).searchInGotoSymbol
 
   def processNames(processor: Processor[String], scope: GlobalSearchScope, filter: IdFilter): Unit =
     FileBasedIndex.getInstance.processAllKeys(HoconKeyIndex.Id, processor, scope, filter)
 
   def processElementsWithName(name: String, processor: Processor[NavigationItem], parameters: FindSymbolParameters): Unit =
-    if (enabled(parameters.getSearchScope)) ReadAction.run { () =>
+    if (enabled(parameters.getProject)) ReadAction.run { () =>
       val project = parameters.getProject
       val scope = parameters.getSearchScope
       val locationsSeen = new mutable.HashSet[(HObjectEntries, List[String])]

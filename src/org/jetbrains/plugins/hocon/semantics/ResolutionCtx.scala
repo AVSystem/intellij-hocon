@@ -1,6 +1,7 @@
 package org.jetbrains.plugins.hocon
 package semantics
 
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -218,26 +219,27 @@ object ToplevelCtx {
   final val ReferenceResource = "reference.conf"
   final val ApplicationResource = "application.conf"
 
-  def resolveResource(scope: GlobalSearchScope, resource: String): Vector[HoconPsiFile] = {
-    val rootDirs = IncludedFileReferenceSet.classpathPackageDirs(scope, "")
-    FilenameIndex.getFilesByName(scope.getProject, resource, scope)
+  def resolveResource(project: Project, scope: GlobalSearchScope, resource: String): Vector[HoconPsiFile] = {
+    val rootDirs = IncludedFileReferenceSet.classpathPackageDirs(project, scope, "")
+    FilenameIndex.getFilesByName(project, resource, scope)
       .iterator.collectOnly[HoconPsiFile].filter(f => rootDirs.contains(f.getParent))
       .toVector.sortBy(_.getVirtualFile.getPath)
   }
 
   def apply(file: HoconPsiFile): ToplevelCtx = {
     val scope = IncludedFileReferenceSet.classpathScope(file)
-    val referenceFiles = resolveResource(scope, ReferenceResource)
+    val referenceFiles = resolveResource(file.getProject, scope, ReferenceResource)
     val files = if (referenceFiles.contains(file)) referenceFiles else referenceFiles :+ file
     ToplevelCtx(file, scope, files)
   }
 
   def apply(context: PsiElement, resource: String): ToplevelCtx = {
+    val project = context.getProject
     val scope = IncludedFileReferenceSet.classpathScope(context.getContainingFile)
     val referenceFiles =
       if (resource == ReferenceResource) Vector.empty
-      else resolveResource(scope, ReferenceResource)
-    ToplevelCtx(context, scope, referenceFiles ++ resolveResource(scope, resource))
+      else resolveResource(project, scope, ReferenceResource)
+    ToplevelCtx(context, scope, referenceFiles ++ resolveResource(project, scope, resource))
   }
 }
 

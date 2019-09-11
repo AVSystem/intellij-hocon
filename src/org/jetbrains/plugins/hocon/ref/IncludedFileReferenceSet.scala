@@ -3,6 +3,7 @@ package ref
 
 import java.{util => ju}
 
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots._
 import com.intellij.openapi.roots.impl.DirectoryIndex
 import com.intellij.openapi.util.{Condition, TextRange}
@@ -67,9 +68,9 @@ object IncludedFileReferenceSet {
     orderEntryScope orElse moduleScope getOrElse GlobalSearchScope.EMPTY_SCOPE
   }
 
-  def classpathPackageDirs(scope: GlobalSearchScope, pkgName: String): List[PsiFileSystemItem] = {
-    val psiManager = PsiManager.getInstance(scope.getProject)
-    DirectoryIndex.getInstance(scope.getProject).getDirectoriesByPackageName(pkgName, false).iterator.asScala
+  def classpathPackageDirs(project: Project, scope: GlobalSearchScope, pkgName: String): List[PsiFileSystemItem] = {
+    val psiManager = PsiManager.getInstance(project)
+    DirectoryIndex.getInstance(project).getDirectoriesByPackageName(pkgName, false).iterator.asScala
       .filter(scope.contains).flatMap(dir => Option(psiManager.findDirectory(dir)))
       .toList
   }
@@ -127,7 +128,7 @@ class IncludedFileReferenceSet(
     val psiManager = PsiManager.getInstance(proj)
 
     if (fromClasspath)
-      classpathPackageDirs(scope, pkgName).toJList
+      classpathPackageDirs(proj, scope, pkgName).toJList
     else if (!isAbsolutePathReference)
       Option(psiManager.findDirectory(parent)).map(single).getOrElse(empty)
     else
