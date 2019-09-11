@@ -37,7 +37,7 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
     val res = for {
       hkey <- key(originalElement)
       fullPathText <- hkey.fullPathText
-    } yield fullPathText + hkey.resolved.fold("")(_.resolveValue.hintString)
+    } yield fullPathText + hkey.resolved.fold("")(_.resolveValue.valueHint)
     res.orNull
   }
 
@@ -49,7 +49,7 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
     } yield {
       val docField = findDocField(Some(resolved)).getOrElse(resolved.field)
       val fullPath = docField.key.flatMap(_.fullPathText).getOrElse("")
-      val hintString = resolved.resolveValue.hintString
+      val hintString = resolved.resolveValue.valueHint
       val hintRepr = if (hintString.nonEmpty) s"$GRAYED_START$hintString$GRAYED_END" else ""
       val definition = s"$DEFINITION_START$fullPath$hintRepr$DEFINITION_END"
       val docComments = docField.enclosingObjectField.docComments

@@ -17,7 +17,17 @@ sealed abstract class ConfigValue {
     case _ => InvalidValue
   }
 
-  def hintString: String = this match {
+  def typeHint: String = this match {
+    case NullValue => "null"
+    case _: BooleanValue => "boolean"
+    case _: NumberValue => "number"
+    case _: StringValue => "string"
+    case ArrayValue => "array"
+    case ObjectValue => "object"
+    case _ => ""
+  }
+
+  def valueHint: String = this match {
     case SimpleValue(value, _) => s" = ${HStringValue.quoteIfNecessary(value)}"
     case ArrayValue => " = [...]"
     case ObjectValue => " = {...}"
