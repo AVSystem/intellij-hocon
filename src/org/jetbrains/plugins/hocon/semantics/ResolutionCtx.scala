@@ -384,13 +384,13 @@ case class ResolvedField(
   def nextOccurrence(opts: ResOpts): Option[ResolvedField] =
     moreOccurrences(opts).nextOption
 
-  def resolveValue: Option[ConfigValue] = field match {
+  def resolveValue: ConfigValue = field match {
     case _: HPrefixedField =>
-      Some(ObjectValue)
+      ObjectValue
     case vf: HValuedField if vf.isArrayAppend =>
-      Some(ArrayValue)
+      ArrayValue //TODO: perform concatenation with previous occurrence, at least for validation
     case vf: HValuedField =>
-      vf.value.flatMap(_.resolveValue(this))
+      vf.value.map(_.resolveValue(this)).getOrElse(InvalidValue)
   }
 }
 

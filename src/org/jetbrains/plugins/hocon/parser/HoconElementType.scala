@@ -99,12 +99,12 @@ object HoconElementType {
   val Path = new HoconElementType("PATH")
 
   /**
-    * Key inside substitution path or keyed entry (prefixed entry or valued entry).
+    * Key inside field (prefixed field or valued field).
     */
   val FieldKey = new HoconElementType("FIELD_KEY")
 
   /**
-   * Key inside substitution path or keyed entry (prefixed entry or valued entry).
+   * Key inside substitution path.
    */
   val SubstitutionKey = new HoconElementType("SUBSTITUTION_KEY")
 

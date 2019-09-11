@@ -8,8 +8,8 @@ import org.jetbrains.plugins.hocon.lexer.HoconLexer
 import org.jetbrains.plugins.hocon.psi.{HFieldKey, HKey, HSubstitutionKey, HoconPsiElementFactory}
 
 /**
-  * @author ghik
-  */
+ * @author ghik
+ */
 class HKeyManipulator extends AbstractElementManipulator[HKey] {
 
   import org.jetbrains.plugins.hocon.lexer.HoconTokenType._
@@ -29,7 +29,7 @@ class HKeyManipulator extends AbstractElementManipulator[HKey] {
       if (allStringTypes.contains(MultilineString))
         "\"\"\"" + newContent + "\"\"\""
       else if (allStringTypes.contains(QuotedString) || needsQuoting)
-        "\"" + StringUtil.escapeStringCharacters(newContent) + "\""
+        "\"" + escapedContent + "\""
       else
         newContent
 

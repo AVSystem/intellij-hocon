@@ -17,7 +17,7 @@ import com.intellij.util.IncorrectOperationException
 import javax.swing.Icon
 import org.jetbrains.plugins.hocon.HoconConstants._
 import org.jetbrains.plugins.hocon.lang.HoconFileType
-import org.jetbrains.plugins.hocon.lexer.{HoconTokenSets, HoconTokenType}
+import org.jetbrains.plugins.hocon.lexer.{HoconLexer, HoconTokenSets, HoconTokenType}
 import org.jetbrains.plugins.hocon.parser.HoconElementType
 import org.jetbrains.plugins.hocon.parser.HoconElementType.HoconFileElementType
 import org.jetbrains.plugins.hocon.ref.{HKeyReference, IncludedFileReferenceSet}
@@ -599,15 +599,22 @@ sealed trait HValue extends HoconPsiElement {
   def adjacentConcatOccurrences(key: Option[String], opts: ResOpts, parentCtx: ResolutionCtx): Iterator[ResolvedField] =
     moreConcatenated(opts.reverse).flatMap(_.occurrences(key, opts, parentCtx))
 
-  def resolveValue(resCtx: ResolutionCtx): Option[ConfigValue] = this match {
-    case lit: HLiteralValue => Some(lit.configValue)
-    case _: HArray => Some(ArrayValue)
-    case _: HObject => Some(ObjectValue)
+  def resolveValue(resCtx: ResolutionCtx): ConfigValue = this match {
+    case lit: HLiteralValue => lit.configValue
+    case _: HArray => ArrayValue
+    case _: HObject => ObjectValue
     case hc: HConcatenation =>
-      //FIXME: actually concatenate values
-      hc.concatenated(reverse = true).flatMap(_.resolveValue(resCtx)).nextOption
+      hc.allChildren(reverse = false).foldLeft[ConfigValue](NoValue) { (acc, elem) =>
+        val nextValue = elem match {
+          case hv: HValue => hv.resolveValue(resCtx)
+          case ws: PsiWhiteSpace => StringValue(ws.getText, concatWhitespace = true)
+          case _ => InvalidValue
+        }
+        acc concat nextValue
+      }
     case hs: HSubstitution =>
-      hs.resolve(ResOpts(reverse = true), resCtx).flatMap(_.resolveValue).nextOption
+      hs.resolve(ResOpts(reverse = true), resCtx).map(_.resolveValue)
+        .nextOption.getOrElse(if (hs.optional) NoValue else InvalidValue)
   }
 }
 
@@ -623,6 +630,11 @@ final class HObject(ast: ASTNode) extends HoconPsiElement(ast) with HValue with 
 final class HArray(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HValueParent
 
 final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HPathParent {
+  def optional: Boolean = {
+    val children = allChildren(reverse = false).drop(2) // getting to third child by skipping $ and {
+    children.hasNext && children.next().getNode.getElementType == HoconTokenType.QMark
+  }
+
   def path: Option[HPath] = findChild[HPath]
 
   def subsKind(resCtx: ResolutionCtx): SubstitutionKind =
@@ -679,10 +691,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
     else forSubsKind(subsKind(resCtx), resCtx, opts, backtrace)
 }
 
-final class HConcatenation(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HValueParent {
-  def concatenated(reverse: Boolean): Iterator[HValue] =
-    findChildren[HValue](reverse) // does not include whitespaces which may be significant!
-}
+final class HConcatenation(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HValueParent
 
 sealed trait HLiteralValue extends HValue with PsiLiteral {
   def configValue: ConfigValue
@@ -704,18 +713,18 @@ final class HBoolean(ast: ASTNode) extends HoconPsiElement(ast) with HLiteralVal
 
 final class HNumber(ast: ASTNode) extends HoconPsiElement(ast) with HLiteralValue {
   def getValue: Object = numberValue
-
-  def numberValue: jl.Number =
-    if (getText.exists(HNumber.DecimalIndicators.contains))
-      jl.Double.parseDouble(getText)
-    else
-      jl.Long.parseLong(getText)
-
-  def configValue: ConfigValue = NumberValue(numberValue)
+  def numberValue: Number = HNumber.parse(getText)
+  def configValue: ConfigValue = NumberValue(getText)
 }
 
 object HNumber {
   private final val DecimalIndicators = Set('.', 'e', 'E')
+
+  def parse(value: String): Number =
+    if (value.exists(DecimalIndicators.contains))
+      jl.Double.parseDouble(value)
+    else
+      jl.Long.parseLong(value)
 }
 
 final class HUnquotedString(ast: ASTNode) extends HoconPsiElement(ast)
@@ -756,6 +765,17 @@ sealed trait HString extends HoconPsiElement with PsiLiteral with ContributedRef
 
 final class HStringValue(ast: ASTNode) extends HoconPsiElement(ast) with HString with HLiteralValue {
   def configValue: ConfigValue = StringValue(stringValue)
+}
+object HStringValue {
+  def quoteIfNecessary(value: String): String = {
+    val escaped = StringUtil.escapeStringCharacters(value)
+    val needsQuoting = value.isEmpty ||
+      HoconLexer.isHoconWhitespace(value.head) ||
+      HoconLexer.isHoconWhitespace(value.last) ||
+      value.exists(HoconLexer.ForbiddenChars.contains(_)) ||
+      escaped != value
+    if (needsQuoting) "\"" + escaped + "\"" else value
+  }
 }
 
 final class HKeyPart(ast: ASTNode) extends HoconPsiElement(ast) with HString {

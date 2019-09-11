@@ -11,23 +11,25 @@ class HoconPropertyLookupElement(resField: ResolvedField) extends LookupElement 
   override def renderElement(presentation: LookupElementPresentation): Unit = {
     super.renderElement(presentation)
     presentation.setIcon(PropertyIcon)
-    resField.resolveValue.foreach {
+    resField.resolveValue match {
       case NullValue =>
         presentation.setTailText(" = null")
+        presentation.setTypeText("null")
       case BooleanValue(value) =>
         presentation.setTailText(s" = $value")
         presentation.setTypeText("boolean")
       case NumberValue(value) =>
         presentation.setTailText(s" = $value")
         presentation.setTypeText("number")
-      case StringValue(value) =>
-        presentation.setTailText(s" = $value") // TODO: escape, quote, shorten, etc.
+      case sv: StringValue =>
+        presentation.setTailText(s" = ${sv.quotedIfNecessary}")
         presentation.setTypeText("string")
       case ArrayValue =>
         presentation.setTypeText("array")
       case ObjectValue =>
         presentation.setTypeText("object")
         presentation.setItemTextBold(true)
+      case _ =>
     }
   }
 
