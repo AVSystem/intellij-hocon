@@ -2,7 +2,7 @@
     <id>org.jetbrains.plugins.hocon</id>
     <name>HOCON</name>
     <description>Standalone HOCON plugin for IntelliJ Idea</description>
-    <version>2019.2.3-SNAPSHOT</version>
+    <version>2019.2.3-avs-beta</version>
     <vendor>Roman Janusz, JetBrains</vendor>
     <idea-version since-build="192.0" until-build="193.0"/>
     <depends>com.intellij.modules.platform</depends>
