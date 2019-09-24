@@ -3,7 +3,6 @@ package includes
 
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.testFramework.LightPlatformCodeInsightTestCase
-import com.intellij.testFramework.LightPlatformTestCase.{getModule, getProject}
 import com.intellij.testFramework.PsiTestUtil.removeContentEntry
 import org.jetbrains.plugins.scala.util.TestUtils
 import org.junit.Assert.fail
