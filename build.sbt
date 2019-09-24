@@ -29,7 +29,6 @@ lazy val hocon = project.in(file(".")).settings(
     "com.github.ghik" %% "silencer-lib" % silencerVersion % Provided,
     compilerPlugin("com.github.ghik" %% "silencer-plugin" % silencerVersion),
   ),
-  ideaPublishSettings := PublishSettings("10481", sys.env.getOrElse("PL_USER", ""), sys.env.getOrElse("PL_PASS", ""), None),
   packageLibraryMappings := Seq.empty // allow scala-library
 )
 
