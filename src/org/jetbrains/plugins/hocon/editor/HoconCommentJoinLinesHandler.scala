@@ -15,39 +15,38 @@ import scala.annotation.tailrec
  */
 class HoconCommentJoinLinesHandler extends JoinRawLinesHandlerDelegate {
   def tryJoinRawLines(document: Document, file: PsiFile, start: Int, end: Int): Int = file match {
-    case _: HoconPsiFile =>
-      val line = document.getLineNumber(start)
-      file.findElementAt(start) match {
-        case ws: PsiWhiteSpace =>
-          val prev = ws.getPrevSibling
-          val next = ws.getNextSibling
-          val prevType = prev.getNode.getElementType
-          val nextType = next.getNode.getElementType
+    case _: HoconPsiFile => file.findElementAt(start) match {
+      case ws: PsiWhiteSpace =>
+        val prev = ws.getPrevSibling
+        val next = ws.getNextSibling
+        val prevType = prev.getNode.getElementType
+        val nextType = next.getNode.getElementType
+        val line = document.getLineNumber(start)
 
-          if (document.getLineNumber(prev.getTextOffset) == line &&
-            document.getLineNumber(next.getTextOffset) == line + 1 &&
-            HoconTokenSets.Comment.contains(prevType) &&
-            HoconTokenSets.Comment.contains(nextType)) {
+        if (document.getLineNumber(prev.getTextOffset) == line &&
+          document.getLineNumber(next.getTextOffset) == line + 1 &&
+          HoconTokenSets.Comment.contains(prevType) &&
+          HoconTokenSets.Comment.contains(nextType)) {
 
-            val charSeq = document.getCharsSequence
-            val endOffset = next.getTextRange.getEndOffset
-            @tailrec def nextLineNewStart(idx: Int): Int = {
-              if (idx >= endOffset) idx
-              else if (charSeq.charAt(idx).isWhitespace) nextLineNewStart(idx + 1)
-              else idx
-            }
-
-            val firstIdx = nextType match {
-              case HoconTokenType.HashComment => end + 1
-              case HoconTokenType.DoubleSlashComment => end + 2
-            }
-            document.replaceString(start, nextLineNewStart(firstIdx), " ")
-            start
+          val charSeq = document.getCharsSequence
+          val endOffset = next.getTextRange.getEndOffset
+          @tailrec def nextLineNewStart(idx: Int): Int = {
+            if (idx >= endOffset) idx
+            else if (charSeq.charAt(idx).isWhitespace) nextLineNewStart(idx + 1)
+            else idx
           }
-          else CANNOT_JOIN
-        case _ =>
-          CANNOT_JOIN
-      }
+
+          val firstIdx = nextType match {
+            case HoconTokenType.HashComment => end + 1
+            case HoconTokenType.DoubleSlashComment => end + 2
+          }
+          document.replaceString(start, nextLineNewStart(firstIdx), " ")
+          start
+        }
+        else CANNOT_JOIN
+      case _ =>
+        CANNOT_JOIN
+    }
     case _ => CANNOT_JOIN
   }
 
