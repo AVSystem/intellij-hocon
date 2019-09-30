@@ -45,7 +45,9 @@ class HoconHighlightUsagesTest extends BasePlatformTestCase {
     (4, 10, 7)
   )
 
-  def testSingle(): Unit = testUsages()
+  def testSingle(): Unit = testUsages(
+    (0, 0, 3)
+  )
 
   private def testUsages(expectedHighlights: (Int, Int, Int)*): Unit = {
     val actualHighlights = highlights.map {

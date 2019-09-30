@@ -17,7 +17,7 @@ import org.jetbrains.plugins.hocon.lexer.{HoconLexer, HoconTokenSets, HoconToken
 import org.jetbrains.plugins.hocon.psi.{HKey, HKeyedField, HObjectEntries, HPath}
 
 class HoconFindUsagesProvider extends FindUsagesProvider {
-  def getWordsScanner: WordsScanner = new DefaultWordsScanner(new HoconLexer,
+  override def getWordsScanner: WordsScanner = new DefaultWordsScanner(new HoconLexer,
     TokenSet.EMPTY, HoconTokenSets.Comment, HoconTokenSets.StringLiteral | HoconTokenType.UnquotedChars)
 
   def canFindUsagesFor(psiElement: PsiElement): Boolean = psiElement match {

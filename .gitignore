@@ -7,9 +7,11 @@
 .idea/markdown-navigator/
 .idea/.name
 .idea/*.xml
+.idea/shelf/
 /target
 /*.bat
 *.class
 .DS_Store
 *~
 target/
+out/

@@ -1,14 +1,14 @@
 import org.jetbrains.sbtidea.Keys._
 
 ideaPluginName in ThisBuild := "intellij-hocon"
-ideaBuild in ThisBuild := "192.6603.28"
+ideaBuild in ThisBuild := "193.3793.14"
 
 val junitInterfaceVersion = "0.11"
 val silencerVersion = "1.4.3"
 
 lazy val hocon = project.in(file(".")).settings(
   scalaVersion := "2.12.9",
-  version := "2019.2.3-avs-beta",
+  version := "2019.3.2-avs-beta",
   scalaSource in Compile := baseDirectory.value / "src",
   scalaSource in Test := baseDirectory.value / "test",
   resourceDirectory in Compile := baseDirectory.value / "resources",
@@ -20,7 +20,7 @@ lazy val hocon = project.in(file(".")).settings(
     "-unchecked",
     "-Xfuture",
     "-Xfatal-warnings",
-    "-P:silencer:checkUnused",
+    "-P:silencer:checkUnused"
   ),
   ideBasePackages := Seq("org.jetbrains.plugins.hocon"),
   ideOutputDirectory in Compile := Some(file("out/production")),
@@ -31,7 +31,6 @@ lazy val hocon = project.in(file(".")).settings(
     "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full,
     compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
   ),
-  ideaPublishSettings := PublishSettings("10481", sys.env.getOrElse("PL_USER", ""), sys.env.getOrElse("PL_PASS", ""), None),
   packageLibraryMappings := Seq.empty // allow scala-library
 )
 
