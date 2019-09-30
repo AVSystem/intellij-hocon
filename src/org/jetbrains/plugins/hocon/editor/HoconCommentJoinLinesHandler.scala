@@ -30,10 +30,12 @@ class HoconCommentJoinLinesHandler extends JoinRawLinesHandlerDelegate {
             HoconTokenSets.Comment.contains(nextType)) {
 
             val charSeq = document.getCharsSequence
-            @tailrec def nextLineNewStart(idx: Int): Int =
-              if (idx >= charSeq.length) idx
+            val endOffset = next.getTextRange.getEndOffset
+            @tailrec def nextLineNewStart(idx: Int): Int = {
+              if (idx >= endOffset) idx
               else if (charSeq.charAt(idx).isWhitespace) nextLineNewStart(idx + 1)
               else idx
+            }
 
             val firstIdx = nextType match {
               case HoconTokenType.HashComment => end + 1
