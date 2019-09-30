@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>org.jetbrains.plugins.hocon</id>
     <name>HOCON</name>
-    <description>Standalone HOCON plugin for IntelliJ Idea</description>
+    <description>Standalone HOCON plugin for IntelliJ IDEA</description>
     <version>2019.3.1</version>
     <vendor>Roman Janusz, JetBrains</vendor>
     <idea-version since-build="193.0" until-build="220.0"/>
