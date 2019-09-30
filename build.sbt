@@ -2,7 +2,7 @@ import org.jetbrains.sbtidea.Keys._
 
 ideaPluginName in ThisBuild := "intellij-hocon"
 
-ideaBuild in ThisBuild := "193.3519.25"
+ideaBuild in ThisBuild := "193.3793.14"
 
 val junitInterfaceVersion = "0.11"
 val silencerVersion = "1.4.1"
