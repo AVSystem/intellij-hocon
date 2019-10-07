@@ -9,6 +9,21 @@
     <depends>com.intellij.modules.lang</depends>
     <depends optional="true" config-file="hocon-java.xml">com.intellij.modules.java</depends>
 
+    <change-notes>
+        <![CDATA[
+        Bulk feature update implementing semantics-related features of HOCON:
+        <br/>
+        <ul>
+        <li>substitution resolution, navigation through substitutions with 'Go To Declaration' action</li>
+        <li>detection of HOCON path references in string literals of other languages</li>
+        <li>go to prev/next HOCON definition (like 'Super Method' &amp; 'Implementation(s)' actions)</li>
+        <li>'Quick Documentation' action for displaying documentation of HOCON entries</li>
+        <li>'Find Usages' action for searching usages of HOCON paths</li>
+        <li>autocompletion of HOCON keys in objects and substitutions with value and type hints and documentation</li>
+        <ul>
+        ]]>
+    </change-notes>
+
     <extensions defaultExtensionNs="com.intellij">
         <fileTypeFactory implementation="org.jetbrains.plugins.hocon.lang.HoconFileTypeFactory"/>
         <lang.syntaxHighlighterFactory language="HOCON"
