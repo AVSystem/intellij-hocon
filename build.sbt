@@ -4,10 +4,10 @@ intellijPluginName in ThisBuild := "intellij-hocon"
 intellijBuild in ThisBuild := "193.3793.14"
 
 val junitInterfaceVersion = "0.11"
-val silencerVersion = "1.4.3"
+val silencerVersion = "1.4.4"
 
-lazy val hocon = project.in(file(".")).settings(
-  scalaVersion := "2.12.9",
+lazy val hocon = project.in(file(".")).enablePlugins(SbtIdeaPlugin).settings(
+  scalaVersion := "2.12.10",
   version := "2019.3.2",
   scalaSource in Compile := baseDirectory.value / "src",
   scalaSource in Test := baseDirectory.value / "test",
