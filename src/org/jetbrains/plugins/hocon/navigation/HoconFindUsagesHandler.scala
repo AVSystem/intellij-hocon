@@ -1,16 +1,14 @@
 package org.jetbrains.plugins.hocon
 package navigation
 
-import java.util.Collections
-
 import com.intellij.find.findUsages.{FindUsagesHandler, FindUsagesHandlerFactory, FindUsagesOptions}
 import com.intellij.lang.HelpID
 import com.intellij.lang.cacheBuilder.{DefaultWordsScanner, WordsScanner}
 import com.intellij.lang.findUsages.FindUsagesProvider
 import com.intellij.openapi.application.ReadAction
-import com.intellij.psi.search.{GlobalSearchScope, SearchScope}
+import com.intellij.psi.PsiElement
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.tree.TokenSet
-import com.intellij.psi.{PsiElement, PsiReference}
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.Processor
 import org.jetbrains.plugins.hocon.indexing.HoconPathIndex
@@ -82,12 +80,6 @@ class HoconFindUsagesHandler(element: PsiElement) extends FindUsagesHandler(elem
     case _ =>
       true
   }
-
-  override def findReferencesToHighlight(target: PsiElement, searchScope: SearchScope): JCollection[PsiReference] =
-    target match {
-      case hkey: HKey => HoconFindUsagesHandler.localUsagesOf(hkey).map(_.getReference).toJList
-      case _ => Collections.emptyList[PsiReference]
-    }
 }
 object HoconFindUsagesHandler {
   private def localUsageEntries(hkey: HKey): Option[HObjectEntries] = hkey.parent match {

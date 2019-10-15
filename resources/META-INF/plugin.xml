@@ -85,6 +85,8 @@
                                  implementationClass="org.jetbrains.plugins.hocon.navigation.HoconFindUsagesProvider"/>
         <findUsagesHandlerFactory
                 implementation="org.jetbrains.plugins.hocon.navigation.HoconFindUsagesHandlerFactory"/>
+        <highlightUsagesHandlerFactory
+                implementation="org.jetbrains.plugins.hocon.highlight.HoconHighlightUsagesHandlerFactory"/>
         <readWriteAccessDetector implementation="org.jetbrains.plugins.hocon.navigation.HoconReadWriteAccessDetector"/>
         <gotoSymbolContributor implementation="org.jetbrains.plugins.hocon.navigation.HoconGotoSymbolContributor"/>
     </extensions>
