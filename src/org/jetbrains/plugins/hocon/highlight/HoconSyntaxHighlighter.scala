@@ -1,7 +1,7 @@
 package org.jetbrains.plugins.hocon
 package highlight
 
-import com.intellij.lexer.{LayeredLexer, StringLiteralLexer}
+import com.intellij.lexer.{LayeredLexer, Lexer, StringLiteralLexer}
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.{SyntaxHighlighter, SyntaxHighlighterFactory}
 import com.intellij.openapi.project.Project
@@ -12,8 +12,7 @@ import org.jetbrains.plugins.hocon.highlight.{HoconHighlighterColors => HHC}
 import org.jetbrains.plugins.hocon.lexer.HoconLexer
 
 class HoconSyntaxHighlighterFactory extends SyntaxHighlighterFactory {
-  def getSyntaxHighlighter(project: Project, virtualFile: VirtualFile) =
-    HoconSyntaxHighlighter
+  def getSyntaxHighlighter(project: Project, virtualFile: VirtualFile): SyntaxHighlighter = HoconSyntaxHighlighter
 }
 
 object HoconSyntaxHighlighter extends SyntaxHighlighter {
@@ -50,7 +49,7 @@ object HoconSyntaxHighlighter extends SyntaxHighlighter {
   def getTokenHighlights(tokenType: IElementType): Array[TextAttributesKey] =
     tokenHighlights.getOrElse(tokenType, Array.empty)
 
-  def getHighlightingLexer = new LayeredLexer(new HoconLexer) {
+  def getHighlightingLexer: Lexer = new LayeredLexer(new HoconLexer) {
     registerSelfStoppingLayer(new StringLiteralLexer('\"', QuotedString), Array(QuotedString), IElementType.EMPTY_ARRAY)
   }
 }

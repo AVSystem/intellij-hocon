@@ -70,8 +70,6 @@
                          displayName="Required include resolution" groupName="HOCON" enabledByDefault="true"
                          level="ERROR"/>
 
-        <highlightUsagesHandlerFactory
-                implementation="org.jetbrains.plugins.hocon.highlight.HoconHighlightUsagesHandlerFactory"/>
         <breadcrumbsInfoProvider implementation="org.jetbrains.plugins.hocon.misc.HoconBreadcrumbsInfoProvider"/>
 
         <enterHandlerDelegate implementation="org.jetbrains.plugins.hocon.editor.EnterInHashCommentHandler"/>
@@ -83,9 +81,11 @@
         <documentationProvider implementation="org.jetbrains.plugins.hocon.misc.HoconDocumentationProvider"/>
         <fileBasedIndex implementation="org.jetbrains.plugins.hocon.indexing.HoconKeyIndex"/>
         <fileBasedIndex implementation="org.jetbrains.plugins.hocon.indexing.HoconPathIndex"/>
-        <customUsageSearcher implementation="org.jetbrains.plugins.hocon.navigation.HoconUsageSearcher"/>
         <lang.findUsagesProvider language="HOCON"
                                  implementationClass="org.jetbrains.plugins.hocon.navigation.HoconFindUsagesProvider"/>
+        <findUsagesHandlerFactory
+                implementation="org.jetbrains.plugins.hocon.navigation.HoconFindUsagesHandlerFactory"/>
+        <readWriteAccessDetector implementation="org.jetbrains.plugins.hocon.navigation.HoconReadWriteAccessDetector"/>
         <gotoSymbolContributor implementation="org.jetbrains.plugins.hocon.navigation.HoconGotoSymbolContributor"/>
     </extensions>
 

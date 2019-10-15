@@ -22,6 +22,7 @@ import scala.reflect.{ClassTag, classTag}
 
 package object hocon extends DecorateAsJava with DecorateAsScala {
   type JList[T] = java.util.List[T]
+  type JCollection[T] = java.util.Collection[T]
   type JMap[K, V] = java.util.Map[K, V]
 
   final val HoconIcon = AllIcons.FileTypes.Config
