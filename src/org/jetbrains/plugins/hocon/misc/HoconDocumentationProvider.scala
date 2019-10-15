@@ -31,7 +31,7 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
     }
 
   override def getCustomDocumentationElement(editor: Editor, file: PsiFile, contextElement: PsiElement): PsiElement =
-    key(contextElement).orNull
+    key(contextElement).flatMap(_.resolved).map(_.hkey).orNull
 
   override def getQuickNavigateInfo(element: PsiElement, originalElement: PsiElement): String = {
     val res = for {
