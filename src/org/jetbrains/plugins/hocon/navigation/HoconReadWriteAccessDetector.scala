@@ -4,7 +4,7 @@ package navigation
 import com.intellij.codeInsight.highlighting.ReadWriteAccessDetector
 import com.intellij.codeInsight.highlighting.ReadWriteAccessDetector.Access
 import com.intellij.psi.{PsiElement, PsiReference}
-import org.jetbrains.plugins.hocon.psi.{HFieldKey, HKey, HSubstitutionKey}
+import org.jetbrains.plugins.hocon.psi.{HFieldKey, HKey}
 
 class HoconReadWriteAccessDetector extends ReadWriteAccessDetector {
   def isReadWriteAccessible(element: PsiElement): Boolean = element match {
@@ -19,6 +19,6 @@ class HoconReadWriteAccessDetector extends ReadWriteAccessDetector {
 
   def getExpressionAccess(expression: PsiElement): Access = expression match {
     case _: HFieldKey => Access.Write
-    case _: HSubstitutionKey => Access.Read
+    case _ => Access.Read
   }
 }

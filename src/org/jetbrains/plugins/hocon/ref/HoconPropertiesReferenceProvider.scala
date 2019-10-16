@@ -5,7 +5,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi._
 import com.intellij.util.ProcessingContext
-import org.jetbrains.plugins.hocon.psi.HoconPsiElementFactory
+import org.jetbrains.plugins.hocon.psi.{HFieldKey, HoconPsiElementFactory}
 import org.jetbrains.plugins.hocon.semantics.{ResOpts, ToplevelCtx}
 import org.jetbrains.plugins.hocon.settings.HoconProjectSettings
 
@@ -68,6 +68,7 @@ class HoconPropertyReference(
   def getElement: PsiElement = lit
   def getRangeInElement: TextRange = range
 
+  // TODO: resolve with respect to local file if literal is inside HOCON file
   def resolve(): PsiElement =
     ToplevelCtx(lit, ToplevelCtx.ApplicationResource)
       .occurrences(fullPath, ResOpts(reverse = true))
@@ -92,7 +93,11 @@ class HoconPropertyReference(
 
   def bindToElement(element: PsiElement): PsiElement = null
 
-  def isReferenceTo(element: PsiElement): Boolean = false
+  // important for ReferencesSearch and therefore Find Usages
+  def isReferenceTo(element: PsiElement): Boolean = element match {
+    case hkey: HFieldKey => hkey.fullStringPath.contains(fullPath.dropRight(reverseIndex))
+    case _ => false
+  }
 
   def isSoft: Boolean = true
 }

@@ -58,27 +58,26 @@ class HoconFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
 class HoconFindUsagesHandler(element: PsiElement) extends FindUsagesHandler(element) {
   override def processElementUsages(
     element: PsiElement, processor: Processor[UsageInfo], options: FindUsagesOptions
-  ): Boolean = element match {
-    case hkey: HKey => ReadAction.compute { () =>
-      val resOpt = for {
-        globalSearchScope <- options.searchScope.opt.collectOnly[GlobalSearchScope]
-        keyPath <- hkey.fullContainingPath
-        referentiable = !hkey.inFieldInArray
-      } yield {
-        val strPath = keyPath.map(_.stringValue)
+  ): Boolean = {
+    val res = element match {
+      case hkey: HKey if options.isUsages => ReadAction.compute { () =>
+        hkey.fullContainingPath.forall { keyPath =>
+          val strPath = keyPath.map(_.stringValue)
 
-        def onKeyFound(foundKey: HKey): Boolean =
-          processor.process(new UsageInfo(foundKey, 0, foundKey.getTextLength, false))
+          def onKeyFound(foundKey: HKey): Boolean =
+            processor.process(new UsageInfo(foundKey, 0, foundKey.getTextLength, false))
 
-        if (referentiable)
-          HoconPathIndex.processHKeys(strPath, hkey.getProject, globalSearchScope)(onKeyFound)
-        else
-          HoconFindUsagesHandler.localUsagesOf(hkey).forall(onKeyFound)
+          options.searchScope match {
+            case gss: GlobalSearchScope if !hkey.inFieldInArray =>
+              HoconPathIndex.processHKeys(strPath, hkey.getProject, gss)(onKeyFound)
+            case _ =>
+              HoconFindUsagesHandler.localUsagesOf(hkey).forall(onKeyFound)
+          }
+        }
       }
-      resOpt.getOrElse(true)
+      case _ => true
     }
-    case _ =>
-      true
+    res && super.processElementUsages(element, processor, options)
   }
 }
 object HoconFindUsagesHandler {
