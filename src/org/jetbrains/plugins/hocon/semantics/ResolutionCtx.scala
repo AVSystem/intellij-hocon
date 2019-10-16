@@ -403,7 +403,7 @@ object IncludeSource {
 }
 
 case class IncludeCtx(
-  source: IncludeSource, // None means auto-included file, e.g. reference.conf
+  source: IncludeSource,
   allFiles: Vector[HoconPsiFile],
   fileIdx: Int,
   parentCtx: ResolutionCtx

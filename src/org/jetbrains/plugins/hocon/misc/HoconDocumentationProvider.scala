@@ -2,8 +2,7 @@ package org.jetbrains.plugins.hocon
 package misc
 
 import com.intellij.lang.documentation.{DocumentationMarkup, DocumentationProviderEx}
-import com.intellij.openapi.editor.Editor
-import com.intellij.psi.{PsiElement, PsiFile, PsiManager}
+import com.intellij.psi.{PsiElement, PsiManager}
 import org.apache.commons.lang3.StringEscapeUtils
 import org.jetbrains.plugins.hocon.psi._
 import org.jetbrains.plugins.hocon.semantics.{ResOpts, ResolvedField}
@@ -12,6 +11,7 @@ import scala.annotation.tailrec
 
 class HoconDocumentationProvider extends DocumentationProviderEx {
   private def key(origElem: PsiElement): Option[HKey] = origElem match {
+    case null => None
     case key: HKey => Some(key)
     case _ => origElem.parentOfType[HKey]
   }
@@ -30,12 +30,9 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
       case _ => null
     }
 
-  override def getCustomDocumentationElement(editor: Editor, file: PsiFile, contextElement: PsiElement): PsiElement =
-    key(contextElement).flatMap(_.resolved).map(_.hkey).orNull
-
   override def getQuickNavigateInfo(element: PsiElement, originalElement: PsiElement): String = {
     val res = for {
-      hkey <- key(originalElement)
+      hkey <- key(originalElement) orElse key(element)
       fullPathText <- hkey.fullPathText
     } yield fullPathText + hkey.resolved.fold("")(_.resolveValue.valueHint)
     res.orNull
@@ -43,10 +40,8 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
 
   override def generateDoc(element: PsiElement, originalElement: PsiElement): String = {
     import DocumentationMarkup._
-    val res = for {
-      hkey <- element.opt.collectOnly[HKey]
-      resolved <- hkey.resolved
-    } yield {
+    // `element` is already resolved here but it loses context of the `originalElement` so resolving again
+    (key(originalElement) orElse key(element)).flatMap(_.resolved).nullOr { resolved =>
       val docField = findDocField(Some(resolved)).getOrElse(resolved.field)
       val fullPath = docField.key.flatMap(_.fullPathText).getOrElse("")
       val hintString = resolved.resolveValue.valueHint
@@ -60,6 +55,5 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
           .mkString(CONTENT_START, "<br/>", CONTENT_END)
       definition + content
     }
-    res.orNull
   }
 }
