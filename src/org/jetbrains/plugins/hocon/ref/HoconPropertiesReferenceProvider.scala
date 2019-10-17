@@ -5,7 +5,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi._
 import com.intellij.util.ProcessingContext
-import org.jetbrains.plugins.hocon.psi.{HFieldKey, HoconPsiElementFactory}
+import org.jetbrains.plugins.hocon.psi.{HFieldKey, HoconPsiElementFactory, HoconPsiFile}
 import org.jetbrains.plugins.hocon.semantics.{ResOpts, ToplevelCtx}
 import org.jetbrains.plugins.hocon.settings.HoconProjectSettings
 
@@ -68,12 +68,15 @@ class HoconPropertyReference(
   def getElement: PsiElement = lit
   def getRangeInElement: TextRange = range
 
-  // TODO: resolve with respect to local file if literal is inside HOCON file
-  def resolve(): PsiElement =
-    ToplevelCtx(lit, ToplevelCtx.ApplicationResource)
-      .occurrences(fullPath, ResOpts(reverse = true))
-      .nextOption.flatMap(_.ancestorField(reverseIndex))
-      .map(_.hkey).orNull
+  def createContext: ToplevelCtx = lit.getContainingFile match {
+    case hf: HoconPsiFile => ToplevelCtx(hf)
+    case _ => ToplevelCtx(lit, ToplevelCtx.ApplicationResource)
+  }
+
+  def resolve(): PsiElement = createContext
+    .occurrences(fullPath, ResOpts(reverse = true))
+    .nextOption.flatMap(_.ancestorField(reverseIndex))
+    .map(_.hkey).orNull
 
   override def getVariants: Array[AnyRef] = {
     val toplevelCtx = ToplevelCtx(lit, ToplevelCtx.ApplicationResource)
