@@ -6,14 +6,16 @@ import com.intellij.lang.HelpID
 import com.intellij.lang.cacheBuilder.{DefaultWordsScanner, WordsScanner}
 import com.intellij.lang.findUsages.FindUsagesProvider
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
-import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.{GlobalSearchScope, ProjectAndLibrariesScope, SearchScope, UseScopeEnlarger}
 import com.intellij.psi.tree.TokenSet
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.Processor
 import org.jetbrains.plugins.hocon.indexing.HoconPathIndex
+import org.jetbrains.plugins.hocon.lang.HoconFileType
 import org.jetbrains.plugins.hocon.lexer.{HoconLexer, HoconTokenSets, HoconTokenType}
-import org.jetbrains.plugins.hocon.psi.{HKey, HKeyedField, HObjectEntries, HPath}
+import org.jetbrains.plugins.hocon.psi._
 
 class HoconWordsScanner extends DefaultWordsScanner(
   new HoconLexer,
@@ -93,4 +95,16 @@ object HoconFindUsagesHandler {
     occStrPath <- occkey.fullStringPath.iterator
     if localUsageEntries(occkey) == entriesOpt && occStrPath == strPath
   } yield occkey
+}
+
+class HoconUseScopeEnlarger extends UseScopeEnlarger {
+  def getAdditionalUseScope(element: PsiElement): SearchScope = element match {
+    // HOCON properties represent paths which can be used anywhere
+    case fk: HFieldKey => new ProjectAndLibrariesScope(fk.getProject) {
+      // exclude HOCON files from library sources
+      override def contains(file: VirtualFile): Boolean = super.contains(file) &&
+        (file.getFileType != HoconFileType || !myProjectFileIndex.isInLibrarySource(file))
+    }
+    case _ => null
+  }
 }
