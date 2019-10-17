@@ -488,6 +488,19 @@ final class HSubstitutionKey(ast: ASTNode) extends HKey(ast) {
 final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent with HPathParent {
   type Parent = HPathParent
 
+  def length: Int = {
+    @tailrec def len(acc: Int, path: HPath): Int = path.prefix match {
+      case Some(pp) => len(acc + 1, pp)
+      case None => acc
+    }
+    len(1, this)
+  }
+
+  def pathSuffix: List[String] = parent match {
+    case _: HSubstitution => Nil
+    case subpath: HPath => subpath.key.map(k => k.stringValue :: subpath.pathSuffix).getOrElse(Nil)
+  }
+
   @tailrec def substitution: HSubstitution = parent match {
     case path: HPath => path.substitution
     case sub: HSubstitution => sub
@@ -531,17 +544,42 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
 
   def resolve(): Option[ResolvedField] = {
     val subst = substitution
-    val resField = subst.makeContext.flatMap(resCtx => subst.resolve(ResOpts(reverse = true), resCtx).nextOption)
+    subst.makeContext.flatMap { resCtx =>
+      // this is for paths which are a prefix of overall invalid substitution but the prefix itself may be valid
+      // we are resolving just the prefix (by using the `depth` argument) and then we choose the best prefix by
+      // checking which one correctly resolves the most of remaining path in this substitution
 
-    @tailrec def gotoPrefix(rfOpt: Option[ResolvedField], subpath: HPath): Option[ResolvedField] =
-      if (subpath eq this) rfOpt
-      else (rfOpt, subpath.prefix) match {
-        case (Some(rf), Some(ppath)) =>
-          gotoPrefix(rf.backtracedPrefixField, ppath)
-        case _ => None
+      val opts = ResOpts(reverse = true)
+      val remainingPath = pathSuffix
+      val maxRank = remainingPath.length
+
+      def rank(candidate: ResolvedField): Int = {
+        @tailrec def loop(candidates: Iterator[ResolvedField], rankAcc: Int, suffix: List[String]): Int = suffix match {
+          case Nil => rankAcc
+          case nextKey :: restKeys =>
+            val nextLevel = candidates.flatMap(_.occurrences(nextKey.opt, opts))
+            if (nextLevel.nonEmpty)
+              loop(nextLevel, rankAcc + 1, restKeys)
+            else rankAcc
+        }
+        loop(Iterator(candidate), 0, remainingPath)
       }
 
-    subst.path.flatMap(fullPath => gotoPrefix(resField, fullPath))
+      val candidates = subst.resolve(opts, resCtx, depth = length)
+
+      @tailrec def chooseBest(curBest: ResolvedField, curRank: Int): ResolvedField =
+        if (curRank == maxRank) curBest
+        else candidates.nextOption match {
+          case Some(next) =>
+            val nextRank = rank(next)
+            if (nextRank > curRank) chooseBest(next, nextRank)
+            else chooseBest(curBest, curRank)
+          case None =>
+            curBest
+        }
+
+      candidates.nextOption.map(rf => chooseBest(rf, rank(rf)))
+    }
   }
 }
 
@@ -631,13 +669,13 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
 
   def path: Option[HPath] = findChild[HPath]
 
-  private def subsKind(resCtx: ResolutionCtx): SubstitutionKind =
+  private def subsKind(resCtx: ResolutionCtx, fixupPrefix: List[String]): SubstitutionKind =
     path.flatMap(_.allKeys).fold[SubstitutionKind](SubstitutionKind.Invalid) { keys =>
       val strPath = keys.map(_.stringValue)
 
       // https://github.com/lightbend/config/blob/master/HOCON.md#self-referential-substitutions
-      @tailrec def nonFullSubsType(subsPath: List[String], pathInRes: List[ResolvedField]): Option[SubstitutionKind] =
-        (subsPath, pathInRes) match {
+      @tailrec def nonFullSubsType(fullPath: List[String], pathInRes: List[ResolvedField]): Option[SubstitutionKind] =
+        (fullPath, pathInRes) match {
           case (sh :: st, rh :: rt) if sh == rh.key =>
             if (rt.nonEmpty) nonFullSubsType(st, rt)
             else Some(SubstitutionKind.SelfReferential(strPath, rh))
@@ -648,18 +686,13 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
 
       val pathsInRes = resCtx.pathsInResolution
 
-      def forPath(path: List[String], fixup: Boolean): SubstitutionKind = {
-        val fullPath = if (fixup) resCtx.fixupSubstitutionPath(path) else path
-        val fallbackPath = Option(path).filter(_ != fullPath)
-        pathsInRes.iterator.flatMap(nonFullSubsType(fullPath, _)).nextOption
-          .getOrElse(SubstitutionKind.Full(fullPath, fallbackPath.map(forPath(_, fixup = false))))
-      }
-
-      forPath(strPath, fixup = true)
+      val fullPath = fixupPrefix ++ strPath
+      pathsInRes.iterator.flatMap(nonFullSubsType(fullPath, _))
+        .nextOption.getOrElse(SubstitutionKind.Full(fullPath))
     }
 
   private def doResolve(
-    subsKind: SubstitutionKind, resCtx: ResolutionCtx, opts: ResOpts, backtrace: Boolean
+    subsKind: SubstitutionKind, resCtx: ResolutionCtx, opts: ResOpts, depth: Int, backtrace: Boolean
   ): Iterator[ResolvedField] = {
     val subsCtx = Some(SubstitutionCtx(resCtx, this, subsKind))
     val newCtx = resCtx.toplevelCtx.copy(subsCtx = subsCtx)
@@ -667,22 +700,36 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
     def addBacktrace(it: Iterator[ResolvedField]): Iterator[ResolvedField] =
       if (backtrace) it.map(_.copy(subsCtx = subsCtx)) else it
 
+    @tailrec def resolvePath(path: List[String], depth: Int, it: Iterator[ResolutionCtx]): Iterator[ResolvedField] =
+      (path, depth) match {
+        case (Nil, 0) => addBacktrace(it.collectOnly[ResolvedField])
+        case (Nil, _) | (_, 0) => it.collectOnly[ResolvedField]
+        case (nextKey :: restOfPath, depth) =>
+          resolvePath(restOfPath, depth - 1, it.flatMap(_.occurrences(nextKey.opt, opts)))
+      }
+
     subsKind match {
-      case SubstitutionKind.Full(strPath, fallbackSubsType) =>
-        val res = addBacktrace(newCtx.occurrences(strPath, opts))
-        fallbackSubsType.fold(res)(ft => res orElse doResolve(ft, resCtx, opts, backtrace))
+      case SubstitutionKind.Full(strPath) =>
+        resolvePath(strPath, depth, Iterator(newCtx))
 
       case SubstitutionKind.SelfReferential(strPath, _) =>
-        addBacktrace(newCtx.occurrences(strPath, opts))
+        resolvePath(strPath, depth, Iterator(newCtx))
 
       case SubstitutionKind.Circular | SubstitutionKind.Invalid =>
         Iterator.empty
     }
   }
 
-  def resolve(opts: ResOpts, resCtx: ResolutionCtx, backtrace: Boolean = false): Iterator[ResolvedField] =
+  def resolve(opts: ResOpts, resCtx: ResolutionCtx, depth: Int = path.fold(0)(_.length), backtrace: Boolean = false): Iterator[ResolvedField] =
     if (!opts.resolveSubstitutions) Iterator.empty
-    else doResolve(subsKind(resCtx), resCtx, opts, backtrace)
+    else {
+      val fixupPrefix = resCtx.substitutionFixupPrefix
+      val res = doResolve(subsKind(resCtx, fixupPrefix), resCtx, opts, fixupPrefix.length + depth, backtrace)
+      if (fixupPrefix.nonEmpty)
+        res orElse doResolve(subsKind(resCtx, Nil), resCtx, opts, depth, backtrace)
+      else
+        res
+    }
 }
 
 final class HConcatenation(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HValueParent

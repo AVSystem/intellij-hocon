@@ -20,7 +20,7 @@ case class ResOpts(
 
 sealed abstract class SubstitutionKind
 object SubstitutionKind {
-  case class Full(path: List[String], fallback: Option[SubstitutionKind]) extends SubstitutionKind
+  case class Full(path: List[String]) extends SubstitutionKind
   case class SelfReferential(path: List[String], selfReferenced: ResolvedField) extends SubstitutionKind
   case object Circular extends SubstitutionKind
   case object Invalid extends SubstitutionKind
@@ -88,14 +88,14 @@ sealed abstract class ResolutionCtx {
       })
 
   // https://github.com/lightbend/config/blob/master/HOCON.md#include-semantics-substitution
-  def fixupSubstitutionPath(path: List[String]): List[String] = {
+  def substitutionFixupPrefix: List[String] = {
     @tailrec def loop(ctx: ResolutionCtx, suffix: List[String]): List[String] = ctx match {
       case _: ToplevelCtx => suffix
       case rf: ResolvedField => loop(rf.parentCtx, rf.key :: suffix)
       case ic: IncludeCtx => loop(ic.parentCtx, suffix)
-      case _: ArrayCtx => path
+      case _: ArrayCtx => Nil
     }
-    lastInclude.filterNot(_.inArray).map(loop(_, path)).getOrElse(path)
+    lastInclude.filterNot(_.inArray).map(loop(_, Nil)).getOrElse(Nil)
   }
 
   @tailrec final def isAlreadyIn(file: HoconPsiFile): Boolean = lastInclude match {
