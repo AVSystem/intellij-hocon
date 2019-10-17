@@ -81,7 +81,7 @@ class HoconPropertyReference(
 
     val variantFields = fullPath.dropRight(reverseIndex + 1) match {
       case Nil => toplevelCtx.occurrences(None, opts)
-      case prefixPath => toplevelCtx.occurrences(prefixPath, opts).flatMap(_.subOccurrences(None, opts))
+      case prefixPath => toplevelCtx.occurrences(prefixPath, opts).flatMap(_.occurrences(None, opts))
     }
     val seenKeys = new mutable.HashSet[String]
     variantFields.filter(sf => seenKeys.add(sf.key)) // dirty, stateful filter

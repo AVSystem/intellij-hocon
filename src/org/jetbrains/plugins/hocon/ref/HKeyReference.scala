@@ -42,7 +42,7 @@ class HKeyReference(key: HKey) extends PsiReference {
         case Some(prefixPath) =>
           prefixPath.allKeys.flatMapIt { path =>
             val strPath = path.map(_.stringValue)
-            toplevelCtx.occurrences(strPath, opts).flatMap(_.subOccurrences(None, opts))
+            toplevelCtx.occurrences(strPath, opts).flatMap(_.occurrences(None, opts))
           }
         case None =>
           toplevelCtx.occurrences(None, opts)
@@ -54,7 +54,7 @@ class HKeyReference(key: HKey) extends PsiReference {
             val prefixOccurrences =
               if (entries.isToplevel) toplevelCtx.occurrences(strPath, opts)
               else entries.occurrences(strPath, opts, toplevelCtx)
-            prefixOccurrences.flatMap(_.subOccurrences(None, opts))
+            prefixOccurrences.flatMap(_.occurrences(None, opts))
           }
           case None =>
             if (entries.isToplevel) toplevelCtx.occurrences(None, opts)

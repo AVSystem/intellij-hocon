@@ -138,6 +138,17 @@ sealed abstract class ResolutionCtx {
   lazy val pathsInResolution: List[List[ResolvedField]] =
     pathsInResolution(Nil, Nil)
 
+  def occurrences(subkey: Option[String], opts: ResOpts): Iterator[ResolvedField]
+
+  def occurrences(path: List[String], opts: ResOpts): Iterator[ResolvedField] = path match {
+    case Nil => Iterator(this).collectOnly[ResolvedField]
+    case head :: tail =>
+      val occurrencesOfFirst = occurrences(Some(head), opts)
+      tail.foldLeft(occurrencesOfFirst) {
+        case (occ, key) => occ.flatMap(_.occurrences(Some(key), opts))
+      }
+  }
+
   /**
    * Occurrences of given key (or all) adjacent to this resolution context (outside of it, before or after).
    * Example: sibling fields of an `include`.
@@ -148,12 +159,12 @@ sealed abstract class ResolutionCtx {
 
     case rf: ResolvedField => rf.subsCtx match {
       case Some(sc) =>
-        rf.moreOccurrences(opts, withBacktraced = false).flatMap(_.subOccurrences(key, opts)) ++
+        rf.moreOccurrences(opts, withBacktraced = false).flatMap(_.occurrences(key, opts)) ++
           sc.subst.adjacentConcatOccurrences(key, opts, sc.ctx) ++
           sc.ctx.adjacentOccurrences(key, opts)
 
       case None =>
-        rf.moreOccurrences(opts).flatMap(_.subOccurrences(key, opts))
+        rf.moreOccurrences(opts).flatMap(_.occurrences(key, opts))
     }
 
     case ic: IncludeCtx =>
@@ -203,15 +214,6 @@ case class ToplevelCtx(
 
   def occurrences(subkey: Option[String], opts: ResOpts): Iterator[ResolvedField] =
     toplevelIncludes(opts.reverse).flatMap(_.occurrences(subkey, opts))
-
-  def occurrences(path: List[String], opts: ResOpts): Iterator[ResolvedField] = path match {
-    case Nil => Iterator.empty
-    case head :: tail =>
-      val occurrencesOfFirst = occurrences(Some(head), opts)
-      tail.foldLeft(occurrencesOfFirst) {
-        case (occ, key) => occ.flatMap(_.subOccurrences(Some(key), opts))
-      }
-  }
 }
 
 object ToplevelCtx {
@@ -260,19 +262,14 @@ case class ResolvedField(
     backtracedField.fold(this)(_.fullyBacktraced)
 
   def firstSubOccurrence(subkey: Option[String], opts: ResOpts): Option[ResolvedField] =
-    subOccurrences(subkey, opts).nextOption
+    occurrences(subkey, opts).nextOption
 
-  def subOccurrences(subkey: Option[String], opts: ResOpts): Iterator[ResolvedField] = field match {
+  def occurrences(subkey: Option[String], opts: ResOpts): Iterator[ResolvedField] = field match {
     case pf: HPrefixedField =>
       pf.subField.occurrences(subkey, opts, this)
     case vf: HValuedField =>
       vf.subScopeValue.flatMapIt(_.occurrences(subkey, opts, this))
   }
-
-  def subOccurrences(path: List[String], opts: ResOpts): Iterator[ResolvedField] =
-    path.foldLeft(Iterator(this)) {
-      case (it, key) => it.flatMap(_.subOccurrences(key.opt, opts))
-    }
 
   val prefixField: Option[ResolvedField] = {
     @tailrec def loop(parentCtx: ResolutionCtx): Option[ResolvedField] =
@@ -410,9 +407,9 @@ case class IncludeCtx(
 ) extends ResolutionCtx {
   def file: HoconPsiFile = allFiles(fileIdx)
 
-  def occurrences(key: Option[String], opts: ResOpts): Iterator[ResolvedField] =
+  def occurrences(subkey: Option[String], opts: ResOpts): Iterator[ResolvedField] =
     if (parentCtx.isAlreadyIn(file)) Iterator.empty
-    else file.toplevelEntries.flatMapIt(_.occurrences(key, opts, this))
+    else file.toplevelEntries.flatMapIt(_.occurrences(subkey, opts, this))
 
   def firstOccurrence(key: Option[String], opts: ResOpts): Option[ResolvedField] =
     occurrences(key, opts).nextOption
@@ -439,4 +436,6 @@ case class ArrayCtx(
   parentCtx: ResolutionCtx,
   arrayAppend: Boolean,
   value: HValue, // either the array itself or element appended with +=
-) extends ResolutionCtx
+) extends ResolutionCtx {
+  def occurrences(subkey: Option[String], opts: ResOpts): Iterator[ResolvedField] = Iterator.empty
+}

@@ -160,10 +160,7 @@ final class HObjectEntries(ast: ASTNode) extends HoconPsiElement(ast) with HEntr
   def occurrences(path: List[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] = path match {
     case Nil => Iterator.empty
     case firstKey :: restOfKeys =>
-      val occurrencesOfFirst = occurrences(Some(firstKey), opts, resCtx)
-      restOfKeys.foldLeft(occurrencesOfFirst) { (occ, key) =>
-        occ.flatMap(_.subOccurrences(Some(key), opts))
-      }
+      occurrences(Some(firstKey), opts, resCtx).flatMap(_.occurrences(restOfKeys, opts))
   }
 
   def makeContext: Option[ResolutionCtx] = parent match {
@@ -588,7 +585,7 @@ sealed trait HValue extends HoconPsiElement {
     case conc: HConcatenation =>
       conc.findChildren[HValue](opts.reverse).flatMap(_.occurrences(key, opts, resCtx))
     case subst: HSubstitution =>
-      subst.resolve(opts, resCtx, backtrace = true).flatMap(_.subOccurrences(key, opts))
+      subst.resolve(opts, resCtx, backtrace = true).flatMap(_.occurrences(key, opts))
     case _ =>
       Iterator.empty
   }
