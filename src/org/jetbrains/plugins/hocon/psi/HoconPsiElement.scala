@@ -634,7 +634,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
 
   def path: Option[HPath] = findChild[HPath]
 
-  def subsKind(resCtx: ResolutionCtx): SubstitutionKind =
+  private def subsKind(resCtx: ResolutionCtx): SubstitutionKind =
     path.flatMap(_.allKeys).fold[SubstitutionKind](SubstitutionKind.Invalid) { keys =>
       val strPath = keys.map(_.stringValue)
 
@@ -661,7 +661,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
       forPath(strPath, fixup = true)
     }
 
-  private def forSubsKind(
+  private def doResolve(
     subsKind: SubstitutionKind, resCtx: ResolutionCtx, opts: ResOpts, backtrace: Boolean
   ): Iterator[ResolvedField] = {
     val subsCtx = Some(SubstitutionCtx(resCtx, this, subsKind))
@@ -673,7 +673,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
     subsKind match {
       case SubstitutionKind.Full(strPath, fallbackSubsType) =>
         val res = addBacktrace(newCtx.occurrences(strPath, opts))
-        fallbackSubsType.fold(res)(ft => res orElse forSubsKind(ft, resCtx, opts, backtrace))
+        fallbackSubsType.fold(res)(ft => res orElse doResolve(ft, resCtx, opts, backtrace))
 
       case SubstitutionKind.SelfReferential(strPath, _) =>
         addBacktrace(newCtx.occurrences(strPath, opts))
@@ -685,7 +685,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
 
   def resolve(opts: ResOpts, resCtx: ResolutionCtx, backtrace: Boolean = false): Iterator[ResolvedField] =
     if (!opts.resolveSubstitutions) Iterator.empty
-    else forSubsKind(subsKind(resCtx), resCtx, opts, backtrace)
+    else doResolve(subsKind(resCtx), resCtx, opts, backtrace)
 }
 
 final class HConcatenation(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HValueParent
