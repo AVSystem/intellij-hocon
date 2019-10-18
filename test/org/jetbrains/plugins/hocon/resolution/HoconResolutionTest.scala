@@ -5,7 +5,7 @@ import org.jetbrains.plugins.hocon.semantics.{ResOpts, ResolvedField, ToplevelCt
 import org.junit.Assert
 
 class HoconResolutionTest extends HoconSingleModuleTest {
-  def rootPath = s"$testdataPath/hocon/resolution"
+  def rootPath = s"$testdataPath/resolution"
 
   private def testPath(file: String, hoconPath: String, expected: String): Unit = {
     val hoconFile = findHoconFile(file, project)

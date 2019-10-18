@@ -2,7 +2,7 @@ package org.jetbrains.plugins.hocon
 package includes
 
 class HoconSingleModuleIncludeResolutionTest extends HoconSingleModuleTest with HoconIncludeResolutionTest {
-  def rootPath = s"$testdataPath/hocon/includes/singlemodule"
+  def rootPath = s"$testdataPath/includes/singlemodule"
 
   def testIncludesFromTopLevel(): Unit =
     checkFile("including.conf")

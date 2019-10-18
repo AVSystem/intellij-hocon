@@ -11,7 +11,7 @@ import org.junit.Assert.assertEquals
  */
 class HoconHighlightUsagesTest extends BasePlatformTestCase {
 
-  override def getTestDataPath: String = "testdata/hocon/highlight/usages"
+  override def getTestDataPath: String = "testdata/highlight/usages"
 
   override def isWriteActionRequired: Boolean = false
 
