@@ -4,11 +4,15 @@ import com.intellij.openapi.actionSystem._
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.{FileEditorManager, OpenFileDescriptor}
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.TestActionEvent
 import org.junit.Assert.assertNotNull
+import org.junit.runner.RunWith
+import org.junit.runners.AllTests
 
 /**
  * @author ghik
  */
+@RunWith(classOf[AllTests])
 abstract class HoconActionTest protected(protected val actionId: String, subPath: String)
   extends HoconFileSetTestCase(s"actions/$subPath") {
 
@@ -29,12 +33,25 @@ abstract class HoconActionTest protected(protected val actionId: String, subPath
 
     try {
       executeAction(new MockDataContext(psiFile, editor), editor)
+      extractResult(psiFile, editor)
     } finally {
       editorManager.closeFile(psiFile.getVirtualFile)
     }
   }
 
-  protected def executeAction(dataContext: DataContext, editor: Editor): String
+  protected def executeAction(dataContext: DataContext, editor: Editor): Unit = {
+    val action = ActionManager.getInstance.getAction(actionId)
+    val actionEvent = new TestActionEvent(dataContext, action)
+
+    action.beforeActionPerformedUpdate(actionEvent)
+    actionEvent.getPresentation match {
+      case presentation if presentation.isEnabled && presentation.isVisible =>
+        action.actionPerformed(actionEvent)
+      case _ =>
+    }
+  }
+
+  protected def extractResult(file: PsiFile, editor: Editor): String
 }
 
 object HoconActionTest {

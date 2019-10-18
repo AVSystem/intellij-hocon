@@ -1,0 +1,5 @@
+a.b.c = 5
+a.b.d = 10
+d = ${a.b<caret>.c.niema}
+-----
+1:3
