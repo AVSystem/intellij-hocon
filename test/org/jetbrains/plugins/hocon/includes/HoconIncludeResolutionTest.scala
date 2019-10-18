@@ -2,9 +2,9 @@ package org.jetbrains.plugins.hocon
 package includes
 
 import com.intellij.openapi.project.Project
-import com.intellij.psi.{PsiElement, PsiFile}
+import com.intellij.psi.PsiFile
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType
-import org.jetbrains.plugins.hocon.psi.{HIncludeTarget, HoconPsiFile}
+import org.jetbrains.plugins.hocon.psi.HIncludeTarget
 import org.jetbrains.plugins.hocon.ref.IncludedFileReference
 import org.junit.Assert.{assertEquals, assertTrue}
 
@@ -15,18 +15,16 @@ trait HoconIncludeResolutionTest extends HoconTestUtils {
   protected def checkFile(path: String, project: Project): Unit = {
     val psiFile = findHoconFile(path, project)
 
-    new HoconIncludeResolutionTest.DepthFirstIterator(psiFile).collect {
-      case target: HIncludeTarget => target
-    }.foreach { target =>
-      val parent = target.parent
-      val prevComments = parent.parent.nonWhitespaceChildren
+    psiFile.depthFirst.collectOnly[HIncludeTarget].foreach { target =>
+      val hincluded = target.parent.parent
+      val prevComments = hincluded.parent.nonWhitespaceChildren
         .takeWhile(e => e.getNode.getElementType == HoconTokenType.HashComment)
         .toVector
 
       val references = target.getFileReferences
 
       if (prevComments.nonEmpty) {
-        assertTrue("No references in " + parent.getText, references.nonEmpty)
+        assertTrue("No references in " + hincluded.getText, references.nonEmpty)
         val resolveResults = references.last.multiResolve(false)
         resolveResults.sliding(2).foreach {
           case Array(rr1, rr2) =>
@@ -45,32 +43,11 @@ trait HoconIncludeResolutionTest extends HoconTestUtils {
             case file: PsiFile => file.getVirtualFile
           }
 
-        assertEquals(parent.getText, expectedFiles.toSet, actualFiles.toSet)
+        assertEquals(hincluded.getText, expectedFiles.toSet, actualFiles.toSet)
       } else {
-        assertTrue("Expected no references in " + parent.getText, references.isEmpty)
+        assertTrue("Expected no references in " + hincluded.getText, references.isEmpty)
       }
     }
   }
 
-}
-
-object HoconIncludeResolutionTest {
-  private class DepthFirstIterator(file: HoconPsiFile) extends Iterator[PsiElement] {
-    private var stack: List[PsiElement] = Nil
-
-    def hasNext: Boolean = stack.nonEmpty
-
-    def next(): PsiElement = {
-      val head :: tail = stack
-      stack = tail
-
-      var child = head.getLastChild
-      while (child != null) {
-        stack = child :: stack
-        child = child.getPrevSibling
-      }
-
-      head
-    }
-  }
 }
