@@ -6,9 +6,10 @@ import com.intellij.lang.HelpID
 import com.intellij.lang.cacheBuilder.{DefaultWordsScanner, WordsScanner}
 import com.intellij.lang.findUsages.FindUsagesProvider
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
-import com.intellij.psi.search.{GlobalSearchScope, ProjectAndLibrariesScope, SearchScope, UseScopeEnlarger}
+import com.intellij.psi.search._
 import com.intellij.psi.tree.TokenSet
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.Processor
@@ -97,14 +98,23 @@ object HoconFindUsagesHandler {
   } yield occkey
 }
 
-class HoconUseScopeEnlarger extends UseScopeEnlarger {
+class HoconUseScopeAdjuster extends UseScopeEnlarger with ScopeOptimizer {
   def getAdditionalUseScope(element: PsiElement): SearchScope = element match {
-    // HOCON properties represent paths which can be used anywhere
-    case fk: HFieldKey => new ProjectAndLibrariesScope(fk.getProject) {
-      // exclude HOCON files from library sources
-      override def contains(file: VirtualFile): Boolean = super.contains(file) &&
-        (file.getFileType != HoconFileType || !myProjectFileIndex.isInLibrarySource(file))
-    }
+    // HOCON properties represent paths which can be used anywhere in the project
+    case fk: HFieldKey => ProjectScope.getAllScope(fk.getProject)
     case _ => null
+  }
+
+  override def getRestrictedUseScope(element: PsiElement): SearchScope = element match {
+    case hk: HFieldKey =>
+      val project = hk.getProject
+      val pfi = ProjectFileIndex.getInstance(project)
+      new EverythingGlobalScope(project) {
+        // HOCON files in library sources are just duplicates of the same HOCON files in regular library jars
+        override def contains(file: VirtualFile): Boolean =
+          !(file.getFileType == HoconFileType && pfi.isInLibrarySource(file))
+      }
+    case _ =>
+      super.getRestrictedUseScope(element)
   }
 }

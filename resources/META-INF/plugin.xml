@@ -85,7 +85,8 @@
                                  implementationClass="org.jetbrains.plugins.hocon.navigation.HoconFindUsagesProvider"/>
         <findUsagesHandlerFactory
                 implementation="org.jetbrains.plugins.hocon.navigation.HoconFindUsagesHandlerFactory"/>
-        <useScopeEnlarger implementation="org.jetbrains.plugins.hocon.navigation.HoconUseScopeEnlarger"/>
+        <useScopeEnlarger implementation="org.jetbrains.plugins.hocon.navigation.HoconUseScopeAdjuster"/>
+        <useScopeOptimizer implementation="org.jetbrains.plugins.hocon.navigation.HoconUseScopeAdjuster"/>
         <highlightUsagesHandlerFactory
                 implementation="org.jetbrains.plugins.hocon.highlight.HoconHighlightUsagesHandlerFactory"/>
         <readWriteAccessDetector implementation="org.jetbrains.plugins.hocon.navigation.HoconReadWriteAccessDetector"/>
