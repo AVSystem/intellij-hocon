@@ -17,12 +17,13 @@ import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet._
  * default includer implementation, <tt>com.typesafe.config.impl.SimpleIncluder</tt> -
  * as much as this is possible without access to actual runtime.
  * <p/>
- * This implementation will only try to resolve includes with <tt>classpath(...)</tt> qualifier or no qualifier -
- * that is, <tt>file(...)</tt> and <tt>url(...)</tt> are not supported since they can only be understood at runtime.
+ * This implementation will only try to resolve includes with <tt>classpath(...)</tt>, <tt>file(...)</tt>
+ * or no qualifier - that is, <tt>url(...)</tt> is not supported since it can only be understood at runtime.
  * Also, for heuristic includes (no qualifier) in source, resource or library files, it is assumed that including file
  * was loaded from classpath resource and thus, included path will be interpreted as classpath resource relative to
- * current file. If including file is neither in sources or library, heuristic include will only be resolved if the
- * path is relative and resolution will be done relative to including file's parent directory.
+ * current file. If including file is neither in sources or library, heuristic include will only be resolved as
+ * if the including file was loaded with <tt>file(..)</tt> qualifier. Module content root is assumed as the working
+ * directory for resolving absolute file includes.
  * <p/>
  * Files to include will be searched for in classpath of including file's containing module or - when including file
  * is in a library - joined classpath of all modules that directly depend on that library. Test sources and dependencies
