@@ -8,10 +8,8 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.EditorTestUtil
 import org.junit.Assert.assertNotNull
 
-abstract class HoconEditorActionTest protected(
-  override protected val actionId: String,
-  subPath: String
-) extends HoconActionTest(actionId, subPath) {
+abstract class HoconEditorActionTest(actionId: String, subPath: String)
+  extends HoconActionTest(actionId, subPath) {
 
   override protected def executeAction(dataContext: DataContext, editor: Editor): Unit = {
     val actionHandler = EditorActionManager.getInstance.getActionHandler(actionId)
