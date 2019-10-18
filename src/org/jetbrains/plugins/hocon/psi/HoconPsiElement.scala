@@ -254,7 +254,7 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
 
   def occurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] =
     keyString.filter(selfKey => key.isEmpty || key.contains(selfKey))
-      .map(selfKey => semantics.ResolvedField(selfKey, this, resCtx))
+      .map(selfKey => ResolvedField(selfKey, this, resCtx))
       .filterNot(_.isRemovedBySelfReference)
       .iterator
 
@@ -329,7 +329,7 @@ sealed abstract class HKeyedField(ast: ASTNode) extends HoconPsiElement(ast)
         case file: HoconPsiFile => Some(file.makeContext)
       }
     }
-  } yield semantics.ResolvedField(key, this, parentCtx)
+  } yield ResolvedField(key, this, parentCtx)
 
   override def getIcon(flags: Int): Icon = PropertyIcon
 }
@@ -455,7 +455,7 @@ sealed abstract class HKey(ast: ASTNode) extends HoconPsiElement(ast) {
   }.mkString
 
   def resolved: Option[ResolvedField] = parent match {
-    case path: HPath => path.resolve()
+    case path: HPath => path.resolveBest()
     case kf: HKeyedField => kf.makeContext
   }
 
@@ -542,7 +542,10 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
 
   def key: Option[HSubstitutionKey] = findChild[HSubstitutionKey]
 
-  def resolve(): Option[ResolvedField] = {
+  def resolve(opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] =
+    substitution.resolve(opts, resCtx, length)
+
+  def resolveBest(): Option[ResolvedField] = {
     val subst = substitution
     subst.makeContext.flatMap { resCtx =>
       // this is for paths which are a prefix of overall invalid substitution but the prefix itself may be valid
@@ -607,7 +610,7 @@ sealed trait HValue extends HoconPsiElement {
         value <- vf.value
       } yield if (vf.isArrayAppend) ArrayCtx(ctx, arrayAppend = true, value) else ctx
     case arr: HArray =>
-      arr.makeContext.map(semantics.ArrayCtx(_, arrayAppend = false, arr))
+      arr.makeContext.map(ArrayCtx(_, arrayAppend = false, arr))
     case conc: HConcatenation =>
       conc.makeContext
     case file: HoconPsiFile =>
