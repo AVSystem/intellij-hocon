@@ -402,20 +402,18 @@ final class HQualifiedIncluded(ast: ASTNode) extends HoconPsiElement(ast) {
     for {
       hs <- target
       vf <- Option(getContainingFile.getOriginalFile.getVirtualFile)
-      rs <- {
-        val strVal = hs.stringValue
-        qualifier match {
-          case Some(ClasspathModifier) =>
-            Some(new IncludedFileReferenceSet(strVal, hs, true, true, scope))
-          case Some(FileModifier) =>
-            Some(new IncludedFileReferenceSet(strVal, hs, true, false, scope))
-          case None if !isValidUrl(strVal) =>
-            val pfi = ProjectRootManager.getInstance(getProject).getFileIndex
-            val fromClasspath = pfi.isInSource(vf) || pfi.isInLibraryClasses(vf)
-            Some(new IncludedFileReferenceSet(strVal, hs, false, fromClasspath, scope))
-          case _ =>
-            None
-        }
+      strVal = hs.stringValue
+      rs <- qualifier match {
+        case Some(ClasspathModifier) =>
+          Some(new IncludedFileReferenceSet(strVal, hs, true, true, scope))
+        case Some(FileModifier) =>
+          Some(new IncludedFileReferenceSet(strVal, hs, true, false, scope))
+        case None if !isValidUrl(strVal) =>
+          val pfi = ProjectRootManager.getInstance(getProject).getFileIndex
+          val fromClasspath = pfi.isInSource(vf) || pfi.isInLibraryClasses(vf)
+          Some(new IncludedFileReferenceSet(strVal, hs, false, fromClasspath, scope))
+        case _ =>
+          None
       }
     } yield rs
 }
