@@ -404,24 +404,18 @@ final class HQualifiedIncluded(ast: ASTNode) extends HoconPsiElement(ast) {
       vf <- Option(getContainingFile.getOriginalFile.getVirtualFile)
       rs <- {
         val strVal = hs.stringValue
-
-        val (absolute, forcedAbsolute, fromClasspath) = qualifier match {
-          case Some(ClasspathModifier) => (true, true, true)
+        qualifier match {
+          case Some(ClasspathModifier) =>
+            Some(new IncludedFileReferenceSet(strVal, hs, true, true, scope))
+          case Some(FileModifier) =>
+            Some(new IncludedFileReferenceSet(strVal, hs, true, false, scope))
           case None if !isValidUrl(strVal) =>
             val pfi = ProjectRootManager.getInstance(getProject).getFileIndex
             val fromClasspath = pfi.isInSource(vf) || pfi.isInLibraryClasses(vf)
-            (strVal.trim.startsWith("/"), false, fromClasspath)
-          case _ => (true, true, false)
+            Some(new IncludedFileReferenceSet(strVal, hs, false, fromClasspath, scope))
+          case _ =>
+            None
         }
-
-        // Include resolution is enabled for:
-        // - classpath() includes anywhere
-        // - unqualified includes in classpath (source or library) files
-        // - relative unqualified includes in non-classpath files
-        if (!absolute || fromClasspath)
-          Some(new IncludedFileReferenceSet(strVal, hs, forcedAbsolute, fromClasspath, scope))
-        else
-          None
       }
     } yield rs
 }

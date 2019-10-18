@@ -117,19 +117,18 @@ class IncludedFileReferenceSet(
     val parent = vfile.getParent
     if (parent == null) return empty
 
-    val pfi = ProjectRootManager.getInstance(proj).getFileIndex
-    val pkgName =
-      if (isAbsolutePathReference) ""
-      else pfi.getPackageNameByDirectory(parent)
+    if (fromClasspath) {
+      val pfi = ProjectRootManager.getInstance(proj).getFileIndex
+      val pkgName =
+        if (isAbsolutePathReference) ""
+        else pfi.getPackageNameByDirectory(parent)
 
-    val psiManager = PsiManager.getInstance(proj)
-
-    if (fromClasspath && pkgName != null)
-      classpathPackageDirs(proj, scope, pkgName).toJList
-    else if (!isAbsolutePathReference)
-      Option(psiManager.findDirectory(parent)).map(single).getOrElse(empty)
-    else
-      empty
+      if (pkgName != null) classpathPackageDirs(proj, scope, pkgName).toJList else empty
+    } else if (isAbsolutePathReference) {
+      FileReferenceSet.getAbsoluteTopLevelDirLocations(containingFile)
+    } else {
+      Option(PsiManager.getInstance(proj).findDirectory(parent)).map(single).getOrElse(empty)
+    }
   }
 }
 
