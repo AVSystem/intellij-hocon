@@ -12,7 +12,6 @@ import org.junit.runners.AllTests
 /**
  * @author ghik
  */
-@RunWith(classOf[AllTests])
 abstract class HoconActionTest protected(protected val actionId: String, subPath: String)
   extends HoconFileSetTestCase(s"actions/$subPath") {
 
