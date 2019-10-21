@@ -32,21 +32,20 @@ abstract class HoconMultiModuleTest extends UsefulTestCase with HoconTestUtils {
     val moduleBuilders = subdirectories(rootPath)
       .map((_, fixtureBuilder.addModule(classOf[JavaModuleFixtureBuilder[ModuleFixture]])))
 
-    moduleBuilders.foreach {
-      case (directory, builder) =>
-        builder.addContentRoot(directory.getPath)
+    moduleBuilders.foreach { case (directory, builder) =>
+      builder.addContentRoot(directory.getPath)
 
-        def addLibrary(libraryName: String): Unit = {
-          import OrderRootType._
-          val mapping = Map(CLASSES -> "", SOURCES -> "src").mapValues { suffix =>
-            Array(new File(directory, libraryName + suffix).getPath)
-          }
-
-          builder.addLibrary(directory.getName + libraryName, mapping.asJava)
+      def addLibrary(libraryName: String): Unit = {
+        import OrderRootType._
+        val mapping = Map(CLASSES -> "", SOURCES -> "src").mapValues { suffix =>
+          Array(new File(directory, libraryName + suffix).getPath)
         }
 
-        addLibrary("lib")
-        addLibrary("testlib")
+        builder.addLibrary(directory.getName + libraryName, mapping.asJava)
+      }
+
+      addLibrary("lib")
+      addLibrary("testlib")
     }
 
     _fixture = JavaTestFixtureFactory.getFixtureFactory.createCodeInsightFixture(fixtureBuilder.getFixture)
@@ -88,9 +87,8 @@ object HoconMultiModuleTest {
   private def setUpEntries(model: ModifiableRootModel): Unit = {
     val contentEntry = model.getContentEntries.head
 
-    def addSourceFolder(name: String, kind: JavaSourceRootType): Unit = {
-      contentEntry.addSourceFolder(contentEntry.getFile.findChild(name), kind)
-    }
+    def addSourceFolder(name: String, kind: JavaSourceRootType): Unit =
+      contentEntry.getFile.findChild(name).opt.foreach(contentEntry.addSourceFolder(_, kind))
 
     import JavaSourceRootType._
     addSourceFolder("src", SOURCE)

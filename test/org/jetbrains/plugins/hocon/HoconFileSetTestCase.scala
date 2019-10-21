@@ -5,7 +5,7 @@ import com.intellij.FileSetTestCase
 import com.intellij.application.options.CodeStyle
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileTypes.FileTypeManager
-import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.{PsiFile, PsiFileFactory}
 import com.intellij.testFramework.EditorTestUtil
 import com.intellij.util.LocalTimeCounter
 import org.jetbrains.plugins.hocon.lang.HoconLanguage
@@ -30,14 +30,16 @@ abstract class HoconFileSetTestCase(subpath: String)
 
   protected def transform(data: Seq[String]): String
 
-  private[hocon] def createPseudoPhysicalHoconFile(text: String): HoconPsiFile = {
+  private[hocon] def createPseudoPhysicalFile(text: String, extension: String): PsiFile = {
     val project = myProject
-    val tempFile = (project.getBaseDir: @silent("deprecated")) + "temp.conf"
+    val tempFile = (project.getBaseDir: @silent("deprecated")) + "temp." + extension
     val fileType = FileTypeManager.getInstance.getFileTypeByFileName(tempFile)
     PsiFileFactory.getInstance(project)
       .createFileFromText(tempFile, fileType, text, LocalTimeCounter.currentTime(), true)
-      .asInstanceOf[HoconPsiFile]
   }
+
+  def createPseudoPhysicalHoconFile(text: String): HoconPsiFile =
+    createPseudoPhysicalFile(text, "conf").asInstanceOf[HoconPsiFile]
 
   private[hocon] def inWriteCommandAction[T](body: => T): T =
     WriteCommandAction.writeCommandAction(myProject).compute(() => body)
