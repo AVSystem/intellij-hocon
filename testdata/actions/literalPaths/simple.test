@@ -1,0 +1,4 @@
+this.thing.here = 5
+something = this.thing.<caret>here
+-----
+1:12

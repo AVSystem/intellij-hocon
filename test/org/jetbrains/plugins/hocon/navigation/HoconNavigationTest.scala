@@ -21,6 +21,10 @@ class HoconSubstitutionResolutionTest extends HoconNavigationTest(IdeActions.ACT
 object HoconSubstitutionResolutionTest extends TestSuiteCompanion[HoconSubstitutionResolutionTest]
 
 @RunWith(classOf[AllTests])
+class HoconLiteralPathResolutionTest extends HoconNavigationTest(IdeActions.ACTION_GOTO_DECLARATION, "literalPaths")
+object HoconLiteralPathResolutionTest extends TestSuiteCompanion[HoconLiteralPathResolutionTest]
+
+@RunWith(classOf[AllTests])
 class HoconGoToNextTest extends HoconNavigationTest("HoconGotoNext", "gotoNext")
 object HoconGoToNextTest extends TestSuiteCompanion[HoconGoToNextTest]
 
