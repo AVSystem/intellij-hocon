@@ -11,12 +11,22 @@
 
     <change-notes>
         <![CDATA[
+        2019.3.3:
         <ul>
         <li>'Find Usages' includes occurrences of HOCON paths in string literals</li>
         <li>fixed 'Find Usages' on Java/Scala classes to search in HOCON values</li>
-        <li>improved include resolution</li>
+        <li>include resolution works for relative file(...) includes - module root is assumed as working dir</li>
         <li>fixed include resolution for files outside classpath (sources and libraries)</li>
+        </ul>
+        2019.3.2 - bulk feature update implementing semantics-related features of HOCON:
         <ul>
+        <li>substitution resolution, navigation through substitutions with 'Go To Declaration' action</li>
+        <li>detection of HOCON path references in string literals of other languages</li>
+        <li>go to prev/next HOCON definition (like 'Super Method' &amp; 'Implementation(s)' actions)</li>
+        <li>'Quick Documentation' action for displaying documentation of HOCON entries</li>
+        <li>'Find Usages' action for searching usages of HOCON paths</li>
+        <li>autocompletion of HOCON keys in objects and substitutions with value and type hints and documentation</li>
+        </ul>
         ]]>
     </change-notes>
 
