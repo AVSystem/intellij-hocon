@@ -2,7 +2,9 @@ package org.jetbrains.plugins.hocon
 package manipulators
 
 import com.intellij.psi.ElementManipulators
-import org.jetbrains.plugins.hocon.psi.HoconPsiElement
+import org.jetbrains.plugins.hocon.psi.{HKey, HString, HoconPsiElement}
+import org.junit.runner.RunWith
+import org.junit.runners.AllTests
 
 /**
   * @author ghik
@@ -32,3 +34,11 @@ abstract class HoconManipulatorTest(clazz: Class[_ <: HoconPsiElement],
     psiFile.getText
   }
 }
+
+@RunWith(classOf[AllTests])
+class HKeyManipulatorTest extends HoconManipulatorTest(classOf[HKey], "key")
+object HKeyManipulatorTest extends TestSuiteCompanion[HKeyManipulatorTest]
+
+@RunWith(classOf[AllTests])
+class HStringManipulatorTest extends HoconManipulatorTest(classOf[HString], "string")
+object HStringManipulatorTest extends TestSuiteCompanion[HStringManipulatorTest]
