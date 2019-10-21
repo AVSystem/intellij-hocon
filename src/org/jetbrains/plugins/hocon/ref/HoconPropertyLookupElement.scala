@@ -23,4 +23,9 @@ class HoconPropertyLookupElement(resField: ResolvedField) extends LookupElement 
   override def getObject: ResolvedField = resField
 
   override def getPsiElement: PsiElement = resField.hkey
+
+  def repr: String = {
+    val resValue = resField.resolveValue
+    s"$getLookupString (${resValue.typeHint})${resValue.valueHint}"
+  }
 }

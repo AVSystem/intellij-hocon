@@ -13,8 +13,6 @@ class HoconHighlightUsagesTest extends BasePlatformTestCase {
 
   override def getTestDataPath: String = "testdata/highlightUsages"
 
-  override def isWriteActionRequired: Boolean = false
-
   def testSimple(): Unit = testUsages(
     (0, 0, 3),
     (1, 0, 3),
