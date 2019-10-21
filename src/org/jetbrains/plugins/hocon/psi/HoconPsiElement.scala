@@ -403,15 +403,19 @@ final class HQualifiedIncluded(ast: ASTNode) extends HoconPsiElement(ast) {
       hs <- target
       vf <- Option(getContainingFile.getOriginalFile.getVirtualFile)
       strVal = hs.stringValue
+      absolutePath = strVal.startsWith("/") //TODO: Windows?
       rs <- qualifier match {
         case Some(ClasspathModifier) =>
           Some(new IncludedFileReferenceSet(strVal, hs, true, true, scope))
-        case Some(FileModifier) =>
+        case Some(FileModifier) if !absolutePath =>
           Some(new IncludedFileReferenceSet(strVal, hs, true, false, scope))
         case None if !isValidUrl(strVal) =>
           val pfi = ProjectRootManager.getInstance(getProject).getFileIndex
           val fromClasspath = pfi.isInSource(vf) || pfi.isInLibraryClasses(vf)
-          Some(new IncludedFileReferenceSet(strVal, hs, false, fromClasspath, scope))
+          if (fromClasspath || !absolutePath)
+            Some(new IncludedFileReferenceSet(strVal, hs, false, fromClasspath, scope))
+          else
+            None
         case _ =>
           None
       }
