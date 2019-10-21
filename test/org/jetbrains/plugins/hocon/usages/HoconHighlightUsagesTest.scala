@@ -1,5 +1,5 @@
 package org.jetbrains.plugins.hocon
-package highlight
+package usages
 
 import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
