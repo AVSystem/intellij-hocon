@@ -24,6 +24,8 @@ abstract class HoconGotoPrevNextAction(reverse: Boolean) extends BaseCodeInsight
 
   def getHandler: CodeInsightActionHandler = this
 
+  override def startInWriteAction: Boolean = false
+
   def invoke(project: Project, editor: Editor, file: PsiFile): Unit = for {
     elemAtOffset <- file.findElementAt(editor.getCaretModel.getOffset).opt
     fieldAtOffset <- elemAtOffset.parentOfType[HKeyedField]
