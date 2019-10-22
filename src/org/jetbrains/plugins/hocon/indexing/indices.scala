@@ -118,7 +118,7 @@ abstract class HKeyIndex[K](companion: HKeyIndexCompanion[K])
   def getValueExternalizer: DataExternalizer[HKeyOccurrences] = HKeyOccurrences.Externalizer
 
   def acceptInput(file: VirtualFile): Boolean =
-    file.getFileType == HoconFileType
+    HoconFileType.isHocon(file.getFileType)
 
   def map(inputData: FileContent): JMap[K, HKeyOccurrences] = inputData.getPsiFile match {
     case hf: HoconPsiFile =>

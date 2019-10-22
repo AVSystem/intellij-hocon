@@ -42,7 +42,7 @@ class HoconPsiFile(provider: FileViewProvider)
     visitor.visitFile(this)
 
   def getFileType: FileType =
-    HoconFileType
+    new HoconFileType
 
   def toplevelChild: HoconPsiElement =
     findChildByClass(classOf[HoconPsiElement])

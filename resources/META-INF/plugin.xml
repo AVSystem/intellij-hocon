@@ -33,7 +33,8 @@
     </change-notes>
 
     <extensions defaultExtensionNs="com.intellij">
-        <fileTypeFactory implementation="org.jetbrains.plugins.hocon.lang.HoconFileTypeFactory"/>
+        <fileType implementationClass="org.jetbrains.plugins.hocon.lang.HoconFileType"
+                  name="HOCON" language="HOCON" extensions="conf"/>
         <lang.syntaxHighlighterFactory language="HOCON"
                                        implementationClass="org.jetbrains.plugins.hocon.highlight.HoconSyntaxHighlighterFactory"/>
         <lang.parserDefinition language="HOCON"

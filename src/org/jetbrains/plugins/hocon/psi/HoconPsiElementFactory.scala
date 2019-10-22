@@ -11,7 +11,7 @@ object HoconPsiElementFactory {
 
   private def createElement[T <: HoconPsiElement : ClassTag](manager: PsiManager, text: String, offset: Int): Option[T] = {
     val element = PsiFileFactory.getInstance(manager.getProject)
-      .createFileFromText(Dummy + HoconFileType.DefaultExtension, HoconFileType, text).findElementAt(offset)
+      .createFileFromText(Dummy + HoconFileType.DefaultExtension, new HoconFileType, text).findElementAt(offset)
     Iterator.iterate(element)(_.getParent).takeWhile(_ != null).collectFirst({ case t: T => t })
   }
 

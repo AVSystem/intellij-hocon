@@ -112,7 +112,7 @@ class HoconUseScopeAdjuster extends UseScopeEnlarger with ScopeOptimizer {
       new EverythingGlobalScope(project) {
         // HOCON files in library sources are just duplicates of the same HOCON files in regular library jars
         override def contains(file: VirtualFile): Boolean =
-          !(file.getFileType == HoconFileType && pfi.isInLibrarySource(file))
+          !(HoconFileType.isHocon(file.getFileType) && pfi.isInLibrarySource(file))
       }
     case _ =>
       super.getRestrictedUseScope(element)
