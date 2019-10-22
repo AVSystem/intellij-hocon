@@ -1,3 +1,4 @@
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "https://plugins.jetbrains.com/plugin.dtd">
 <idea-plugin>
     <id>org.jetbrains.plugins.hocon</id>
     <name>HOCON</name>
