@@ -6,6 +6,7 @@ import java.{util => ju}
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots._
 import com.intellij.openapi.util.{Condition, TextRange}
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi._
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.{FileReference, FileReferenceSet}
 import com.intellij.psi.search.GlobalSearchScope
@@ -101,10 +102,8 @@ class IncludedFileReferenceSet(
       item.getName.endsWith(ConfExt) || item.getName.endsWith(JsonExt) || item.getName.endsWith(PropsExt)
 
   // code mostly based on similar bits in `FileReferenceSet` and `PsiFileReferenceHelper`
-  override def computeDefaultContexts: ju.Collection[PsiFileSystemItem] = {
+  override def computeDefaultContexts: JCollection[PsiFileSystemItem] = {
     val empty = ju.Collections.emptyList[PsiFileSystemItem]
-
-    def single(fsi: PsiFileSystemItem) = ju.Collections.singletonList(fsi)
 
     val cf = getContainingFile
     if (cf == null) return empty
@@ -118,17 +117,20 @@ class IncludedFileReferenceSet(
     val parent = vfile.getParent
     if (parent == null) return empty
 
+    def single(vf: VirtualFile): JCollection[PsiFileSystemItem] =
+      PsiManager.getInstance(proj).findDirectory(vf).opt.fold(empty)(ju.Collections.singletonList)
+
+    val pfi = ProjectRootManager.getInstance(proj).getFileIndex
     if (fromClasspath) {
-      val pfi = ProjectRootManager.getInstance(proj).getFileIndex
       val pkgName =
         if (isAbsolutePathReference) ""
         else pfi.getPackageNameByDirectory(parent)
 
       if (pkgName != null) classpathPackageDirs(proj, scope, pkgName).toJList else empty
     } else if (isAbsolutePathReference) {
-      FileReferenceSet.getAbsoluteTopLevelDirLocations(containingFile)
+      single(pfi.getContentRootForFile(vfile))
     } else {
-      Option(PsiManager.getInstance(proj).findDirectory(parent)).map(single).getOrElse(empty)
+      single(parent)
     }
   }
 }
