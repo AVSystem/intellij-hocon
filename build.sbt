@@ -8,7 +8,7 @@ val silencerVersion = "1.4.4"
 
 lazy val hocon = project.in(file(".")).enablePlugins(SbtIdeaPlugin).settings(
   scalaVersion := "2.12.10",
-  version := "2019.3.3-SNAPSHOT",
+  version := "2019.3.99-SNAPSHOT",
   scalaSource in Compile := baseDirectory.value / "src",
   scalaSource in Test := baseDirectory.value / "test",
   resourceDirectory in Compile := baseDirectory.value / "resources",
