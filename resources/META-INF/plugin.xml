@@ -17,6 +17,7 @@
         <li>fixed 'Find Usages' on Java/Scala classes to search in HOCON values</li>
         <li>include resolution works for relative file(...) includes - module root is assumed as working dir</li>
         <li>fixed include resolution for files outside classpath (sources and libraries)</li>
+        <li>fixed 'Go to Prev/Next` actions in readonly files</li>
         </ul>
         2019.3.2 - bulk feature update implementing semantics-related features of HOCON:
         <ul>
