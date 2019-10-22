@@ -57,8 +57,7 @@ class HoconFindUsagesTest extends HoconMultiModuleTest {
       """modA/lib/reference.conf:8:13
         |modA/libsrc/reference.conf:8:13
         |modA/src/application.conf:4:13
-        |""".stripMargin
-    )
+        |""".stripMargin)
 
   private def testFindUsages[E >: Null <: PsiElement : ClassTag](
     filename: String, line: Int, column: Int, expected: String
