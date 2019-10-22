@@ -30,8 +30,11 @@ trait HoconTestUtils {
     contentRoot.findFileByRelativePath(path).opt
       .getOrElse(throw new IllegalArgumentException(s"file not found: $path"))
 
+  def findFile(path: String, project: Project): PsiFile =
+    PsiManager.getInstance(project).findFile(findVirtualFile(path))
+
   def findHoconFile(path: String, project: Project): HoconPsiFile =
-    PsiManager.getInstance(project).findFile(findVirtualFile(path)) match {
+    findFile(path, project) match {
       case file: HoconPsiFile => file
       case _ => throw new IllegalArgumentException(s"not a HOCON file: $path")
     }

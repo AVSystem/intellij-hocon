@@ -12,7 +12,6 @@ import com.intellij.psi.{PsiDocumentManager, PsiElement, PsiWhiteSpace}
 import com.intellij.ui.IconManager
 import com.intellij.util.text.CharSequenceSubSequence
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType
-import org.jetbrains.plugins.hocon.psi.HoconPsiElement
 
 import scala.annotation.tailrec
 import scala.collection.convert.{DecorateAsJava, DecorateAsScala}
@@ -102,7 +101,7 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
     def elementType: IElementType =
       elem.getNode.getElementType
 
-    def parentOfType[T <: HoconPsiElement : ClassTag]: Option[T] =
+    def parentOfType[T <: PsiElement : ClassTag]: Option[T] =
       Option(PsiTreeUtil.getParentOfType(elem, classTag[T].runtimeClass.asInstanceOf[Class[T]]))
 
     def getNextSibling(reverse: Boolean): PsiElement =
