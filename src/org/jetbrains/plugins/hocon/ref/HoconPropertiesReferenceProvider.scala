@@ -20,13 +20,13 @@ class HoconPropertiesReferenceProvider extends PsiReferenceProvider {
     if (!isEnabled(element.getProject)) PsiReference.EMPTY_ARRAY
     else {
       val res = for {
-        lit <- element.opt.collectOnly[PsiLiteral]
+        lit <- element.opt.collectOnly[PsiLiteralValue]
         strValue <- lit.getValue.opt.collectOnly[String]
         hpath <- HoconPsiElementFactory.createPath(strValue, PsiManager.getInstance(element.getProject)).opt
         strPath <- hpath.fullStringPath
       } yield {
-        val text = lit.getText
-        val fullRange = ElementManipulators.getValueTextRange(lit)
+        val text = element.getText
+        val fullRange = ElementManipulators.getValueTextRange(element)
 
         def makeRefs(off: Int, keys: List[String]): List[HoconPropertyReference] = keys match {
           case Nil => Nil
@@ -47,7 +47,7 @@ class HoconPropertiesReferenceProvider extends PsiReferenceProvider {
             val nextRef = subRefs.headOption
             val revIndex = nextRef.fold(0)(_.reverseIndex + 1)
             val keyRange = new TextRange(off, endOffset)
-            val ref = new HoconPropertyReference(strPath, revIndex, key, lit, keyRange)
+            val ref = new HoconPropertyReference(strPath, revIndex, key, element, lit, keyRange)
             ref :: subRefs
         }
 
@@ -61,16 +61,17 @@ class HoconPropertyReference(
   fullPath: List[String],
   val reverseIndex: Int,
   key: String,
-  lit: PsiLiteral,
+  element: PsiElement,
+  lit: PsiLiteralValue,
   range: TextRange
 ) extends PsiReference {
   def getCanonicalText: String = key
-  def getElement: PsiElement = lit
+  def getElement: PsiElement = element
   def getRangeInElement: TextRange = range
 
-  def createContext: ToplevelCtx = lit.getContainingFile match {
+  def createContext: ToplevelCtx = element.getContainingFile match {
     case hf: HoconPsiFile => ToplevelCtx(hf)
-    case _ => ToplevelCtx(lit, ToplevelCtx.ApplicationResource)
+    case _ => ToplevelCtx(element, ToplevelCtx.ApplicationResource)
   }
 
   def resolve(): PsiElement = createContext
@@ -79,7 +80,7 @@ class HoconPropertyReference(
     .map(_.hkey).orNull
 
   override def getVariants: Array[AnyRef] = {
-    val toplevelCtx = ToplevelCtx(lit, ToplevelCtx.ApplicationResource)
+    val toplevelCtx = ToplevelCtx(element, ToplevelCtx.ApplicationResource)
     val opts = ResOpts(reverse = true)
 
     val variantFields = fullPath.dropRight(reverseIndex + 1) match {

@@ -20,7 +20,7 @@ import org.jetbrains.plugins.hocon.lang.HoconFileType
 import org.jetbrains.plugins.hocon.lexer.{HoconLexer, HoconTokenSets, HoconTokenType}
 import org.jetbrains.plugins.hocon.parser.HoconElementType
 import org.jetbrains.plugins.hocon.parser.HoconElementType.HoconFileElementType
-import org.jetbrains.plugins.hocon.ref.{HKeyReference, IncludedFileReferenceSet}
+import org.jetbrains.plugins.hocon.ref.{HKeyReference, IncludedFileReferenceSet, PackageDirsEnumerator}
 import org.jetbrains.plugins.hocon.semantics._
 
 import scala.annotation.tailrec
@@ -411,7 +411,8 @@ final class HQualifiedIncluded(ast: ASTNode) extends HoconPsiElement(ast) {
           Some(new IncludedFileReferenceSet(strVal, hs, true, false, scope))
         case None if !isValidUrl(strVal) =>
           val pfi = ProjectRootManager.getInstance(getProject).getFileIndex
-          val fromClasspath = pfi.isInSource(vf) || pfi.isInLibraryClasses(vf)
+          val fromClasspath = !PackageDirsEnumerator.EpName.getExtensions.isEmpty &&
+            (pfi.isInSource(vf) || pfi.isInLibraryClasses(vf))
           if (fromClasspath || !absolutePath)
             Some(new IncludedFileReferenceSet(strVal, hs, false, fromClasspath, scope))
           else
@@ -733,7 +734,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
 
 final class HConcatenation(ast: ASTNode) extends HoconPsiElement(ast) with HValue with HValueParent
 
-sealed trait HLiteralValue extends HValue with PsiLiteral {
+sealed trait HLiteralValue extends HValue with PsiLiteralValue {
   def configValue: ConfigValue
 }
 
@@ -769,7 +770,7 @@ object HNumber {
 
 final class HUnquotedString(ast: ASTNode) extends HoconPsiElement(ast)
 
-sealed trait HString extends HoconPsiElement with PsiLiteral with ContributedReferenceHost {
+sealed trait HString extends HoconPsiElement with PsiLiteralValue with ContributedReferenceHost {
   def stringType: IElementType = getFirstChild.getNode.getElementType
 
   def getValue: Object = stringValue

@@ -69,12 +69,9 @@ object IncludedFileReferenceSet {
     orderEntryScope orElse moduleScope getOrElse GlobalSearchScope.EMPTY_SCOPE
   }
 
-  def classpathPackageDirs(project: Project, scope: GlobalSearchScope, pkgName: String): List[PsiFileSystemItem] = {
-    val psiManager = PsiManager.getInstance(project)
-    PackageIndex.getInstance(project).getDirectoriesByPackageName(pkgName, false).iterator
-      .filter(scope.contains).flatMap(dir => Option(psiManager.findDirectory(dir)))
-      .toList
-  }
+  def classpathPackageDirs(project: Project, scope: GlobalSearchScope, pkgName: String): List[PsiFileSystemItem] =
+    PackageDirsEnumerator.EpName.getExtensionList.iterator.asScala
+      .flatMap(_.classpathPackageDirs(project, scope, pkgName)).toList
 }
 
 class IncludedFileReferenceSet(

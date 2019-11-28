@@ -2,4 +2,8 @@
     <extensions defaultExtensionNs="com.intellij">
         <psi.referenceContributor implementation="org.jetbrains.plugins.hocon.ref.HoconJavaReferenceContributor"/>
     </extensions>
+
+    <extensions defaultExtensionNs="org.jetbrains.plugins.hocon">
+        <packageDirsEnumerator implementation="org.jetbrains.plugins.hocon.ref.JavaPackageDirsEnumerator"/>
+    </extensions>
 </idea-plugin>

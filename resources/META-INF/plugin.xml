@@ -32,6 +32,10 @@
         ]]>
     </change-notes>
 
+    <extensionPoints>
+        <extensionPoint name="packageDirsEnumerator" interface="org.jetbrains.plugins.hocon.ref.PackageDirsEnumerator"/>
+    </extensionPoints>
+
     <extensions defaultExtensionNs="com.intellij">
         <fileType implementationClass="org.jetbrains.plugins.hocon.lang.HoconFileType"
                   name="HOCON" language="HOCON" extensions="conf"/>
