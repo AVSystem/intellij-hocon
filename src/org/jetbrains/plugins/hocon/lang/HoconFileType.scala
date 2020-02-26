@@ -11,7 +11,7 @@ final class HoconFileType extends LanguageFileType(HoconLanguage) {
   def getName = "HOCON"
 }
 object HoconFileType {
-  val DefaultExtension = "conf"
+  final val DefaultExtension = "conf"
 
   def isHocon(fileType: FileType): Boolean = fileType match {
     case _: HoconFileType => true

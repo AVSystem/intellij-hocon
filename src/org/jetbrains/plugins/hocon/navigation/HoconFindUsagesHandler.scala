@@ -60,7 +60,7 @@ class HoconFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
 
 class HoconFindUsagesHandler(element: PsiElement) extends FindUsagesHandler(element) {
   override def processElementUsages(
-    element: PsiElement, processor: Processor[UsageInfo], options: FindUsagesOptions
+    element: PsiElement, processor: Processor[_ >: UsageInfo], options: FindUsagesOptions
   ): Boolean = {
     val res = element match {
       case hkey: HKey if options.isUsages => ReadAction.compute { () =>

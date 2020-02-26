@@ -2,7 +2,7 @@ package org.jetbrains.plugins.hocon
 package parser
 
 import com.intellij.lang.ASTNode
-import com.intellij.lang.annotation.{AnnotationHolder, Annotator}
+import com.intellij.lang.annotation.{AnnotationHolder, Annotator, HighlightSeverity}
 import com.intellij.lexer.StringLiteralLexer
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.{PsiElement, StringEscapesTokenTypes, TokenType}
@@ -30,9 +30,9 @@ class HoconErrorHighlightingAnnotator extends Annotator {
           case (tokenType, _) => tokenType != null
         } foreach {
           case (StringEscapesTokenTypes.INVALID_CHARACTER_ESCAPE_TOKEN, range) =>
-            holder.createErrorAnnotation(range, "invalid escape character")
+            holder.newAnnotation(HighlightSeverity.ERROR, "invalid escape character").range(range).create()
           case (StringEscapesTokenTypes.INVALID_UNICODE_ESCAPE_TOKEN, range) =>
-            holder.createErrorAnnotation(range, "invalid unicode escape")
+            holder.newAnnotation(HighlightSeverity.ERROR, "invalid unicode escape").range(range).create()
           case _ =>
         }
 
@@ -53,7 +53,8 @@ class HoconErrorHighlightingAnnotator extends Annotator {
 
             case (required, actual) =>
 
-              holder.createErrorAnnotation(child, s"cannot concatenate ${uncaps(required.toString)} with ${uncaps(actual.toString)}")
+              val msg = s"cannot concatenate ${uncaps(required.toString)} with ${uncaps(actual.toString)}"
+              holder.newAnnotation(HighlightSeverity.ERROR, msg).range(child).create()
               validateConcatenation(actual, child.getTreeNext)
 
           }

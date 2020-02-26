@@ -3,9 +3,9 @@
     <id>org.jetbrains.plugins.hocon</id>
     <name>HOCON</name>
     <description>Standalone HOCON plugin for IntelliJ IDEA</description>
-    <version>2019.3.99-SNAPSHOT</version>
+    <version>2020.1.99-SNAPSHOT</version>
     <vendor>Roman Janusz, AVSystem, JetBrains</vendor>
-    <idea-version since-build="193.0" until-build="220.0"/>
+    <idea-version since-build="201.0" until-build="220.0"/>
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
     <depends optional="true" config-file="hocon-java.xml">com.intellij.modules.java</depends>
