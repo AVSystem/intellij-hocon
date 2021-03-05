@@ -1,7 +1,7 @@
 import org.jetbrains.sbtidea.Keys._
 
 intellijPluginName in ThisBuild := "intellij-hocon"
-intellijBuild in ThisBuild := "201.5616.10"
+intellijBuild in ThisBuild := "201.8743.12"
 
 val junitInterfaceVersion = "0.11"
 val silencerVersion = "1.6.0"
@@ -25,7 +25,7 @@ lazy val hocon = project.in(file(".")).enablePlugins(SbtIdeaPlugin).settings(
   ideBasePackages := Seq("org.jetbrains.plugins.hocon"),
   ideOutputDirectory in Compile := Some(file("out/production")),
   ideOutputDirectory in Test := Some(file("out/test")),
-  intellijInternalPlugins := Seq("properties", "java", "java-i18n"),
+  intellijPlugins := Seq("com.intellij.properties", "com.intellij.java", "com.intellij.java-i18n").map(_.toPlugin),
   libraryDependencies ++= Seq(
     "com.novocode" % "junit-interface" % junitInterfaceVersion % Test,
     "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full,
@@ -36,5 +36,3 @@ lazy val hocon = project.in(file(".")).enablePlugins(SbtIdeaPlugin).settings(
     xml.version = version.value
   }
 )
-
-lazy val runner = createRunnerProject(hocon, "hocon-runner")
