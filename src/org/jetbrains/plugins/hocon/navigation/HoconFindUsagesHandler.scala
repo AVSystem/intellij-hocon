@@ -1,6 +1,11 @@
 package org.jetbrains.plugins.hocon
 package navigation
 
+import indexing.HoconPathIndex
+import lang.HoconFileType
+import lexer.{HoconLexer, HoconTokenSets, HoconTokenType}
+import psi._
+
 import com.intellij.find.findUsages.{FindUsagesHandler, FindUsagesHandlerFactory, FindUsagesOptions}
 import com.intellij.lang.HelpID
 import com.intellij.lang.cacheBuilder.{DefaultWordsScanner, WordsScanner}
@@ -13,10 +18,6 @@ import com.intellij.psi.search._
 import com.intellij.psi.tree.TokenSet
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.Processor
-import org.jetbrains.plugins.hocon.indexing.HoconPathIndex
-import org.jetbrains.plugins.hocon.lang.HoconFileType
-import org.jetbrains.plugins.hocon.lexer.{HoconLexer, HoconTokenSets, HoconTokenType}
-import org.jetbrains.plugins.hocon.psi._
 
 import scala.annotation.nowarn
 
@@ -107,15 +108,14 @@ class HoconUseScopeAdjuster extends UseScopeEnlarger with ScopeOptimizer {
     case _ => null
   }
 
-  @nowarn("msg=deprecated")
   override def getRestrictedUseScope(element: PsiElement): SearchScope = element match {
     case hk: HFieldKey =>
       val project = hk.getProject
       val pfi = ProjectFileIndex.getInstance(project)
-      new EverythingGlobalScope(project) {
+      new DelegatingGlobalSearchScope(GlobalSearchScope.everythingScope(project)) {
         // HOCON files in library sources are just duplicates of the same HOCON files in regular library jars
         override def contains(file: VirtualFile): Boolean =
-          !(HoconFileType.isHocon(file.getFileType) && pfi.isInLibrarySource(file))
+          super.contains(file) && !(HoconFileType.isHocon(file.getFileType) && pfi.isInLibrarySource(file))
       }
     case _ =>
       super.getRestrictedUseScope(element)
