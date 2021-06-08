@@ -22,8 +22,6 @@ lazy val hocon = project.in(file(".")).enablePlugins(SbtIdeaPlugin).settings(
     "-P:silencer:checkUnused"
   ),
   ideBasePackages := Seq("org.jetbrains.plugins.hocon"),
-  Compile / ideOutputDirectory := Some(file("out/production")),
-  Test / ideOutputDirectory := Some(file("out/test")),
   intellijPlugins := Seq("com.intellij.properties", "com.intellij.java", "com.intellij.java-i18n").map(_.toPlugin),
   libraryDependencies ++= Seq(
     "com.novocode" % "junit-interface" % junitInterfaceVersion % Test,

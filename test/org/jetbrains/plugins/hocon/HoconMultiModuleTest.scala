@@ -68,6 +68,8 @@ abstract class HoconMultiModuleTest extends UsefulTestCase with HoconTestUtils {
         case (dependent, dependency) =>
           addDependency(models(dependent), modules(dependency))
       }
+
+      models.values.foreach(_.commit())
     }
   }
 
@@ -98,14 +100,10 @@ object HoconMultiModuleTest {
     model.getOrderEntries.collect {
       case entry: LibraryOrderEntry if entry.getLibraryName.endsWith("testlib") => entry
     }.foreach(_.setScope(DependencyScope.TEST))
-
-    model.commit()
   }
 
-  private def addDependency(model: ModifiableRootModel, module: Module): Unit = {
+  private def addDependency(model: ModifiableRootModel, module: Module): Unit =
     model.addModuleOrderEntry(module).setExported(true)
-    model.commit()
-  }
 }
 
 class HoconJavaModuleFixtureBuilder(fixtureBuilder: TestFixtureBuilder[_ <: IdeaProjectTestFixture])
