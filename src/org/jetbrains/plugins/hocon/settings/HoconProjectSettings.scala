@@ -1,14 +1,13 @@
 package org.jetbrains.plugins.hocon
 package settings
 
-import java.io.File
-
-import com.github.ghik.silencer.silent
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components._
 import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.XmlSerializerUtil
 
+import java.io.File
+import scala.annotation.nowarn
 import scala.beans.BeanProperty
 
 @State(
@@ -18,7 +17,7 @@ import scala.beans.BeanProperty
     new Storage("hocon_settings.xml")
   )
 )
-@silent("deprecated")
+@nowarn("msg=deprecated")
 class HoconProjectSettings extends PersistentStateComponent[HoconProjectSettings] with ExportableComponent {
   def getState: HoconProjectSettings = this
 
