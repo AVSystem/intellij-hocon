@@ -18,6 +18,8 @@ import org.jetbrains.plugins.hocon.lang.HoconFileType
 import org.jetbrains.plugins.hocon.lexer.{HoconLexer, HoconTokenSets, HoconTokenType}
 import org.jetbrains.plugins.hocon.psi._
 
+import scala.annotation.nowarn
+
 class HoconWordsScanner extends DefaultWordsScanner(
   new HoconLexer,
   HoconTokenSets.StringLiteral | HoconTokenType.UnquotedChars,
@@ -105,6 +107,7 @@ class HoconUseScopeAdjuster extends UseScopeEnlarger with ScopeOptimizer {
     case _ => null
   }
 
+  @nowarn("msg=deprecated")
   override def getRestrictedUseScope(element: PsiElement): SearchScope = element match {
     case hk: HFieldKey =>
       val project = hk.getProject

@@ -1,19 +1,19 @@
 import org.jetbrains.sbtidea.Keys._
 
-intellijPluginName in ThisBuild := "intellij-hocon"
-intellijBuild in ThisBuild := "201.8743.12"
+ThisBuild / intellijPluginName := "intellij-hocon"
+ThisBuild / intellijBuild := "212.3724.25"
 
 val junitInterfaceVersion = "0.11"
-val silencerVersion = "1.6.0"
+val silencerVersion = "1.7.5"
 
 lazy val hocon = project.in(file(".")).enablePlugins(SbtIdeaPlugin).settings(
-  scalaVersion := "2.12.10",
-  version := "2020.1.99-SNAPSHOT",
-  scalaSource in Compile := baseDirectory.value / "src",
-  scalaSource in Test := baseDirectory.value / "test",
-  resourceDirectory in Compile := baseDirectory.value / "resources",
-  javacOptions in Global ++= Seq("-source", "1.8", "-target", "1.8"),
-  scalacOptions in Global ++= Seq(
+  scalaVersion := "2.12.14",
+  version := "2021.2.99-SNAPSHOT",
+  Compile / scalaSource := baseDirectory.value / "src",
+  Test / scalaSource := baseDirectory.value / "test",
+  Compile / resourceDirectory := baseDirectory.value / "resources",
+  Global / javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
+  Global / scalacOptions ++= Seq(
     "-target:jvm-1.8",
     "-deprecation",
     "-feature",
@@ -23,8 +23,8 @@ lazy val hocon = project.in(file(".")).enablePlugins(SbtIdeaPlugin).settings(
     "-P:silencer:checkUnused"
   ),
   ideBasePackages := Seq("org.jetbrains.plugins.hocon"),
-  ideOutputDirectory in Compile := Some(file("out/production")),
-  ideOutputDirectory in Test := Some(file("out/test")),
+  Compile / ideOutputDirectory := Some(file("out/production")),
+  Test / ideOutputDirectory := Some(file("out/test")),
   intellijPlugins := Seq("com.intellij.properties", "com.intellij.java", "com.intellij.java-i18n").map(_.toPlugin),
   libraryDependencies ++= Seq(
     "com.novocode" % "junit-interface" % junitInterfaceVersion % Test,

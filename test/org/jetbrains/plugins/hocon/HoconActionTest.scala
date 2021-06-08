@@ -6,8 +6,6 @@ import com.intellij.openapi.fileEditor.{FileEditorManager, OpenFileDescriptor}
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Assert.assertNotNull
-import org.junit.runner.RunWith
-import org.junit.runners.AllTests
 
 /**
  * @author ghik
@@ -56,11 +54,11 @@ abstract class HoconActionTest protected(protected val actionId: String, subPath
 object HoconActionTest {
 
   private class MockDataContext(file: PsiFile, editor: Editor) extends DataContext with DataProvider {
-    def getData(dataId: String): AnyRef =
-      if (LangDataKeys.LANGUAGE is dataId) file.getLanguage
-      else if (CommonDataKeys.PROJECT is dataId) file.getProject
+    def getData(dataId: String): AnyRef = {
+      if (CommonDataKeys.PROJECT is dataId) file.getProject
       else if (CommonDataKeys.EDITOR is dataId) editor
       else null
+    }
   }
 
 }

@@ -1,15 +1,15 @@
 package org.jetbrains.plugins.hocon
 package highlight
 
-import java.{util => ju}
+import navigation.HoconFindUsagesHandler
+import psi._
 
 import com.intellij.codeInsight.highlighting.{HighlightUsagesHandlerBase, HighlightUsagesHandlerFactoryBase}
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.{PsiElement, PsiFile}
 import com.intellij.util.Consumer
-import org.jetbrains.plugins.hocon.navigation.HoconFindUsagesHandler
-import org.jetbrains.plugins.hocon.psi._
 
+import java.{util => ju}
 import scala.collection.JavaConverters.asScalaIteratorConverter
 
 class HoconHighlightUsagesHandlerFactory extends HighlightUsagesHandlerFactoryBase {
@@ -20,7 +20,7 @@ class HoconHighlightUsagesHandlerFactory extends HighlightUsagesHandlerFactoryBa
 class HoconHighlightKeyUsagesHandler(editor: Editor, hkey: HKey)
   extends HighlightUsagesHandlerBase[HKey](editor, hkey.hoconFile) {
 
-  def computeUsages(targets: JList[HKey]): Unit = for {
+  def computeUsages(targets: JList[_ <: HKey]): Unit = for {
     target <- targets.iterator.asScala
     foundKey <- HoconFindUsagesHandler.localUsagesOf(target)
     usageList = if (foundKey.inField) myWriteUsages else myReadUsages
@@ -30,6 +30,6 @@ class HoconHighlightKeyUsagesHandler(editor: Editor, hkey: HKey)
 
   def getTargets: JList[HKey] = ju.Collections.singletonList(hkey)
 
-  def selectTargets(targets: JList[HKey], selectionConsumer: Consumer[JList[HKey]]): Unit =
+  def selectTargets(targets: JList[_ <: HKey], selectionConsumer: Consumer[_ >: JList[_ <: HKey]]): Unit =
     selectionConsumer.consume(targets)
 }

@@ -1,11 +1,13 @@
 package org.jetbrains.plugins.hocon
 package codestyle
 
+import lang.HoconLanguage
+
 import com.intellij.application.options.SmartIndentOptionsEditor
 import com.intellij.lang.Language
+import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable.SpacingOption
 import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider.SettingsType
-import com.intellij.psi.codeStyle.{CodeStyleSettingsCustomizable, CommonCodeStyleSettings, DisplayPriority, LanguageCodeStyleSettingsProvider}
-import org.jetbrains.plugins.hocon.lang.HoconLanguage
+import com.intellij.psi.codeStyle._
 
 class HoconLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvider {
   override def getLanguage: Language = HoconLanguage
@@ -21,23 +23,23 @@ class HoconLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsPr
     def showCustomOption(name: String, title: String, group: String, options: AnyRef*): Unit =
       consumer.showCustomOption(classOf[HoconCustomCodeStyleSettings], name, title, group, options: _*)
 
-    import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable._
+    import CodeStyleSettingsCustomizable.{WRAP_VALUES, WRAP_VALUES_FOR_SINGLETON}
     import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider.SettingsType._
+    val customizableOptions = CodeStyleSettingsCustomizableOptions.getInstance
+    import customizableOptions._
 
     settingsType match {
       case SPACING_SETTINGS =>
-        import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable.SpacingOption._
-
         consumer.showStandardOptions(List(
-          SPACE_WITHIN_BRACES,
-          SPACE_WITHIN_BRACKETS,
-          SPACE_WITHIN_METHOD_CALL_PARENTHESES,
-          SPACE_BEFORE_COMMA,
-          SPACE_AFTER_COMMA
+          SpacingOption.SPACE_WITHIN_BRACES,
+          SpacingOption.SPACE_WITHIN_BRACKETS,
+          SpacingOption.SPACE_WITHIN_METHOD_CALL_PARENTHESES,
+          SpacingOption.SPACE_BEFORE_COMMA,
+          SpacingOption.SPACE_AFTER_COMMA
         ).map(_.name): _*)
 
-        consumer.renameStandardOption(SPACE_WITHIN_BRACES.name, "Object braces")
-        consumer.renameStandardOption(SPACE_WITHIN_METHOD_CALL_PARENTHESES.name, "Include qualifier parentheses")
+        consumer.renameStandardOption(SpacingOption.SPACE_WITHIN_BRACES.name, "Object braces")
+        consumer.renameStandardOption(SpacingOption.SPACE_WITHIN_METHOD_CALL_PARENTHESES.name, "Include qualifier parentheses")
 
         showCustomOption("SPACE_BEFORE_COLON", "Before colon", SPACES_AROUND_OPERATORS)
         showCustomOption("SPACE_AFTER_COLON", "After colon", SPACES_AROUND_OPERATORS)

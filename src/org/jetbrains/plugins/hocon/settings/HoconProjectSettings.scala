@@ -38,5 +38,5 @@ class HoconProjectSettings extends PersistentStateComponent[HoconProjectSettings
 
 object HoconProjectSettings {
   def getInstance(project: Project): HoconProjectSettings =
-    ServiceManager.getService(project, classOf[HoconProjectSettings])
+    project.getService(classOf[HoconProjectSettings])
 }
