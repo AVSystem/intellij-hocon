@@ -52,7 +52,7 @@ class HoconBlock(formatter: HoconFormatter, node: ASTNode, indent: Indent, wrap:
       formatter.getAlignment(alignmentCache, node, child))
 
   override def toString: String =
-    s"${node.getElementType}[${node.getText.replaceAllLiterally("\n", "\\n")}]${node.getTextRange}" + {
+    s"${node.getElementType}[${node.getText.replace("\n", "\\n")}]${node.getTextRange}" + {
       if (isLeaf) "" else children.mkString("\n", "\n", "").indent("  ")
     }
 }

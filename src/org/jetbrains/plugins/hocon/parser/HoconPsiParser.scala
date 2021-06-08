@@ -418,7 +418,7 @@ class HoconPsiParser extends PsiParser {
       lazy val isValid = {
         val text = textBuilder.result()
         try {
-          if (gotPeriod) text.toDouble else text.toLong
+          if (gotPeriod) text.toDouble else text.toLong.toDouble
           true
         } catch {
           case _: NumberFormatException => false

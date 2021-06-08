@@ -24,7 +24,7 @@ abstract class HoconFileSetTestCase(subpath: String)
     indentOptions.INDENT_SIZE = 2
     indentOptions.CONTINUATION_INDENT_SIZE = 2
     indentOptions.TAB_SIZE = 2
-    transform(data.map(_.stripLineEnd))
+    transform(data.iterator.map(_.stripLineEnd).toVector)
   }
 
   protected def transform(data: Seq[String]): String

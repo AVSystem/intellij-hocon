@@ -52,7 +52,7 @@ object HKeyOccurrences {
         lb += new TextRange(startOffset, endOffset)
         len -= 1
       }
-      lb.result()
+      lb
     }
 
     def read(dataInput: DataInput): HKeyOccurrences = {

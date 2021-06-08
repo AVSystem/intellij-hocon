@@ -10,7 +10,6 @@ import com.intellij.psi.{PsiElement, PsiFile}
 import com.intellij.util.Consumer
 
 import java.{util => ju}
-import scala.collection.JavaConverters.asScalaIteratorConverter
 
 class HoconHighlightUsagesHandlerFactory extends HighlightUsagesHandlerFactoryBase {
   def createHighlightUsagesHandler(editor: Editor, file: PsiFile, target: PsiElement): HoconHighlightKeyUsagesHandler =

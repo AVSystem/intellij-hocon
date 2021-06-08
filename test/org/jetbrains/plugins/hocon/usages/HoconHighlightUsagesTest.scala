@@ -62,7 +62,7 @@ class HoconHighlightUsagesTest extends BasePlatformTestCase {
 
   private def highlights: Seq[(Int, Int)] = {
     val testName = s"${getTestName(true)}.$DefaultExtension"
-    myFixture.testHighlightUsages(testName).map { highlighter =>
+    myFixture.testHighlightUsages(testName).toVector.map { highlighter =>
       (highlighter.getStartOffset, highlighter.getEndOffset)
     }
   }

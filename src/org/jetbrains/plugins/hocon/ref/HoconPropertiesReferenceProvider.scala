@@ -76,7 +76,7 @@ class HoconPropertyReference(
 
   def resolve(): PsiElement = createContext
     .occurrences(fullPath, ResOpts(reverse = true))
-    .nextOption.flatMap(_.ancestorField(reverseIndex))
+    .nextOption().flatMap(_.ancestorField(reverseIndex))
     .map(_.hkey).orNull
 
   override def getVariants: Array[AnyRef] = {

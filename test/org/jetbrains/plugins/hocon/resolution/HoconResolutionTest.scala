@@ -22,7 +22,7 @@ class HoconResolutionTest extends HoconSingleModuleTest {
       val actualResult = render(ctx.occurrences(path, opts))
       Assert.assertEquals(expected, actualResult)
 
-      val traversalResult = render(Iterator.iterate(ctx.occurrences(path, opts).nextOption.orNull) { rf =>
+      val traversalResult = render(Iterator.iterate(ctx.occurrences(path, opts).nextOption().orNull) { rf =>
         rf.nextOccurrence(opts).orNull
       }.takeWhile(_ != null))
       Assert.assertEquals(expected, traversalResult)

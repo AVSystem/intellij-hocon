@@ -1,8 +1,5 @@
 package org.jetbrains.plugins
 
-import java.net.{MalformedURLException, URL}
-import java.{lang => jl, util => ju}
-
 import com.intellij.icons.AllIcons
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
@@ -13,13 +10,15 @@ import com.intellij.ui.IconManager
 import com.intellij.util.text.CharSequenceSubSequence
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType
 
+import java.net.{MalformedURLException, URL}
+import java.{lang => jl, util => ju}
 import scala.annotation.tailrec
-import scala.collection.convert.{DecorateAsJava, DecorateAsScala}
-import scala.collection.{AbstractIterator, GenTraversableOnce}
+import scala.collection.AbstractIterator
+import scala.collection.convert.{AsJavaExtensions, AsScalaExtensions}
 import scala.language.implicitConversions
 import scala.reflect.{ClassTag, classTag}
 
-package object hocon extends DecorateAsJava with DecorateAsScala {
+package object hocon extends AsJavaExtensions with AsScalaExtensions {
   type JList[T] = java.util.List[T]
   type JCollection[T] = java.util.Collection[T]
   type JMap[K, V] = java.util.Map[K, V]
@@ -144,7 +143,7 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
 
   implicit class StringOps(private val str: String) extends AnyVal {
     def indent(ind: String): String =
-      ind + str.replaceAllLiterally("\n", "\n" + ind)
+      ind + str.replace("\n", "\n" + ind)
   }
 
   implicit class universalOps[T](private val t: T) extends AnyVal {
@@ -177,10 +176,10 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
     }
   }
 
-  implicit class collectionOps[A](private val coll: GenTraversableOnce[A]) extends AnyVal {
+  implicit class collectionOps[A](private val coll: IterableOnce[A]) extends AnyVal {
     def toJList[B >: A]: JList[B] = {
       val result = new ju.ArrayList[B]
-      coll.foreach(result.add)
+      coll.iterator.foreach(result.add)
       result
     }
   }
@@ -192,7 +191,7 @@ package object hocon extends DecorateAsJava with DecorateAsScala {
     def collectOnly[T: ClassTag]: Iterator[T] =
       it.collect { case t: T => t }
 
-    def flatCollect[B](f: PartialFunction[A, TraversableOnce[B]]): Iterator[B] =
+    def flatCollect[B](f: PartialFunction[A, IterableOnce[B]]): Iterator[B] =
       it.flatMap(a => f.applyOrElse(a, (_: A) => Iterator.empty))
 
     def orElse(other: Iterator[A]): Iterator[A] = new AbstractIterator[A] {

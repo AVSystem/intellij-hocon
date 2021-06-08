@@ -155,7 +155,7 @@ final class HObjectEntries(ast: ASTNode) extends HoconPsiElement(ast) with HEntr
     entries(opts.reverse).flatMap(_.occurrences(key, opts, resCtx))
 
   def firstOccurrence(path: List[String], opts: ResOpts, resCtx: ResolutionCtx): Option[ResolvedField] =
-    occurrences(path, opts, resCtx).nextOption
+    occurrences(path, opts, resCtx).nextOption()
 
   def occurrences(path: List[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] = path match {
     case Nil => Iterator.empty
@@ -209,10 +209,10 @@ sealed trait HEntriesLike extends HoconPsiElement {
   def containingObject: Option[HObject]
 
   def nextEntry(reverse: Boolean): Option[HEntriesLike] =
-    moreEntries(reverse).nextOption
+    moreEntries(reverse).nextOption()
 
   def firstOccurrence(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Option[ResolvedField] =
-    occurrences(key, opts, resCtx).nextOption
+    occurrences(key, opts, resCtx).nextOption()
 
   def occurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField]
 
@@ -569,7 +569,7 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
 
       @tailrec def chooseBest(curBest: ResolvedField, curRank: Int): ResolvedField =
         if (curRank == maxRank) curBest
-        else candidates.nextOption match {
+        else candidates.nextOption() match {
           case Some(next) =>
             val nextRank = rank(next)
             if (nextRank > curRank) chooseBest(next, nextRank)
@@ -578,7 +578,7 @@ final class HPath(ast: ASTNode) extends HoconPsiElement(ast) with HKeyParent wit
             curBest
         }
 
-      candidates.nextOption.map(rf => chooseBest(rf, rank(rf)))
+      candidates.nextOption().map(rf => chooseBest(rf, rank(rf)))
     }
   }
 }
@@ -615,7 +615,7 @@ sealed trait HValue extends HoconPsiElement {
   }
 
   def firstOccurrence(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Option[ResolvedField] =
-    occurrences(key, opts, resCtx).nextOption
+    occurrences(key, opts, resCtx).nextOption()
 
   def occurrences(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Iterator[ResolvedField] = this match {
     case obj: HObject =>
@@ -646,7 +646,7 @@ sealed trait HValue extends HoconPsiElement {
       }
     case hs: HSubstitution =>
       hs.resolve(ResOpts(reverse = true), resCtx).map(_.resolveValue)
-        .nextOption.getOrElse(if (hs.optional) NoValue else InvalidValue)
+        .nextOption().getOrElse(if (hs.optional) NoValue else InvalidValue)
   }
 }
 
@@ -688,7 +688,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
 
       val fullPath = fixupPrefix ++ strPath
       pathsInRes.iterator.flatMap(nonFullSubsType(fullPath, _))
-        .nextOption.getOrElse(SubstitutionKind.Full(fullPath))
+        .nextOption().getOrElse(SubstitutionKind.Full(fullPath))
     }
 
   private def doResolve(

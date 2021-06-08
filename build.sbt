@@ -7,14 +7,13 @@ val junitInterfaceVersion = "0.11"
 val silencerVersion = "1.7.5"
 
 lazy val hocon = project.in(file(".")).enablePlugins(SbtIdeaPlugin).settings(
-  scalaVersion := "2.12.14",
+  scalaVersion := "2.13.6",
   version := "2021.2.99-SNAPSHOT",
   Compile / scalaSource := baseDirectory.value / "src",
   Test / scalaSource := baseDirectory.value / "test",
   Compile / resourceDirectory := baseDirectory.value / "resources",
-  Global / javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
+  Global / javacOptions ++= Seq("-source", "11", "-target", "11"),
   Global / scalacOptions ++= Seq(
-    "-target:jvm-1.8",
     "-deprecation",
     "-feature",
     "-unchecked",

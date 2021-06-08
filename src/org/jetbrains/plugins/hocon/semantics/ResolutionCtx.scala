@@ -262,7 +262,7 @@ case class ResolvedField(
     backtracedField.fold(this)(_.fullyBacktraced)
 
   def firstSubOccurrence(subkey: Option[String], opts: ResOpts): Option[ResolvedField] =
-    occurrences(subkey, opts).nextOption
+    occurrences(subkey, opts).nextOption()
 
   def occurrences(subkey: Option[String], opts: ResOpts): Iterator[ResolvedField] = field match {
     case pf: HPrefixedField =>
@@ -381,7 +381,7 @@ case class ResolvedField(
   }
 
   def nextOccurrence(opts: ResOpts): Option[ResolvedField] =
-    moreOccurrences(opts).nextOption
+    moreOccurrences(opts).nextOption()
 
   def resolveValue: ConfigValue = field match {
     case _: HPrefixedField =>
@@ -412,7 +412,7 @@ case class IncludeCtx(
     else file.toplevelEntries.flatMapIt(_.occurrences(subkey, opts, this))
 
   def firstOccurrence(key: Option[String], opts: ResOpts): Option[ResolvedField] =
-    occurrences(key, opts).nextOption
+    occurrences(key, opts).nextOption()
 
   def moreFileContexts(reverse: Boolean): Iterator[IncludeCtx] = {
     val idxIt = if (reverse) Iterator.range(fileIdx - 1, -1, -1) else Iterator.range(fileIdx + 1, allFiles.size)

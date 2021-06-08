@@ -37,9 +37,9 @@ abstract class HoconMultiModuleTest extends UsefulTestCase with HoconTestUtils {
 
       def addLibrary(libraryName: String): Unit = {
         import OrderRootType._
-        val mapping = Map(CLASSES -> "", SOURCES -> "src").mapValues { suffix =>
+        val mapping = Map(CLASSES -> "", SOURCES -> "src").view.mapValues { suffix =>
           Array(new File(directory, libraryName + suffix).getPath)
-        }
+        }.toMap
 
         builder.addLibrary(directory.getName + libraryName, mapping.asJava)
       }
@@ -59,9 +59,9 @@ abstract class HoconMultiModuleTest extends UsefulTestCase with HoconTestUtils {
         case (directory, builder) => (directory.getName, builder.getFixture.getModule)
       }.toMap
 
-      val models = modules.mapValues { module =>
+      val models = modules.view.mapValues { module =>
         ModuleRootManager.getInstance(module).getModifiableModel
-      }
+      }.toMap
       models.values.foreach(setUpEntries)
 
       moduleDependencies.foreach {
@@ -80,8 +80,9 @@ abstract class HoconMultiModuleTest extends UsefulTestCase with HoconTestUtils {
 object HoconMultiModuleTest {
 
   private def subdirectories(path: String): Seq[File] =
-    new File(path).listFiles
+    new File(path).listFiles.iterator
       .filter(_.isDirectory)
+      .toVector
       .sortBy(_.getName)
 
   private def setUpEntries(model: ModifiableRootModel): Unit = {
