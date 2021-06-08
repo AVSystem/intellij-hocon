@@ -10,7 +10,7 @@ class HoconParserTest extends HoconFileSetTestCase("parser") {
 
   override protected def transform(data: Seq[String]): String = {
     val psiFile = createPseudoPhysicalHoconFile(data.head)
-    psiToString(psiFile, false).replace(":" + psiFile.getName, "")
+    psiToString(psiFile, true).replace(":" + psiFile.getName, "")
   }
 }
 
