@@ -1,7 +1,6 @@
 package org.jetbrains.plugins.hocon
 
 import java.io.File
-
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
@@ -9,7 +8,7 @@ import com.intellij.openapi.vfs.{LocalFileSystem, VirtualFile}
 import com.intellij.psi.{PsiFile, PsiManager}
 import org.jetbrains.plugins.hocon.psi.HoconPsiFile
 
-import scala.annotation.tailrec
+import scala.annotation.{nowarn, tailrec}
 
 trait HoconTestUtils {
   def testdataPath: String = HoconTestUtils.TestdataPath
@@ -43,6 +42,7 @@ trait HoconTestUtils {
     ApplicationManager.getApplication match {
       case application if application.isWriteAccessAllowed => body
       case application =>
+        @nowarn("msg=deprecated")
         val computable: Computable[T] = () => body
         application.runWriteAction(computable)
     }

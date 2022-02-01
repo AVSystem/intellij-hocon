@@ -45,6 +45,6 @@ class HoconGotoNextAction extends HoconGotoPrevNextAction(reverse = false)
 final class HoconGotoPrevNextPromoter extends ActionPromoter {
   // prioritize HoconGoto{Prev,Next}Action over GotoImplementationAction & GotoSuperAction in HOCON files
   // ideally these two actions should be completely disabled in HOCON files but I don't know how
-  def promote(actions: JList[_ <: AnAction], context: DataContext): JList[AnAction] =
+  override def promote(actions: JList[_ <: AnAction], context: DataContext): JList[AnAction] =
     actions.iterator.asScala.collectOnly[HoconGotoPrevNextAction].toJList
 }
