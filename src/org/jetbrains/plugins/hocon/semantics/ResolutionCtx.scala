@@ -4,8 +4,8 @@ package semantics
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
 import com.intellij.psi.search.{FilenameIndex, GlobalSearchScope}
+import com.intellij.psi.{PsiElement, PsiManager}
 import org.jetbrains.plugins.hocon.psi._
 import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet
 import org.jetbrains.plugins.hocon.semantics.SubstitutionKind.SelfReferential
@@ -222,9 +222,11 @@ object ToplevelCtx {
   final val ApplicationResource = "application.conf"
 
   def resolveResource(project: Project, scope: GlobalSearchScope, resource: String): Vector[HoconPsiFile] = {
+    val psiManager = PsiManager.getInstance(project)
     val rootDirs = IncludedFileReferenceSet.classpathPackageDirs(project, scope, "")
-    FilenameIndex.getFilesByName(project, resource, scope)
-      .iterator.collectOnly[HoconPsiFile].filter(f => rootDirs.contains(f.getParent))
+    FilenameIndex.getVirtualFilesByName(resource, scope)
+      .iterator.asScala.map(psiManager.findFile)
+      .collectOnly[HoconPsiFile].filter(f => rootDirs.contains(f.getParent))
       .toVector.sortBy(_.getVirtualFile.getPath)
   }
 
