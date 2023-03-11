@@ -7,7 +7,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.{FilenameIndex, GlobalSearchScope}
 import com.intellij.psi.{PsiElement, PsiManager}
 import org.jetbrains.plugins.hocon.psi._
-import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet
+import org.jetbrains.plugins.hocon.ref.{IncludedFileReferenceSet, PackageDirsEnumerator}
 import org.jetbrains.plugins.hocon.semantics.SubstitutionKind.SelfReferential
 
 import scala.annotation.tailrec
@@ -221,9 +221,9 @@ object ToplevelCtx {
   final val ReferenceResource = "reference.conf"
   final val ApplicationResource = "application.conf"
 
-  def resolveResource(project: Project, scope: GlobalSearchScope, resource: String): Vector[HoconPsiFile] = {
+  private def resolveResource(project: Project, scope: GlobalSearchScope, resource: String): Vector[HoconPsiFile] = {
     val psiManager = PsiManager.getInstance(project)
-    val rootDirs = IncludedFileReferenceSet.classpathPackageDirs(project, scope, "")
+    val rootDirs = PackageDirsEnumerator.classpathPackageDirs(project, scope, "")
     FilenameIndex.getVirtualFilesByName(resource, scope)
       .iterator.asScala.map(psiManager.findFile)
       .collectOnly[HoconPsiFile].filter(f => rootDirs.contains(f.getParent))

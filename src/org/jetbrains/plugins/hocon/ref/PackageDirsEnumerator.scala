@@ -11,6 +11,14 @@ import com.intellij.psi.{PsiFileSystemItem, PsiManager}
 object PackageDirsEnumerator {
   final val EpName: ExtensionPointName[PackageDirsEnumerator] =
     ExtensionPointName.create("org.jetbrains.plugins.hocon.packageDirsEnumerator")
+
+  def packageNameByDirectory(project: Project, dir: VirtualFile): Option[String] =
+    EpName.getExtensionList.iterator.asScala
+      .flatMap(_.packageNameByDirectory(project, dir)).nextOption()
+
+  def classpathPackageDirs(project: Project, scope: GlobalSearchScope, pkgName: String): List[PsiFileSystemItem] =
+    EpName.getExtensionList.iterator.asScala
+      .flatMap(_.classpathPackageDirs(project, scope, pkgName)).toList
 }
 abstract class PackageDirsEnumerator {
   def packageNameByDirectory(project: Project, dir: VirtualFile): Option[String]
