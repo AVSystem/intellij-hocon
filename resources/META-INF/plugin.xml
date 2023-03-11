@@ -3,7 +3,7 @@
     <id>org.jetbrains.plugins.hocon</id>
     <name>HOCON</name>
     <description>Standalone HOCON plugin for IntelliJ IDEA</description>
-    <version>2022.1.99-SNAPSHOT</version>
+    <version>2023.1.99-SNAPSHOT</version>
     <vendor>Roman Janusz, AVSystem, JetBrains</vendor>
     <idea-version since-build="231.0" until-build="240.0"/>
     <depends>com.intellij.modules.platform</depends>
