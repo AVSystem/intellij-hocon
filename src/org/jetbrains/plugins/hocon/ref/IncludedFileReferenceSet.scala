@@ -1,9 +1,6 @@
 package org.jetbrains.plugins.hocon
 package ref
 
-import java.{util => ju}
-
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots._
 import com.intellij.openapi.util.{Condition, TextRange}
 import com.intellij.openapi.vfs.VirtualFile
@@ -11,7 +8,8 @@ import com.intellij.psi._
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.{FileReference, FileReferenceSet}
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.plugins.hocon.HoconConstants._
-import org.jetbrains.plugins.hocon.ref.IncludedFileReferenceSet._
+
+import java.{util => ju}
 
 /**
  * FileReferenceSet subclass that tries to simulate how Typesafe Config handles includes with its
@@ -162,7 +160,7 @@ class IncludedFileReference(refSet: FileReferenceSet, range: TextRange, index: I
   override def innerResolveInContext(
     text: String,
     context: PsiFileSystemItem,
-    result: ju.Collection[ResolveResult],
+    result: JCollection[_ >: ResolveResult],
     caseSensitive: Boolean
   ): Unit =
     if (lacksExtension(text)) {

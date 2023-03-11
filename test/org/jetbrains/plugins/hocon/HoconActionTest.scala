@@ -38,7 +38,7 @@ abstract class HoconActionTest protected(protected val actionId: String, subPath
 
   protected def executeAction(dataContext: DataContext, editor: Editor): Unit = {
     val action = ActionManager.getInstance.getAction(actionId)
-    val actionEvent = new TestActionEvent(dataContext, action)
+    val actionEvent = TestActionEvent.createTestEvent(action, dataContext)
 
     action.beforeActionPerformedUpdate(actionEvent)
     actionEvent.getPresentation match {
