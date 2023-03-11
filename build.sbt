@@ -1,9 +1,9 @@
 import org.jetbrains.sbtidea.Keys._
 
-ThisBuild / scalaVersion := "2.13.8"
+ThisBuild / scalaVersion := "2.13.10"
 ThisBuild / intellijPluginName := "intellij-hocon"
-ThisBuild / intellijBuild := "221.5787.30"
-ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("11"))
+ThisBuild / intellijBuild := "223.8836.41"
+ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("17"))
 
 val junitInterfaceVersion = "0.11"
 
@@ -12,7 +12,7 @@ lazy val hocon = project.in(file(".")).enablePlugins(SbtIdeaPlugin).settings(
   Compile / scalaSource := baseDirectory.value / "src",
   Test / scalaSource := baseDirectory.value / "test",
   Compile / resourceDirectory := baseDirectory.value / "resources",
-  Global / javacOptions ++= Seq("-source", "11", "-target", "11"),
+  Global / javacOptions ++= Seq("-source", "17", "-target", "17"),
   Global / scalacOptions ++= Seq(
     "-deprecation",
     "-feature",

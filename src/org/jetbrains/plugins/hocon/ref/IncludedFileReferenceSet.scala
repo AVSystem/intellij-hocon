@@ -69,6 +69,10 @@ object IncludedFileReferenceSet {
     orderEntryScope orElse moduleScope getOrElse GlobalSearchScope.EMPTY_SCOPE
   }
 
+  def packageNameByDirectory(project: Project, dir: VirtualFile): Option[String] =
+    PackageDirsEnumerator.EpName.getExtensionList.iterator.asScala
+      .flatMap(_.packageNameByDirectory(project, dir)).nextOption()
+
   def classpathPackageDirs(project: Project, scope: GlobalSearchScope, pkgName: String): List[PsiFileSystemItem] =
     PackageDirsEnumerator.EpName.getExtensionList.iterator.asScala
       .flatMap(_.classpathPackageDirs(project, scope, pkgName)).toList
@@ -121,7 +125,7 @@ class IncludedFileReferenceSet(
     if (fromClasspath) {
       val pkgName =
         if (isAbsolutePathReference) ""
-        else pfi.getPackageNameByDirectory(parent)
+        else packageNameByDirectory(proj, parent).orNull
 
       if (pkgName != null) classpathPackageDirs(proj, scope, pkgName).toJList else empty
     } else if (isAbsolutePathReference) {
