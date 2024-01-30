@@ -42,14 +42,14 @@ class HoconGotoSymbolContributor extends ChooseByNameContributorEx {
 }
 
 case class HoconGotoSymbolItem(key: HKey) extends PsiElementNavigationItem with ItemPresentation {
-  def getTargetElement: PsiElement = key
-  def getName: String = key.getText
-  def navigate(requestFocus: Boolean): Unit = key.navigate(requestFocus)
-  def canNavigate: Boolean = key.canNavigate
-  def canNavigateToSource: Boolean = key.canNavigateToSource
-  def getPresentation: ItemPresentation = this
-  def getPresentableText: String = key.fullPathText.orNull
-  def getIcon(unused: Boolean): Icon = PropertyIcon
+  override def getTargetElement: PsiElement = key
+  override def getName: String = key.getText
+  override def navigate(requestFocus: Boolean): Unit = key.navigate(requestFocus)
+  override def canNavigate: Boolean = key.canNavigate
+  override def canNavigateToSource: Boolean = key.canNavigateToSource
+  override def getPresentation: ItemPresentation = this
+  override def getPresentableText: String = key.fullPathText.orNull
+  override def getIcon(unused: Boolean): Icon = PropertyIcon
 
   override def getLocationString: String =
     key.hoconFile.getVirtualFile.opt.map { vf =>

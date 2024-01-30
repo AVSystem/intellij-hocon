@@ -3,7 +3,7 @@ package misc
 
 import com.intellij.lang.documentation.{DocumentationMarkup, DocumentationProviderEx}
 import com.intellij.psi.{PsiElement, PsiManager}
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.text.StringEscapeUtils
 import org.jetbrains.plugins.hocon.psi._
 import org.jetbrains.plugins.hocon.semantics.{ResOpts, ResolvedField}
 
@@ -51,7 +51,7 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
       val content =
         if (docComments.isEmpty) ""
         else docComments
-          .map(c => StringEscapeUtils.escapeHtml(c.getText.stripPrefix("#")))
+          .map(c => StringEscapeUtils.escapeHtml4(c.getText.stripPrefix("#")))
           .mkString(CONTENT_START, "<br/>", CONTENT_END)
       definition + content
     }

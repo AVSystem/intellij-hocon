@@ -2,13 +2,13 @@ import org.jetbrains.sbtidea.Keys._
 
 ThisBuild / scalaVersion := "2.13.10"
 ThisBuild / intellijPluginName := "intellij-hocon"
-ThisBuild / intellijBuild := "231.8109.2"
+ThisBuild / intellijBuild := "241.8102.112"
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("17"))
 
 val junitInterfaceVersion = "0.11"
 
 lazy val hocon = project.in(file(".")).enablePlugins(SbtIdeaPlugin).settings(
-  version := "2023.1.99-SNAPSHOT",
+  version := "2024.1.99-SNAPSHOT",
   Compile / scalaSource := baseDirectory.value / "src",
   Test / scalaSource := baseDirectory.value / "test",
   Compile / resourceDirectory := baseDirectory.value / "resources",
