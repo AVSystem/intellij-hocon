@@ -8,7 +8,12 @@ import scala.annotation.tailrec
 
 object HoconLexer {
 
-  case class State(raw: Int) extends AnyVal
+  opaque type State = Int
+  object State {
+    inline def apply(inline raw: Int): State = raw
+
+    extension (state: State) inline def raw: Int = state
+  }
 
   final val Initial = State(0)
   final val Value = State(1)
