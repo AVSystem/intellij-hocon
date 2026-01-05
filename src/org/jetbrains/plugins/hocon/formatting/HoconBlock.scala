@@ -23,8 +23,8 @@ class HoconBlock(
   private val wrapCache = {
     val pathValueSeparatorType =
       if (node.getElementType == HoconElementType.ValuedField)
-        node.childrenIterator.map(_.getElementType).find(HoconTokenSets.KeyValueSeparator.contains)
-      else None
+        node.childrenIterator.map(_.getElementType).find(HoconTokenSets.KeyValueSeparator.contains).orNull
+      else null
     new formatter.WrapCache(pathValueSeparatorType)
   }
   private val alignmentCache = new formatter.AlignmentCache

@@ -173,7 +173,7 @@ class HoconFormatter(settings: CodeStyleSettings) {
   // Formatter must be able to return exactly the same instance of Wrap and Alignment objects
   // for children of the same parent and these two classes are one way to make it possible.
 
-  class WrapCache(keyValueSeparator: Option[IElementType]) {
+  class WrapCache(keyValueSeparator: IElementType | Null) {
     val objectEntryWrap: Wrap | Null =
       Wrap.createWrap(customSettings.OBJECTS_WRAP, false)
 
@@ -181,17 +181,17 @@ class HoconFormatter(settings: CodeStyleSettings) {
       Wrap.createWrap(customSettings.LISTS_WRAP, false)
 
     val fieldInnerWrap: Wrap | Null = keyValueSeparator match {
-      case Some(Colon) =>
+      case Colon =>
         Wrap.createWrap(customSettings.OBJECT_FIELDS_WITH_COLON_WRAP, true)
-      case Some(Equals | PlusEquals) =>
+      case Equals | PlusEquals =>
         Wrap.createWrap(customSettings.OBJECT_FIELDS_WITH_ASSIGNMENT_WRAP, true)
       case _ => null
     }
 
     val keyValueSeparatorWrap: Wrap | Null = keyValueSeparator match {
-      case Some(Colon) if customSettings.OBJECT_FIELDS_COLON_ON_NEXT_LINE =>
+      case Colon if customSettings.OBJECT_FIELDS_COLON_ON_NEXT_LINE =>
         fieldInnerWrap
-      case Some(Equals | PlusEquals) if customSettings.OBJECT_FIELDS_ASSIGNMENT_ON_NEXT_LINE =>
+      case Equals | PlusEquals if customSettings.OBJECT_FIELDS_ASSIGNMENT_ON_NEXT_LINE =>
         fieldInnerWrap
       case _ => null
     }
