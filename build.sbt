@@ -4,10 +4,11 @@ ThisBuild / scalaVersion := "3.8.0-RC5"
 ThisBuild / intellijPluginName := "intellij-hocon"
 ThisBuild / intellijBuild := "252.26830.84"
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("17"))
+ThisBuild / autoRemoveOldCachedIntelliJSDK := true
 
 val junitInterfaceVersion = "0.13.3"
 val junitVersion = "4.13.2"
-val commonsTextVersion = "1.13.1"
+val commonsTextVersion = "1.14.0"
 val opentest4jVersion = "1.3.0"
 
 lazy val hocon = project
@@ -42,7 +43,8 @@ lazy val hocon = project
       "-preview",
     ),
     ideBasePackages := Seq("org.jetbrains.plugins.hocon"),
-    intellijPlugins := Seq("com.intellij.java", "com.intellij.java-i18n", "com.intellij.modules.json").map(_.toPlugin),
+    intellijPlugins := Seq("com.intellij.java-i18n", "com.intellij.modules.json").map(_.toPlugin),
+    intellijExtraRuntimePluginsInTests := Seq("org.jetbrains.kotlin").map(_.toPlugin),
     libraryDependencies ++= Seq(
       "org.apache.commons" % "commons-text" % commonsTextVersion,
       "com.github.sbt" % "junit-interface" % junitInterfaceVersion % Test,
