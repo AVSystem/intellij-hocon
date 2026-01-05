@@ -9,7 +9,7 @@ object HoconTokenSets {
 
   import org.jetbrains.plugins.hocon.lexer.HoconTokenType.*
 
-  final val Empty = TokenSet.EMPTY
+  final val Empty: TokenSet = TokenSet.EMPTY
   final val Whitespace = InlineWhitespace | LineBreakingWhitespace
   final val Comment = HashComment | DoubleSlashComment
   final val WhitespaceOrComment = Whitespace | Comment

@@ -11,7 +11,8 @@ import com.intellij.util.text.CharSequenceSubSequence
 import org.jetbrains.plugins.hocon.lexer.HoconTokenType
 
 import java.net.{MalformedURLException, URL}
-import java.{lang => jl, util => ju}
+import java.{lang as jl, util as ju}
+import javax.swing.Icon
 import scala.annotation.tailrec
 import scala.collection.AbstractIterator
 import scala.collection.convert.{AsJavaExtensions, AsScalaExtensions}
@@ -23,8 +24,8 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
   type JCollection[T] = java.util.Collection[T]
   type JMap[K, V] = java.util.Map[K, V]
 
-  final val HoconIcon = AllIcons.FileTypes.Config
-  final val PropertyIcon = IconManager.getInstance.getIcon("/icons/property.svg", getClass.getClassLoader)
+  final val HoconIcon: Icon = AllIcons.FileTypes.Config
+  final val PropertyIcon = IconManager.getInstance.getIcon("/icons/property.svg", this.getClass.getClassLoader)
 
   def notWhiteSpaceSibling(element: PsiElement)(sibling: PsiElement => PsiElement): PsiElement = {
     var result = sibling(element)
@@ -34,7 +35,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
     result
   }
 
-  private[this] def isWhiteSpace(element: PsiElement): Boolean = element match {
+  private def isWhiteSpace(element: PsiElement | Null): Boolean = element match {
     case null => false
     case _: PsiWhiteSpace => true
     case _ =>
@@ -119,14 +120,14 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
   }
 
   private class DepthFirstIterator(root: PsiElement) extends AbstractIterator[PsiElement] {
-    private var _next: PsiElement = root
+    private var _next: PsiElement | Null = root
 
     def hasNext: Boolean = _next ne null
 
     def next(): PsiElement =
       if (!hasNext) throw new NoSuchElementException
       else {
-        val res = _next
+        val res = _next.nn
         _next = res.getFirstChild match {
           case null => findNextSibling(res)
           case child => child
@@ -134,7 +135,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
         res
       }
 
-    @tailrec private def findNextSibling(cur: PsiElement): PsiElement =
+    @tailrec private def findNextSibling(cur: PsiElement): PsiElement | Null =
       if (cur eq root) null
       else
         cur.getNextSibling match {
@@ -148,8 +149,11 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
       ind + str.replace("\n", "\n" + ind)
   }
 
-  implicit class universalOps[T](private val t: T) extends AnyVal {
+  implicit class universalNullableOps[T](private val t: T | Null) extends AnyVal {
     def opt: Option[T] = Option(t)
+  }
+
+  implicit class universalOps[T](private val t: T) extends AnyVal {
 
     def setup(code: T => Unit): T = {
       code(t)
@@ -197,7 +201,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
       it.flatMap(a => f.applyOrElse(a, (_: A) => Iterator.empty))
 
     def orElse(other: Iterator[A]): Iterator[A] = new AbstractIterator[A] {
-      private var chosenIt: Iterator[A] = _
+      private var chosenIt: Iterator[A] = compiletime.uninitialized
 
       def hasNext: Boolean =
         if (chosenIt != null) chosenIt.hasNext
@@ -221,7 +225,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
     result = quotedCharPattern.replaceAllIn(
       result,
       m =>
-        m.group(0).charAt(1) match {
+        m.group(0).nn.charAt(1) match {
           case '\\' => "\\"
           case '/' => "/"
           case '"' => "\""

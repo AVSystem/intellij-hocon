@@ -33,28 +33,28 @@ case class SubstitutionCtx(
 )
 
 sealed abstract class ResolutionCtx {
-  val toplevelCtx: ToplevelCtx = this match {
+  lazy val toplevelCtx: ToplevelCtx = this match {
     case tc: ToplevelCtx => tc
     case rf: ResolvedField => rf.parentCtx.toplevelCtx
     case ic: IncludeCtx => ic.parentCtx.toplevelCtx
     case ac: ArrayCtx => ac.parentCtx.toplevelCtx
   }
 
-  val depth: Int = this match {
+  lazy val depth: Int = this match {
     case _: ToplevelCtx => 0
     case rf: ResolvedField => rf.parentCtx.depth + 1
     case ic: IncludeCtx => ic.parentCtx.depth
     case ac: ArrayCtx => ac.parentCtx.depth
   }
 
-  val inArray: Boolean = this match {
+  lazy val inArray: Boolean = this match {
     case _: ToplevelCtx => false
     case rf: ResolvedField => rf.parentCtx.inArray
     case ic: IncludeCtx => ic.parentCtx.inArray
     case _: ArrayCtx => true
   }
 
-  val lastInclude: Option[IncludeCtx] = this match {
+  lazy val lastInclude: Option[IncludeCtx] = this match {
     case _: ToplevelCtx => None
     case rf: ResolvedField => rf.parentCtx.lastInclude
     case ic: IncludeCtx => Some(ic)

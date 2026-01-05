@@ -1,13 +1,15 @@
 package org.jetbrains.plugins.hocon
 
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.psi.PsiManager
 import com.intellij.testFramework.PsiTestUtil.removeContentEntry
 import com.intellij.testFramework.{IndexingTestUtil, LightPlatformCodeInsightTestCase}
 
 abstract class HoconSingleModuleTest extends LightPlatformCodeInsightTestCase with HoconTestUtils {
-  final def project = getProject
-  final def module = getModule
-  final def psiManager = getPsiManager
+  final def project: Project = getProject
+  final def module: com.intellij.openapi.module.Module = getModule
+  final def psiManager: PsiManager = getPsiManager
 
   override def setUp(): Unit = {
     super.setUp()

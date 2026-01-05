@@ -47,7 +47,7 @@ class HoconPropertiesReferenceProvider extends PsiReferenceProvider {
             val nextRef = subRefs.headOption
             val revIndex = nextRef.fold(0)(_.reverseIndex + 1)
             val keyRange = new TextRange(off, endOffset)
-            val ref = new HoconPropertyReference(strPath, revIndex, key, element, lit, keyRange)
+            val ref = new HoconPropertyReference(strPath, revIndex, key, element, keyRange)
             ref :: subRefs
         }
 
@@ -62,7 +62,6 @@ class HoconPropertyReference(
   val reverseIndex: Int,
   key: String,
   element: PsiElement,
-  lit: PsiLiteralValue,
   range: TextRange,
 ) extends PsiReference {
   def getCanonicalText: String = key
@@ -74,7 +73,7 @@ class HoconPropertyReference(
     case _ => ToplevelCtx(element, ToplevelCtx.ApplicationResource)
   }
 
-  def resolve(): PsiElement = createContext
+  def resolve(): PsiElement | Null = createContext
     .occurrences(fullPath, ResOpts(reverse = true))
     .nextOption()
     .flatMap(_.ancestorField(reverseIndex))
@@ -96,9 +95,9 @@ class HoconPropertyReference(
       .toArray[AnyRef]
   }
 
-  def handleElementRename(newElementName: String): PsiElement = null
+  def handleElementRename(newElementName: String): PsiElement | Null = null
 
-  def bindToElement(element: PsiElement): PsiElement = null
+  def bindToElement(element: PsiElement): PsiElement | Null = null
 
   // important for ReferencesSearch and therefore Find Usages
   def isReferenceTo(element: PsiElement): Boolean = element match {

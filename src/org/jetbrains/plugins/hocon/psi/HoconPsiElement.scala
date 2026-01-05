@@ -1,8 +1,7 @@
 package org.jetbrains.plugins.hocon
 package psi
 
-import java.{lang => jl}
-
+import java.lang as jl
 import com.intellij.extapi.psi.ASTWrapperPsiElement
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.fileTypes.FileType
@@ -14,6 +13,7 @@ import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReferen
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.tree.IElementType
 import com.intellij.util.IncorrectOperationException
+
 import javax.swing.Icon
 import org.jetbrains.plugins.hocon.HoconConstants.*
 import org.jetbrains.plugins.hocon.lang.HoconFileType
@@ -88,7 +88,7 @@ sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement
     Iterator
       .iterate(this)(_.getParent match {
         case he: HoconPsiElement => he
-        case _ => null
+        case _ => null.asInstanceOf[HoconPsiElement]
       })
       .takeWhile(_ != null)
 
@@ -98,16 +98,16 @@ sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement
     case _ => false
   }
 
-  def getChild[T >: Null: ClassTag]: T =
+  def getChild[T: ClassTag]: T =
     findChildByClass(classTag[T].runtimeClass.asInstanceOf[Class[T]])
 
-  def findChild[T >: Null: ClassTag](reverse: Boolean): Option[T] =
+  def findChild[T: ClassTag](reverse: Boolean): Option[T] =
     allChildren(reverse).collectFirst { case t: T => t }
 
-  def findChild[T >: Null: ClassTag]: Option[T] =
+  def findChild[T: ClassTag]: Option[T] =
     findChild[T](reverse = false)
 
-  def findLastChild[T >: Null: ClassTag]: Option[T] =
+  def findLastChild[T: ClassTag]: Option[T] =
     findChild[T](reverse = true)
 
   def allChildren(reverse: Boolean): Iterator[PsiElement] =
@@ -189,8 +189,6 @@ sealed trait HObjectEntry extends HoconPsiElement with HEntriesLike {
   def nextEntry: Option[HObjectEntry] = nextEntry(reverse = false)
 
   def prevEntry: Option[HObjectEntry] = nextEntry(reverse = true)
-
-  def firstOccurrence(key: Option[String], opts: ResOpts, resCtx: ResolutionCtx): Option[ResolvedField]
 }
 
 final class HObjectField(ast: ASTNode) extends HoconPsiElement(ast) with HObjectEntry with HKeyedFieldParent {
@@ -273,7 +271,7 @@ sealed abstract class HKeyedField(ast: ASTNode)
     *   iterator of all encountered keyed fields (in bottom-up order, i.e. starting with itself)
     */
   def prefixingFields: Iterator[HKeyedField] =
-    Iterator.iterate(this)(_.prefixingField.orNull).takeWhile(_ != null)
+    Iterator.iterate(this)(_.prefixingField.orNull.asInstanceOf[HKeyedField]).takeWhile(_ != null)
 
   /** Returns all keys on containing path, assuming they are all valid keys. `None` is returned if not all keys on
     * containing path are valid. The list is ordered top-down, i.e. `this` key is the last element. "Containing path"
@@ -477,7 +475,7 @@ sealed abstract class HKey(ast: ASTNode) extends HoconPsiElement(ast) {
 final class HFieldKey(ast: ASTNode) extends HKey(ast) with PsiQualifiedNamedElement {
   type Parent = HKeyedField
 
-  override def getQualifiedName: String = fullPathText.orNull
+  override def getQualifiedName: String | Null = fullPathText.orNull
 
   // Implementing PsiNamedElement is required for Find Usages to be triggered on ctrl+click (GotoDeclaration action)
   // see: com.intellij.codeInsight.navigation.actions.GotoDeclarationAction.invoke
@@ -739,7 +737,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
       val fixupPrefix = resCtx.substitutionFixupPrefix
       val res = doResolve(subsKind(resCtx, fixupPrefix), resCtx, opts, fixupPrefix.length + depth, backtrace)
       if (fixupPrefix.nonEmpty)
-        res orElse doResolve(subsKind(resCtx, Nil), resCtx, opts, depth, backtrace)
+        res.orElse(doResolve(subsKind(resCtx, Nil), resCtx, opts, depth, backtrace))
       else
         res
     }
@@ -752,7 +750,7 @@ sealed trait HLiteralValue extends HValue with PsiLiteralValue {
 }
 
 final class HNull(ast: ASTNode) extends HoconPsiElement(ast) with HLiteralValue {
-  def getValue: Object = null
+  def getValue: Object | Null = null
 
   def configValue: ConfigValue = NullValue
 }

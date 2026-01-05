@@ -12,10 +12,10 @@ import org.jetbrains.plugins.hocon.psi.HKey
 class HoconQualifiedNameProvider extends QualifiedNameProvider {
   def adjustElementToCopy(element: PsiElement): PsiElement = element
 
-  def getQualifiedName(element: PsiElement): String = element match {
+  def getQualifiedName(element: PsiElement): String | Null = element match {
     case key: HKey => key.fullPathText.orNull
     case _ => null
   }
 
-  def qualifiedNameToElement(fqn: String, project: Project): PsiElement = null
+  def qualifiedNameToElement(fqn: String, project: Project): PsiElement | Null = null
 }

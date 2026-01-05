@@ -10,8 +10,13 @@ import com.intellij.psi.formatter.common.AbstractBlock
 import org.jetbrains.plugins.hocon.lexer.HoconTokenSets
 import org.jetbrains.plugins.hocon.parser.HoconElementType
 
-class HoconBlock(formatter: HoconFormatter, node: ASTNode, indent: Indent, wrap: Wrap, alignment: Alignment)
-  extends AbstractBlock(node, wrap, alignment) {
+class HoconBlock(
+  formatter: HoconFormatter,
+  node: ASTNode,
+  indent: Indent | Null,
+  wrap: Wrap | Null,
+  alignment: Alignment | Null,
+) extends AbstractBlock(node, wrap, alignment) {
 
   // HoconFormatter needs these to be able to return exactly the same instances of Wrap and Alignment for
   // children of this block
@@ -24,7 +29,7 @@ class HoconBlock(formatter: HoconFormatter, node: ASTNode, indent: Indent, wrap:
   }
   private val alignmentCache = new formatter.AlignmentCache
 
-  override def getIndent: Indent = indent
+  override def getIndent: Indent | Null = indent
 
   override def getChildAttributes(newChildIndex: Int) =
     new ChildAttributes(formatter.getChildIndent(node), formatter.getChildAlignment(alignmentCache, node))
@@ -34,7 +39,7 @@ class HoconBlock(formatter: HoconFormatter, node: ASTNode, indent: Indent, wrap:
   def isLeaf: Boolean =
     formatter.getChildren(node).isEmpty
 
-  def getSpacing(child1: Block, child2: Block): Spacing =
+  def getSpacing(child1: Block, child2: Block): Spacing | Null =
     if (child1 == null)
       formatter.getFirstSpacing(node, child2.asInstanceOf[HoconBlock].getNode)
     else

@@ -26,7 +26,7 @@ class HoconPsiParser extends PsiParser {
   class Parser(builder: PsiBuilder) {
 
     object DocumentationCommentsBinder extends WhitespacesAndCommentsBinder {
-      override def getEdgePosition(tokens: JList[_ <: IElementType], atStreamEdge: Boolean, getter: TokenTextGetter)
+      override def getEdgePosition(tokens: JList[? <: IElementType], atStreamEdge: Boolean, getter: TokenTextGetter)
         : Int = {
 
         @tailrec

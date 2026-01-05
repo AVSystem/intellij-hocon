@@ -10,7 +10,7 @@ import org.jetbrains.plugins.hocon.semantics.{ResOpts, ResolvedField}
 import scala.annotation.tailrec
 
 class HoconDocumentationProvider extends DocumentationProviderEx {
-  private def key(origElem: PsiElement): Option[HKey] = origElem match {
+  private def key(origElem: PsiElement | Null): Option[HKey] = origElem match {
     case null => None
     case key: HKey => Some(key)
     case _ => origElem.parentOfType[HKey]
@@ -25,13 +25,17 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
     case None => None
   }
 
-  override def getDocumentationElementForLookupItem(psiManager: PsiManager, obj: Any, element: PsiElement): PsiElement =
+  override def getDocumentationElementForLookupItem(
+    psiManager: PsiManager,
+    obj: Any,
+    element: PsiElement,
+  ): PsiElement | Null =
     obj match {
       case rf: ResolvedField => rf.hkey // see HoconPropertyLookupElement.getObject
       case _ => null
     }
 
-  override def getQuickNavigateInfo(element: PsiElement, originalElement: PsiElement): String = {
+  override def getQuickNavigateInfo(element: PsiElement, originalElement: PsiElement): String | Null = {
     val res = for {
       hkey <- key(originalElement) orElse key(element)
       fullPathText <- hkey.fullPathText
@@ -39,7 +43,7 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
     res.orNull
   }
 
-  override def generateDoc(element: PsiElement, originalElement: PsiElement): String = {
+  override def generateDoc(element: PsiElement, originalElement: PsiElement | Null): String | Null = {
     import DocumentationMarkup.*
     // `element` is already resolved here but it loses context of the `originalElement` so resolving again
     (key(originalElement) orElse key(element)).flatMap(_.resolved).nullOr { resolved =>

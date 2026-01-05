@@ -24,8 +24,8 @@ class HoconResolutionTest extends HoconSingleModuleTest {
 
       val traversalResult = render(
         Iterator
-          .iterate(ctx.occurrences(path, opts).nextOption().orNull) { rf =>
-            rf.nextOccurrence(opts).orNull
+          .iterate(ctx.occurrences(path, opts).nextOption().orNull.asInstanceOf[ResolvedField]) { rf =>
+            rf.nextOccurrence(opts).orNull.asInstanceOf[ResolvedField]
           }
           .takeWhile(_ != null)
       )

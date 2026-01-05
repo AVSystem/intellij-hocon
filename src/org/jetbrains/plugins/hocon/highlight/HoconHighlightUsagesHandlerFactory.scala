@@ -12,14 +12,18 @@ import com.intellij.util.Consumer
 import java.{util => ju}
 
 class HoconHighlightUsagesHandlerFactory extends HighlightUsagesHandlerFactoryBase {
-  def createHighlightUsagesHandler(editor: Editor, file: PsiFile, target: PsiElement): HoconHighlightKeyUsagesHandler =
+  def createHighlightUsagesHandler(
+    editor: Editor,
+    file: PsiFile,
+    target: PsiElement,
+  ): HoconHighlightKeyUsagesHandler | Null =
     target.parentOfType[HKey].map(new HoconHighlightKeyUsagesHandler(editor, _)).orNull
 }
 
 class HoconHighlightKeyUsagesHandler(editor: Editor, hkey: HKey)
   extends HighlightUsagesHandlerBase[HKey](editor, hkey.hoconFile) {
 
-  def computeUsages(targets: JList[_ <: HKey]): Unit = for {
+  def computeUsages(targets: JList[? <: HKey]): Unit = for {
     target <- targets.iterator.asScala
     foundKey <- HoconFindUsagesHandler.localUsagesOf(target)
     usageList = if (foundKey.inField) myWriteUsages else myReadUsages
@@ -29,6 +33,6 @@ class HoconHighlightKeyUsagesHandler(editor: Editor, hkey: HKey)
 
   def getTargets: JList[HKey] = ju.Collections.singletonList(hkey)
 
-  def selectTargets(targets: JList[_ <: HKey], selectionConsumer: Consumer[_ >: JList[_ <: HKey]]): Unit =
+  def selectTargets(targets: JList[? <: HKey], selectionConsumer: Consumer[? >: JList[? <: HKey]]): Unit =
     selectionConsumer.consume(targets)
 }

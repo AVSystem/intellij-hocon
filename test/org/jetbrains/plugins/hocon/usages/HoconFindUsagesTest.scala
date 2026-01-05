@@ -68,7 +68,7 @@ class HoconFindUsagesTest extends HoconMultiModuleTest {
         |""".stripMargin,
     )
 
-  private def testFindUsages[E >: Null <: PsiElement: ClassTag](
+  private def testFindUsages[E <: PsiElement: ClassTag](
     filename: String,
     line: Int,
     column: Int,

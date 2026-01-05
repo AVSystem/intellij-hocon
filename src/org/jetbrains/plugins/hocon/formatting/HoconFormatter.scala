@@ -44,7 +44,7 @@ class HoconFormatter(settings: CodeStyleSettings) {
     else
       Spacing.createSpacing(0, 0, 0, true, getMaxBlankLines(parent.getElementType, firstChild.getElementType))
 
-  def getSpacing(parent: ASTNode, leftChild: ASTNode, rightChild: ASTNode): Spacing = {
+  def getSpacing(parent: ASTNode, leftChild: ASTNode, rightChild: ASTNode): Spacing | Null = {
 
     val keepLineBreaks = commonSettings.KEEP_LINE_BREAKS
     val maxBlankLines = getMaxBlankLines(parent.getElementType, rightChild.getElementType)
@@ -174,13 +174,13 @@ class HoconFormatter(settings: CodeStyleSettings) {
   // for children of the same parent and these two classes are one way to make it possible.
 
   class WrapCache(keyValueSeparator: Option[IElementType]) {
-    val objectEntryWrap =
+    val objectEntryWrap: Wrap | Null =
       Wrap.createWrap(customSettings.OBJECTS_WRAP, false)
 
-    val arrayValueWrap =
+    val arrayValueWrap: Wrap | Null =
       Wrap.createWrap(customSettings.LISTS_WRAP, false)
 
-    val fieldInnerWrap = keyValueSeparator match {
+    val fieldInnerWrap: Wrap | Null = keyValueSeparator match {
       case Some(Colon) =>
         Wrap.createWrap(customSettings.OBJECT_FIELDS_WITH_COLON_WRAP, true)
       case Some(Equals | PlusEquals) =>
@@ -188,7 +188,7 @@ class HoconFormatter(settings: CodeStyleSettings) {
       case _ => null
     }
 
-    val keyValueSeparatorWrap = keyValueSeparator match {
+    val keyValueSeparatorWrap: Wrap | Null = keyValueSeparator match {
       case Some(Colon) if customSettings.OBJECT_FIELDS_COLON_ON_NEXT_LINE =>
         fieldInnerWrap
       case Some(Equals | PlusEquals) if customSettings.OBJECT_FIELDS_ASSIGNMENT_ON_NEXT_LINE =>
@@ -196,23 +196,23 @@ class HoconFormatter(settings: CodeStyleSettings) {
       case _ => null
     }
 
-    val fieldValueWrap =
+    val fieldValueWrap: Wrap | Null =
       if (keyValueSeparatorWrap == null) fieldInnerWrap else null
 
-    val includeInnerWrap =
+    val includeInnerWrap: Wrap | Null =
       Wrap.createWrap(customSettings.INCLUDED_RESOURCE_WRAP, true)
 
   }
 
   class AlignmentCache {
-    val objectEntryAlignment =
+    val objectEntryAlignment: Alignment | Null =
       if (customSettings.OBJECTS_ALIGN_WHEN_MULTILINE) Alignment.createAlignment else null
 
-    val arrayValueAlignment =
+    val arrayValueAlignment: Alignment | Null =
       if (customSettings.LISTS_ALIGN_WHEN_MULTILINE) Alignment.createAlignment else null
   }
 
-  def getWrap(wrapCache: WrapCache, parent: ASTNode, child: ASTNode): Wrap =
+  def getWrap(wrapCache: WrapCache, parent: ASTNode, child: ASTNode): Wrap | Null =
     (parent.getElementType, child.getElementType) match {
       case (Object, Include | KeyedField.extractor()) =>
         wrapCache.objectEntryWrap
@@ -232,7 +232,7 @@ class HoconFormatter(settings: CodeStyleSettings) {
       case _ => null
     }
 
-  def getAlignment(alignmentCache: AlignmentCache, parent: ASTNode, child: ASTNode): Alignment =
+  def getAlignment(alignmentCache: AlignmentCache, parent: ASTNode, child: ASTNode): Alignment | Null =
     (parent.getElementType, child.getElementType) match {
       case (Object, Include | KeyedField.extractor() | Comment.extractor()) =>
         alignmentCache.objectEntryAlignment
@@ -261,7 +261,7 @@ class HoconFormatter(settings: CodeStyleSettings) {
     case _ => Indent.getNoneIndent
   }
 
-  def getChildAlignment(alignmentCache: AlignmentCache, parent: ASTNode): Alignment = parent.getElementType match {
+  def getChildAlignment(alignmentCache: AlignmentCache, parent: ASTNode): Alignment | Null = parent.getElementType match {
     case Object => alignmentCache.objectEntryAlignment
     case Array => alignmentCache.arrayValueAlignment
     case _ => null

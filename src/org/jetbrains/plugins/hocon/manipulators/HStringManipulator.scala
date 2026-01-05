@@ -39,7 +39,8 @@ class HStringManipulator extends AbstractElementManipulator[HString] {
       case KeyPart => HoconPsiElementFactory.createKeyPart(quotedText, str.getManager)
       case IncludeTarget => HoconPsiElementFactory.createIncludeTarget(quotedText, str.getManager)
     }
-    str.getFirstChild.replace(newString.getFirstChild)
+    if (newString ne null)
+      str.getFirstChild.replace(newString.getFirstChild)
 
     str
   }

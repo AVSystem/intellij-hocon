@@ -22,10 +22,10 @@ class HoconGotoSymbolContributor extends ChooseByNameContributorEx {
   private def enabled(project: Project): Boolean =
     HoconProjectSettings.getInstance(project).searchInGotoSymbol
 
-  def processNames(processor: Processor[_ >: String], scope: GlobalSearchScope, filter: IdFilter): Unit =
+  def processNames(processor: Processor[? >: String], scope: GlobalSearchScope, filter: IdFilter): Unit =
     FileBasedIndex.getInstance.processAllKeys[String](HoconKeyIndex.Id, processor, scope, filter)
 
-  def processElementsWithName(name: String, processor: Processor[_ >: NavigationItem], parameters: FindSymbolParameters)
+  def processElementsWithName(name: String, processor: Processor[? >: NavigationItem], parameters: FindSymbolParameters)
     : Unit =
     if (enabled(parameters.getProject)) ReadAction.run { () =>
       val project = parameters.getProject
@@ -49,10 +49,10 @@ case class HoconGotoSymbolItem(key: HKey) extends PsiElementNavigationItem with 
   override def canNavigate: Boolean = key.canNavigate
   override def canNavigateToSource: Boolean = key.canNavigateToSource
   override def getPresentation: ItemPresentation = this
-  override def getPresentableText: String = key.fullPathText.orNull
+  override def getPresentableText: String | Null = key.fullPathText.orNull
   override def getIcon(unused: Boolean): Icon = PropertyIcon
 
-  override def getLocationString: String =
+  override def getLocationString: String | Null =
     key.hoconFile.getVirtualFile.opt.map { vf =>
       val pfi = ProjectFileIndex.getInstance(key.getProject)
       val rootDir = pfi.getContentRootForFile(vf).opt orElse pfi.getClassRootForFile(vf).opt

@@ -1,6 +1,7 @@
 package org.jetbrains.plugins.hocon
 package misc
 
+import com.intellij.lang.Language
 import com.intellij.psi.PsiElement
 import com.intellij.ui.breadcrumbs.BreadcrumbsProvider
 import org.jetbrains.plugins.hocon.lang.HoconLanguage
@@ -18,5 +19,5 @@ class HoconBreadcrumbsInfoProvider extends BreadcrumbsProvider {
     case _ => false
   }
 
-  def getLanguages = Array(HoconLanguage)
+  def getLanguages: Array[Language] = Array(HoconLanguage)
 }

@@ -40,7 +40,7 @@ class HoconErrorHighlightingAnnotator extends Annotator {
 
       case Concatenation =>
         @tailrec
-        def validateConcatenation(constrainingToken: IElementType, child: ASTNode): Unit = if (child != null) {
+        def validateConcatenation(constrainingToken: IElementType | Null, child: ASTNode): Unit = if (child != null) {
           (constrainingToken, child.getElementType) match {
             case (_, Substitution | BadCharacter | TokenType.ERROR_ELEMENT | TokenType.WHITE_SPACE) =>
 

@@ -47,7 +47,7 @@ trait HoconTestUtils {
 
 }
 object HoconTestUtils {
-  final lazy val TestdataPath = {
+  final lazy val TestdataPath: String = {
     @tailrec def find(dir: File): File =
       if (dir == null)
         throw new RuntimeException("testdata dir not found")

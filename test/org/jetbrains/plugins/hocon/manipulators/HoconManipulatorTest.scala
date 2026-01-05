@@ -9,7 +9,7 @@ import org.junit.runners.AllTests
 /** @author
   *   ghik
   */
-abstract class HoconManipulatorTest(clazz: Class[_ <: HoconPsiElement], name: String)
+abstract class HoconManipulatorTest(clazz: Class[? <: HoconPsiElement], name: String)
   extends HoconFileSetTestCase("manipulators/" + name) {
 
   import HoconFileSetTestCase.*

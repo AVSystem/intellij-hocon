@@ -20,8 +20,8 @@ class HoconLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsPr
   private val ObjectFieldsWithAssignmentWrap = "Object fields with '=' or '+='"
 
   override def customizeSettings(consumer: CodeStyleSettingsCustomizable, settingsType: SettingsType): Unit = {
-    def showCustomOption(name: String, title: String, group: String, options: AnyRef*): Unit =
-      consumer.showCustomOption(classOf[HoconCustomCodeStyleSettings], name, title, group, options: _*)
+    def showCustomOption(name: String, title: String, group: String | Null, options: AnyRef*): Unit =
+      consumer.showCustomOption(classOf[HoconCustomCodeStyleSettings], name, title, group, options*)
 
     import CodeStyleSettingsCustomizable.{WRAP_VALUES, WRAP_VALUES_FOR_SINGLETON}
     import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider.SettingsType.*
@@ -37,7 +37,7 @@ class HoconLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsPr
             SpacingOption.SPACE_WITHIN_METHOD_CALL_PARENTHESES,
             SpacingOption.SPACE_BEFORE_COMMA,
             SpacingOption.SPACE_AFTER_COMMA,
-          ).map(_.name): _*
+          ).map(_.name)*
         )
 
         consumer.renameStandardOption(SpacingOption.SPACE_WITHIN_BRACES.name, "Object braces")
