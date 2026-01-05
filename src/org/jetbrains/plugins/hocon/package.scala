@@ -148,7 +148,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
   extension [T](t: T | Null) {
     inline def opt: Option[T] = Option(t)
 
-    inline def setup(inline code: T => Unit): T = {
+    inline def setup(inline code: T | Null => Unit): T | Null = {
       code(t)
       t
     }
@@ -158,7 +158,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
       case _ => None
     }
 
-    inline def debug(inline msg: T => String): T = {
+    inline def debug(inline msg: T | Null => String): T | Null = {
       println(msg(t))
       t
     }
