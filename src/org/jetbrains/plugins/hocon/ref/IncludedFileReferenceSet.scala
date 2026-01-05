@@ -57,7 +57,7 @@ object IncludedFileReferenceSet {
     def orderEntryScope = allScopes.reduceOption(_ `union` _)
     def moduleScope = pfi.getModuleForFile(parent).opt.map(_.getModuleRuntimeScope(false))
 
-    orderEntryScope orElse moduleScope getOrElse GlobalSearchScope.EMPTY_SCOPE
+    orderEntryScope.orElse(moduleScope).getOrElse(GlobalSearchScope.EMPTY_SCOPE)
   }
 }
 
