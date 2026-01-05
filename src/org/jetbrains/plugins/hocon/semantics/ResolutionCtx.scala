@@ -54,10 +54,10 @@ sealed abstract class ResolutionCtx {
     case _: ArrayCtx => true
   }
 
-  lazy val lastInclude: Option[IncludeCtx] = this match {
-    case _: ToplevelCtx => None
+  lazy val lastInclude: IncludeCtx | Null = this match {
+    case _: ToplevelCtx => null
     case rf: ResolvedField => rf.parentCtx.lastInclude
-    case ic: IncludeCtx => Some(ic)
+    case ic: IncludeCtx => ic
     case ac: ArrayCtx => ac.parentCtx.lastInclude
   }
 
@@ -79,11 +79,11 @@ sealed abstract class ResolutionCtx {
   def localEndOffset: Int = localTextRange._3
 
   // ignores substitutions!
-  final def sameAs(other: ResolutionCtx): Boolean = (this eq other) ||
+  @tailrec final def sameAs(other: ResolutionCtx): Boolean = (this eq other) ||
     depth == other.depth && localTextRange == other.localTextRange &&
     ((lastInclude, other.lastInclude) match {
-      case (Some(inc1), Some(inc2)) => inc1.parentCtx.sameAs(inc2.parentCtx)
-      case (None, None) => true
+      case (inc1: IncludeCtx, inc2: IncludeCtx) => inc1.parentCtx.sameAs(inc2.parentCtx)
+      case (null, null) => true
       case _ => false
     })
 
@@ -95,12 +95,12 @@ sealed abstract class ResolutionCtx {
       case ic: IncludeCtx => loop(ic.parentCtx, suffix)
       case _: ArrayCtx => Nil
     }
-    lastInclude.filterNot(_.inArray).map(loop(_, Nil)).getOrElse(Nil)
+    lastInclude.opt.filterNot(_.inArray).map(loop(_, Nil)).getOrElse(Nil)
   }
 
   @tailrec final def isAlreadyIn(file: HoconPsiFile): Boolean = lastInclude match {
-    case Some(ic) => ic.allFiles.contains(file) || ic.parentCtx.isAlreadyIn(file)
-    case None => false
+    case ic: IncludeCtx => ic.allFiles.contains(file) || ic.parentCtx.isAlreadyIn(file)
+    case null => false
   }
 
   private def pathsInResolution(
@@ -180,14 +180,16 @@ sealed abstract class ResolutionCtx {
   }
 
   def trace: String = {
-    def loop(ic: Option[IncludeCtx], suffix: String): String =
-      ic.fold(suffix) { incCtx =>
+    @tailrec def loop(ic: IncludeCtx | Null, suffix: String): String = ic match {
+      case null => suffix
+      case incCtx =>
         incCtx.source match {
           case IncludeSource.Element(inc) =>
             loop(incCtx.parentCtx.lastInclude, s"${inc.pos}->$suffix")
           case _ => suffix
         }
-      }
+    }
+
     loop(
       lastInclude,
       this match {
@@ -317,8 +319,8 @@ case class ResolvedField(
 
   lazy val includeChain: List[IncludeCtx] = {
     @tailrec def loop(rf: ResolutionCtx, suffix: List[IncludeCtx]): List[IncludeCtx] = rf.lastInclude match {
-      case Some(ic) => loop(ic.parentCtx, ic :: suffix)
-      case None => suffix
+      case ic: IncludeCtx => loop(ic.parentCtx, ic :: suffix)
+      case null => suffix
     }
     loop(this, Nil)
   }
