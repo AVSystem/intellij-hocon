@@ -13,10 +13,10 @@ import org.jetbrains.plugins.hocon.lexer.HoconTokenType
 import java.net.{MalformedURLException, URL}
 import java.{lang as jl, util as ju}
 import javax.swing.Icon
+import scala.Conversion.into
 import scala.annotation.tailrec
 import scala.collection.AbstractIterator
 import scala.collection.convert.{AsJavaExtensions, AsScalaExtensions}
-import scala.language.implicitConversions
 import scala.reflect.{classTag, ClassTag}
 
 package object hocon extends AsJavaExtensions with AsScalaExtensions {
@@ -45,27 +45,23 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
       }
   }
 
-  implicit def liftSingleToken(token: IElementType): TokenSet = TokenSet.create(token)
+  given Conversion[IElementType, TokenSet] = TokenSet.create(_)
 
-  implicit class TokenSetOps(tokenSet: TokenSet) {
-    def |(otherTokenSet: TokenSet): TokenSet =
+  extension (tokenSet: into[TokenSet]) {
+    def |(otherTokenSet: into[TokenSet]): TokenSet =
       TokenSet.orSet(tokenSet, otherTokenSet)
 
-    def &(otherTokenSet: TokenSet): TokenSet =
+    def &(otherTokenSet: into[TokenSet]): TokenSet =
       TokenSet.andSet(tokenSet, otherTokenSet)
 
-    def &^(otherTokenSet: TokenSet): TokenSet =
+    def &^(otherTokenSet: into[TokenSet]): TokenSet =
       TokenSet.andNot(tokenSet, otherTokenSet)
 
     def unapply(tokenType: IElementType): Boolean =
       tokenSet.contains(tokenType)
-
-    val extractor: TokenSetOps = this
   }
 
-  implicit def token2TokenSetOps(token: IElementType): TokenSetOps = new TokenSetOps(token)
-
-  implicit class CharSequenceOps(private val cs: CharSequence) extends AnyVal {
+  extension (cs: CharSequence) {
 
     /** Like `subSequence` but makes sure a wrapper is created instead of making a copy */
     def subSeqView(start: Int, end: Int = cs.length): CharSequence =
@@ -87,7 +83,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
       Iterator.range(0, cs.length).map(cs.charAt)
   }
 
-  implicit class NodeOps(private val node: ASTNode) extends AnyVal {
+  extension (node: ASTNode) {
     def childrenIterator: Iterator[ASTNode] =
       Iterator.iterate(node.getFirstChildNode)(_.getTreeNext).takeWhile(_ != null)
 
@@ -98,7 +94,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
       node.getFirstChildNode != null && node.getFirstChildNode.getTreeNext == null
   }
 
-  implicit class PsiElementOps(private val elem: PsiElement) extends AnyVal {
+  extension (elem: PsiElement) {
     def elementType: IElementType =
       elem.getNode.getElementType
 
@@ -144,16 +140,16 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
         }
   }
 
-  implicit class StringOps(private val str: String) extends AnyVal {
+  extension (str: String) {
     def indent(ind: String): String =
       ind + str.replace("\n", "\n" + ind)
   }
 
-  implicit class universalNullableOps[T](private val t: T | Null) extends AnyVal {
+  extension [T](t: T | Null) {
     def opt: Option[T] = Option(t)
   }
 
-  implicit class universalOps[T](private val t: T) extends AnyVal {
+  extension [T](t: T) {
 
     def setup(code: T => Unit): T = {
       code(t)
@@ -171,7 +167,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
     }
   }
 
-  implicit class OptionOps[A](private val option: Option[A]) extends AnyVal {
+  extension [A](option: Option[A]) {
     def collectOnly[T: ClassTag]: Option[T] = option.collect { case t: T => t }
 
     def nullOr[T >: Null](f: A => T): T = option.fold(null: T)(f)
@@ -182,7 +178,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
     }
   }
 
-  implicit class collectionOps[A](private val coll: IterableOnce[A]) extends AnyVal {
+  extension [A](coll: IterableOnce[A]) {
     def toJList[B >: A]: JList[B] = {
       val result = new ju.ArrayList[B]
       coll.iterator.foreach(result.add)
@@ -190,10 +186,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
     }
   }
 
-  implicit class IteratorOps[A](private val it: Iterator[A]) extends AnyVal {
-    def nextOption: Option[A] =
-      if (it.hasNext) Option(it.next()) else None
-
+  extension [A](it: Iterator[A]) {
     def collectOnly[T: ClassTag]: Iterator[T] =
       it.collect { case t: T => t }
 

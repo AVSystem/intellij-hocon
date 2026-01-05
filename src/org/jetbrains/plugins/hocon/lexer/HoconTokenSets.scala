@@ -3,8 +3,6 @@ package lexer
 
 import com.intellij.psi.tree.TokenSet
 
-import scala.language.implicitConversions
-
 object HoconTokenSets {
 
   import org.jetbrains.plugins.hocon.lexer.HoconTokenType.*
@@ -27,15 +25,17 @@ object HoconTokenSets {
   final val ValueStart = SimpleValuePart | LBrace | LBracket | Dollar | KeyValueSeparator | BadCharacter
   final val ObjectEntryStart = PathStart | UnquotedCharsOrParens
 
-  case class Matcher(tokenSet: TokenSet, requireNoNewLine: Boolean, matchNewLine: Boolean, matchEof: Boolean) {
-    def noNewLine: Matcher = copy(requireNoNewLine = true)
-    def orNewLineOrEof: Matcher = copy(matchNewLine = true, matchEof = true)
-    def orEof: Matcher = copy(matchEof = true)
+  into case class Matcher(tokenSet: TokenSet, requireNoNewLine: Boolean, matchNewLine: Boolean, matchEof: Boolean)
+
+  extension(matcher: Matcher){
+    def noNewLine: Matcher = matcher.copy(requireNoNewLine = true)
+    def orNewLineOrEof: Matcher =matcher. copy(matchNewLine = true, matchEof = true)
+    def orEof: Matcher = matcher.copy(matchEof = true)
   }
 
-  implicit def token2Matcher(token: HoconTokenType): Matcher =
+  given Conversion[HoconTokenType, Matcher] = token =>
     Matcher(TokenSet.create(token), requireNoNewLine = false, matchNewLine = false, matchEof = false)
 
-  implicit def tokenSet2Matcher(tokenSet: TokenSet): Matcher =
+  given Conversion[TokenSet, Matcher] = tokenSet =>
     Matcher(tokenSet, requireNoNewLine = false, matchNewLine = false, matchEof = false)
 }
