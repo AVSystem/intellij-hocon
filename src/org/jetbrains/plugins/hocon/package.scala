@@ -146,33 +146,28 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
   }
 
   extension [T](t: T | Null) {
-    def opt: Option[T] = Option(t)
-  }
+    inline def opt: Option[T] = Option(t)
 
-  extension [T](t: T) {
-
-    def setup(code: T => Unit): T = {
+    inline def setup(inline code: T => Unit): T = {
       code(t)
       t
     }
 
-    def typedOpt[U: ClassTag]: Option[U] = t match {
+    inline def typedOpt[U]: Option[U] = t match {
       case u: U => Some(u)
       case _ => None
     }
 
-    def debug(msg: T => String): T = {
+    inline def debug(inline msg: T => String): T = {
       println(msg(t))
       t
     }
   }
 
   extension [A](option: Option[A]) {
-    def collectOnly[T: ClassTag]: Option[T] = option.collect { case t: T => t }
+    inline def collectOnly[T]: Option[T] = option.collect { case t: T => t }
 
-    def nullOr[T >: Null](f: A => T): T = option.fold(null: T)(f)
-
-    def flatMapIt[T](f: A => Iterator[T]): Iterator[T] = option match {
+    inline def flatMapIt[T](inline f: A => Iterator[T]): Iterator[T] = option match {
       case Some(a) => f(a)
       case None => Iterator.empty
     }
