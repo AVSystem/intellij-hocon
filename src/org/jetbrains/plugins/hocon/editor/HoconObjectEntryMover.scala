@@ -7,7 +7,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.Key
 import com.intellij.psi.{PsiElement, PsiFile}
 import org.jetbrains.plugins.hocon.editor.HoconObjectEntryMover.{PrefixModKey, PrefixModification}
-import org.jetbrains.plugins.hocon.psi.*
+import org.jetbrains.plugins.hocon.psi.{HObjectField, *}
 
 import scala.annotation.tailrec
 
@@ -147,7 +147,7 @@ class HoconObjectEntryMover extends LineMover {
 
     def fieldToDescendInto(field: HObjectField): Option[(HObjectField, List[String])] =
       for {
-        adjacentField <- adjacentEntry(field).collect { case f: HObjectField => f }.filter(canInsertInto)
+        adjacentField <- adjacentEntry(field).collectOnly[HObjectField].filter(canInsertInto)
         prefixToRemove <- {
           val prefix = adjacentField.keyedField.fieldsInPathForward.map(keyString).toList
           val removablePrefix = field.keyedField.fieldsInPathForward

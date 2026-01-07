@@ -17,7 +17,7 @@ import scala.Conversion.into
 import scala.annotation.tailrec
 import scala.collection.AbstractIterator
 import scala.collection.convert.{AsJavaExtensions, AsScalaExtensions}
-import scala.reflect.{classTag, ClassTag}
+import scala.reflect.{ClassTag, Typeable, classTag}
 
 package object hocon extends AsJavaExtensions with AsScalaExtensions {
   type JList[T] = java.util.List[T]
@@ -86,7 +86,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
 
   extension (node: ASTNode) {
     def childrenIterator: Iterator[ASTNode] =
-      Iterator.iterate(node.getFirstChildNode)(_.getTreeNext).takeWhile(_ != null)
+      Iterator.iterateNonNull(node.getFirstChildNode)(_.getTreeNext)
 
     def children: Seq[ASTNode] =
       childrenIterator.toVector: Seq[ASTNode]
@@ -183,7 +183,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
   }
 
   extension [A](it: Iterator[A]) {
-    def collectOnly[T: ClassTag]: Iterator[T] =
+    def collectOnly[T: Typeable]: Iterator[T] =
       it.collect { case t: T => t }
 
     def flatCollect[B](f: PartialFunction[A, IterableOnce[B]]): Iterator[B] =
@@ -246,4 +246,20 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
     } catch {
       case _: MalformedURLException | _: IllegalArgumentException => false
     }
+
+  extension (it: Iterator.type) {
+    def iterateNonNull[T](start: T | Null)(f: T => T | Null): Iterator[T] = new AbstractIterator[T] {
+      private var _next = start
+
+      override def hasNext: Boolean = _next != null
+
+      override def next(): T = {
+        if (!hasNext) Iterator.empty.next()
+
+        val res = _next.nn
+        _next = f(res)
+        res
+      }
+    }
+  }
 }

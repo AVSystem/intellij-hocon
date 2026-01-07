@@ -85,12 +85,10 @@ sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement
     getParent.asInstanceOf[Parent]
 
   def hoconParents: Iterator[HoconPsiElement] =
-    Iterator
-      .iterate(this)(_.getParent match {
-        case he: HoconPsiElement => he
-        case _ => null.asInstanceOf[HoconPsiElement]
-      })
-      .takeWhile(_ != null)
+    Iterator.iterateNonNull(this)(_.getParent match {
+      case he: HoconPsiElement => he
+      case _ => null
+    })
 
   def inArray: Boolean = hoconParents.exists {
     case _: HArray => true
@@ -111,13 +109,13 @@ sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement
     findChild[T](reverse = true)
 
   def allChildren(reverse: Boolean): Iterator[PsiElement] =
-    Iterator.iterate(if (reverse) getLastChild else getFirstChild)(_.getNextSibling(reverse)).takeWhile(_ != null)
+    Iterator.iterateNonNull(if (reverse) getLastChild else getFirstChild)(_.getNextSibling(reverse))
 
   def nextSibling[T: ClassTag](reverse: Boolean): Option[T] =
     moreSiblings(reverse).collectFirst { case t: T => t }
 
   def moreSiblings(reverse: Boolean): Iterator[PsiElement] =
-    Iterator.iterate(this.getNextSibling(reverse))(_.getNextSibling(reverse)).takeWhile(_ != null)
+    Iterator.iterateNonNull(this.getNextSibling(reverse))(_.getNextSibling(reverse))
 
   def nonWhitespaceChildren: Iterator[PsiElement] =
     allChildren(reverse = false).filterNot(ch => ch.getNode.getElementType == TokenType.WHITE_SPACE)
@@ -137,8 +135,7 @@ sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement
 final class HObjectEntries(ast: ASTNode) extends HoconPsiElement(ast) with HEntriesLike {
   type Parent = HObjectEntriesParent
 
-  def containingObject: Option[HObject] =
-    Option(parent).collect { case obj: HObject => obj }
+  def containingObject: Option[HObject] = parent.typedOpt[HObject]
 
   def isToplevel: Boolean = parent match {
     case _: HoconPsiFile => true
@@ -271,7 +268,7 @@ sealed abstract class HKeyedField(ast: ASTNode)
     *   iterator of all encountered keyed fields (in bottom-up order, i.e. starting with itself)
     */
   def prefixingFields: Iterator[HKeyedField] =
-    Iterator.iterate(this)(_.prefixingField.orNull.asInstanceOf[HKeyedField]).takeWhile(_ != null)
+    Iterator.iterateNonNull(this)(_.prefixingField.orNull)
 
   /** Returns all keys on containing path, assuming they are all valid keys. `None` is returned if not all keys on
     * containing path are valid. The list is ordered top-down, i.e. `this` key is the last element. "Containing path"
@@ -599,8 +596,7 @@ sealed trait HValue extends HoconPsiElement {
     case _: HoconPsiFile => None
   }
 
-  def concatParent: Option[HConcatenation] =
-    Option(parent).collect { case hc: HConcatenation => hc }
+  def concatParent: Option[HConcatenation] = parent.typedOpt[HConcatenation]
 
   def moreConcatenated(reverse: Boolean): Iterator[HValue] =
     concatParent.flatMapIt(_ => moreSiblings(reverse).collectOnly[HValue])

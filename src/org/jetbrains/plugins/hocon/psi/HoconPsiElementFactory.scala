@@ -14,7 +14,7 @@ object HoconPsiElementFactory {
       .getInstance(manager.getProject)
       .createFileFromText(Dummy + HoconFileType.DefaultExtension, new HoconFileType, text)
       .findElementAt(offset)
-    Iterator.iterate(element)(_.getParent).takeWhile(_ != null).collectFirst { case t: T => t }
+    Iterator.iterateNonNull(element)(_.getParent).collectFirst { case t: T => t }
   }
 
   def createStringValue(contents: String, manager: PsiManager): HStringValue | Null =
