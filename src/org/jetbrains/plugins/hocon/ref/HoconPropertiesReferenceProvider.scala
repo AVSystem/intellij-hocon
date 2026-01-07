@@ -81,7 +81,7 @@ class HoconPropertyReference(
     case _ => ToplevelCtx(element, ToplevelCtx.ApplicationResource)
   }
 
-  def resolve(): PsiElement = createContext
+  def resolve(): PsiElement | Null = createContext
     .occurrences(fullPath, ResOpts(reverse = true))
     .nextOption()
     .flatMap(_.ancestorField(reverseIndex))
@@ -103,9 +103,9 @@ class HoconPropertyReference(
       .toArray[AnyRef]
   }
 
-  def handleElementRename(newElementName: String): PsiElement = null
+  def handleElementRename(newElementName: String): PsiElement | Null = null
 
-  def bindToElement(element: PsiElement): PsiElement = null
+  def bindToElement(element: PsiElement): PsiElement | Null = null
 
   // important for ReferencesSearch and therefore Find Usages
   def isReferenceTo(element: PsiElement): Boolean = element match {

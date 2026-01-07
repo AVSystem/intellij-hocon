@@ -1,11 +1,16 @@
 package org.jetbrains.plugins.hocon
 package ref
 
+import psi.HIncludeTarget
+
 import com.intellij.codeInspection.{LocalInspectionTool, ProblemHighlightType, ProblemsHolder}
 import com.intellij.psi.{PsiElement, PsiElementVisitor}
-import org.jetbrains.plugins.hocon.psi.HIncludeTarget
 
-abstract class AbstractHoconIncludeResolutionInspection(forRequired: Boolean) extends LocalInspectionTool {
+enum AbstractHoconIncludeResolutionInspection(forRequired: Boolean) extends LocalInspectionTool {
+  case HoconIncludeResolutionInspection extends AbstractHoconIncludeResolutionInspection(false)
+
+  case HoconRequiredIncludeResolutionInspection extends AbstractHoconIncludeResolutionInspection(true)
+
   override def buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor =
     new PsiElementVisitor {
       override def visitElement(element: PsiElement): Unit = element match {
@@ -24,6 +29,3 @@ abstract class AbstractHoconIncludeResolutionInspection(forRequired: Boolean) ex
       }
     }
 }
-
-class HoconIncludeResolutionInspection extends AbstractHoconIncludeResolutionInspection(false)
-class HoconRequiredIncludeResolutionInspection extends AbstractHoconIncludeResolutionInspection(true)

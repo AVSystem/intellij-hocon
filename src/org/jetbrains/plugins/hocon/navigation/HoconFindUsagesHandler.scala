@@ -19,8 +19,6 @@ import com.intellij.psi.tree.TokenSet
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.Processor
 
-import scala.annotation.nowarn
-
 class HoconWordsScanner
   extends DefaultWordsScanner(
     new HoconLexer,
@@ -47,8 +45,8 @@ class HoconFindUsagesProvider extends FindUsagesProvider {
     getNodeText(element, useFullName = true)
 
   def getNodeText(element: PsiElement, useFullName: Boolean): String = element match {
-    case key: HKey => key.fullPathText.orNull
-    case _ => null
+    case key: HKey => key.fullPathText.getOrElse("<invalid key>")
+    case _ => "<unknown element>"
   }
 }
 
@@ -65,7 +63,7 @@ class HoconFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
 class HoconFindUsagesHandler(element: PsiElement) extends FindUsagesHandler(element) {
   override def processElementUsages(
     element: PsiElement,
-    processor: Processor[_ >: UsageInfo],
+    processor: Processor[? >: UsageInfo],
     options: FindUsagesOptions,
   ): Boolean = {
     val res = element match {
@@ -106,7 +104,7 @@ object HoconFindUsagesHandler {
 }
 
 class HoconUseScopeAdjuster extends UseScopeEnlarger with ScopeOptimizer {
-  def getAdditionalUseScope(element: PsiElement): SearchScope = element match {
+  def getAdditionalUseScope(element: PsiElement): SearchScope | Null = element match {
     // HOCON properties represent paths which can be used anywhere in the project
     case fk: HFieldKey => ProjectScope.getAllScope(fk.getProject)
     case _ => null

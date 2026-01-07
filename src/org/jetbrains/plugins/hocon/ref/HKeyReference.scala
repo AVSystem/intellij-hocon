@@ -19,7 +19,7 @@ class HKeyReference(key: HKey) extends PsiReference {
   def isReferenceTo(element: PsiElement): Boolean =
     element == resolve()
 
-  def bindToElement(element: PsiElement): PsiElement = null
+  def bindToElement(element: PsiElement): PsiElement | Null = null
 
   def handleElementRename(newElementName: String): PsiElement =
     ElementManipulators.handleContentChange(key, newElementName)
@@ -28,7 +28,7 @@ class HKeyReference(key: HKey) extends PsiReference {
 
   def getRangeInElement: TextRange = ElementManipulators.getValueTextRange(key)
 
-  def resolve(): PsiElement =
+  def resolve(): PsiElement | Null =
     key.resolved.map(_.hkey).orNull
 
   // completion

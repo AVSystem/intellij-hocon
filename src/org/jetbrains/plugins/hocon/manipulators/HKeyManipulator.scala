@@ -14,7 +14,7 @@ class HKeyManipulator extends AbstractElementManipulator[HKey] {
 
   import org.jetbrains.plugins.hocon.lexer.HoconTokenType.*
 
-  def handleContentChange(key: HKey, range: TextRange, newContent: String): HKey = {
+  def handleContentChange(key: HKey, range: TextRange, newContent: String): HKey | Null = {
     val psiManager = PsiManager.getInstance(key.getProject)
     val allStringTypes = key.keyParts.map(_.stringType).toSet
 

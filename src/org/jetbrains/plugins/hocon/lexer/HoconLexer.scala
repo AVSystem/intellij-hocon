@@ -4,11 +4,16 @@ package lexer
 import com.intellij.lexer.LexerBase
 import com.intellij.psi.tree.IElementType
 
-import scala.annotation.{switch, tailrec}
+import scala.annotation.tailrec
 
 object HoconLexer {
 
-  case class State(raw: Int) extends AnyVal
+  opaque type State = Int
+  object State {
+    inline def apply(inline raw: Int): State = raw
+
+    extension (state: State) inline def raw: Int = state
+  }
 
   final val Initial = State(0)
   final val Value = State(1)
@@ -49,14 +54,14 @@ class HoconLexer extends LexerBase {
     case _ => state
   }
 
-  private var input: CharSequence = _
-  private var endOffset: Int = _
+  private var input: CharSequence = compiletime.uninitialized
+  private var endOffset: Int = compiletime.uninitialized
   private var stateBefore: State = Initial
   private var stateAfter: State = Initial
 
-  private var tokenStart: Int = _
-  private var tokenEnd: Int = _
-  private var token: IElementType = _
+  private var tokenStart: Int = compiletime.uninitialized
+  private var tokenEnd: Int = compiletime.uninitialized
+  private var token: IElementType | Null = compiletime.uninitialized
 
   private def setNewToken(newToken: HoconTokenType, length: Int, newState: State): Unit = {
     tokenEnd = tokenStart + length
@@ -82,7 +87,7 @@ class HoconLexer extends LexerBase {
 
     tokenStart = tokenEnd
     if (endOffset > tokenStart) {
-      (input.charAt(tokenStart): @switch) match {
+      input.charAt(tokenStart) match { // todo: no longer available @switch
         case '$' => setNewToken(Dollar, 1, onDollar(stateAfter))
         case '?' if stateAfter == SubStarted => setNewToken(QMark, 1, Substitution)
         case '{' =>
@@ -163,7 +168,7 @@ class HoconLexer extends LexerBase {
 
   def getTokenStart: Int = tokenStart
 
-  def getTokenType: IElementType = {
+  def getTokenType: IElementType | Null = {
     if (token == null) {
       advance()
     }

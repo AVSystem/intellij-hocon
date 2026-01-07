@@ -29,7 +29,7 @@ import java.{util => ju}
   * and .properties files at the end. This reflects the order in which Typesafe Config merges those files.
   */
 object IncludedFileReferenceSet {
-  case class DefaultContexts(
+  type DefaultContexts = (
     scope: GlobalSearchScope,
     contexts: ju.Collection[PsiFileSystemItem],
   )
@@ -54,10 +54,10 @@ object IncludedFileReferenceSet {
         loe.getOwnerModule.getModuleRuntimeScope(loe.getScope == DependencyScope.TEST)
     }
 
-    def orderEntryScope = allScopes.reduceOption(_ union _)
+    def orderEntryScope = allScopes.reduceOption(_ `union` _)
     def moduleScope = pfi.getModuleForFile(parent).opt.map(_.getModuleRuntimeScope(false))
 
-    orderEntryScope orElse moduleScope getOrElse GlobalSearchScope.EMPTY_SCOPE
+    orderEntryScope.orElse(moduleScope).getOrElse(GlobalSearchScope.EMPTY_SCOPE)
   }
 }
 
@@ -154,7 +154,7 @@ class IncludedFileReference(refSet: FileReferenceSet, range: TextRange, index: I
   override def innerResolveInContext(
     text: String,
     context: PsiFileSystemItem,
-    result: JCollection[_ >: ResolveResult],
+    result: JCollection[? >: ResolveResult],
     caseSensitive: Boolean,
   ): Unit =
     if (lacksExtension(text)) {

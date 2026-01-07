@@ -15,9 +15,9 @@ abstract class HoconMultiModuleTest extends UsefulTestCase with HoconTestUtils {
 
   import HoconMultiModuleTest.*
 
-  private var _fixture: CodeInsightTestFixture = _
+  private var _fixture: CodeInsightTestFixture | Null = compiletime.uninitialized
 
-  protected def fixture: CodeInsightTestFixture = _fixture
+  protected def fixture: CodeInsightTestFixture = _fixture.nn
 
   def moduleDependencies: Seq[(String, String)] = Seq.empty
 
@@ -49,8 +49,8 @@ abstract class HoconMultiModuleTest extends UsefulTestCase with HoconTestUtils {
     }
 
     _fixture = JavaTestFixtureFactory.getFixtureFactory.createCodeInsightFixture(fixtureBuilder.getFixture)
-    _fixture.setUp()
-    _fixture.setTestDataPath(rootPath)
+    fixture.setUp()
+    fixture.setTestDataPath(rootPath)
 
     inWriteAction {
       LocalFileSystem.getInstance().refresh(false)
@@ -71,11 +71,11 @@ abstract class HoconMultiModuleTest extends UsefulTestCase with HoconTestUtils {
       models.values.foreach(_.commit())
     }
 
-    IndexingTestUtil.waitUntilIndexesAreReady(_fixture.getProject)
+    IndexingTestUtil.waitUntilIndexesAreReady(fixture.getProject)
   }
 
   override def tearDown(): Unit = {
-    _fixture.tearDown()
+    fixture.tearDown()
     _fixture = null
     super.tearDown()
   }
@@ -106,7 +106,7 @@ object HoconMultiModuleTest {
     model.addModuleOrderEntry(module).setExported(true)
 }
 
-class HoconJavaModuleFixtureBuilder(fixtureBuilder: TestFixtureBuilder[_ <: IdeaProjectTestFixture])
+class HoconJavaModuleFixtureBuilder(fixtureBuilder: TestFixtureBuilder[? <: IdeaProjectTestFixture])
   extends JavaModuleFixtureBuilderImpl[ModuleFixture](fixtureBuilder) {
 
   def instantiateFixture(): ModuleFixture = new ModuleFixtureImpl(this)

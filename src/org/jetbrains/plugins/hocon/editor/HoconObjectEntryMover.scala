@@ -7,7 +7,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.Key
 import com.intellij.psi.{PsiElement, PsiFile}
 import org.jetbrains.plugins.hocon.editor.HoconObjectEntryMover.{PrefixModKey, PrefixModification}
-import org.jetbrains.plugins.hocon.psi.*
+import org.jetbrains.plugins.hocon.psi.{HObjectField, *}
 
 import scala.annotation.tailrec
 
@@ -133,10 +133,13 @@ class HoconObjectEntryMover extends LineMover {
     def canInsertInto(field: HObjectField) =
       !inSingleLine(field) && {
         val lineToInsertAfter = if (down) firstNonCommentLine(field) else endLine(field) - 1
-        file.elementsAt(document.getLineEndOffset(lineToInsertAfter)).collectFirst {
-          case entries: HObjectEntries => entries.prefixingField.map(_.enclosingObjectField).contains(field)
-          case _: HKeyedField => false
-        } getOrElse false
+        file
+          .elementsAt(document.getLineEndOffset(lineToInsertAfter))
+          .collectFirst {
+            case entries: HObjectEntries => entries.prefixingField.map(_.enclosingObjectField).contains(field)
+            case _: HKeyedField => false
+          }
+          .getOrElse(false)
       }
 
     def adjacentEntry(entry: HObjectEntry) =
@@ -144,7 +147,7 @@ class HoconObjectEntryMover extends LineMover {
 
     def fieldToDescendInto(field: HObjectField): Option[(HObjectField, List[String])] =
       for {
-        adjacentField <- adjacentEntry(field).collect { case f: HObjectField => f }.filter(canInsertInto)
+        adjacentField <- adjacentEntry(field).collectOnly[HObjectField].filter(canInsertInto)
         prefixToRemove <- {
           val prefix = adjacentField.keyedField.fieldsInPathForward.map(keyString).toList
           val removablePrefix = field.keyedField.fieldsInPathForward
@@ -161,43 +164,47 @@ class HoconObjectEntryMover extends LineMover {
     def trySpecializedFieldMove(objField: HObjectField) = {
       val sourceRange = lineRange(objField)
 
-      fieldToAscendOutOf(objField).map { case (enclosingField, prefixToAdd) =>
-        val targetRange =
-          if (down) new LineRange(sourceRange.endLine, endLine(enclosingField) + 1)
-          else new LineRange(startLine(enclosingField), sourceRange.startLine)
-        val mod = PrefixModification(objField.getTextOffset, 0, prefixToAdd.mkString("", ".", "."))
-        (sourceRange, targetRange, Some(mod))
+      fieldToAscendOutOf(objField)
+        .map { case (enclosingField, prefixToAdd) =>
+          val targetRange =
+            if (down) new LineRange(sourceRange.endLine, endLine(enclosingField) + 1)
+            else new LineRange(startLine(enclosingField), sourceRange.startLine)
+          val mod = (objField.getTextOffset, 0, prefixToAdd.mkString("", ".", "."))
+          (sourceRange, targetRange, Some(mod))
 
-      } orElse fieldToDescendInto(objField).map { case (adjacentField, prefixToRemove) =>
-        val targetRange =
-          if (down) new LineRange(sourceRange.endLine, firstNonCommentLine(adjacentField) + 1)
-          else new LineRange(endLine(adjacentField), sourceRange.startLine)
-        val prefixStr = prefixToRemove.mkString("", ".", ".")
-        val needsGuard = document.getCharsSequence.charAt(objField.getTextOffset + prefixStr.length).isWhitespace
-        val mod = PrefixModification(objField.getTextOffset, prefixStr.length, if (needsGuard) "\"\"" else "")
-        (sourceRange, targetRange, Some(mod))
-      }
+        }
+        .orElse(fieldToDescendInto(objField).map { case (adjacentField, prefixToRemove) =>
+          val targetRange =
+            if (down) new LineRange(sourceRange.endLine, firstNonCommentLine(adjacentField) + 1)
+            else new LineRange(endLine(adjacentField), sourceRange.startLine)
+          val prefixStr = prefixToRemove.mkString("", ".", ".")
+          val needsGuard = document.getCharsSequence.charAt(objField.getTextOffset + prefixStr.length).isWhitespace
+          val mod = (objField.getTextOffset, prefixStr.length, if (needsGuard) "\"\"" else "")
+          (sourceRange, targetRange, Some(mod))
+        })
     }
 
     def tryEntryMove(entry: HObjectEntry) = {
       val sourceRange = lineRange(entry)
-      adjacentMovableEntry(entry).map { adjacentEntry =>
-        (sourceRange, lineRange(adjacentEntry), None)
-      } orElse {
-        val maxLinePos = editor.offsetToLogicalPosition(document.getTextLength)
-        val maxLine = if (maxLinePos.column == 0) maxLinePos.line else maxLinePos.line + 1
-        val nearLine = if (down) sourceRange.endLine else sourceRange.startLine - 1
+      adjacentMovableEntry(entry)
+        .map { adjacentEntry =>
+          (sourceRange, lineRange(adjacentEntry), None)
+        }
+        .orElse {
+          val maxLinePos = editor.offsetToLogicalPosition(document.getTextLength)
+          val maxLine = if (maxLinePos.column == 0) maxLinePos.line else maxLinePos.line + 1
+          val nearLine = if (down) sourceRange.endLine else sourceRange.startLine - 1
 
-        if (nearLine >= 0 && nearLine < maxLine)
-          Some((sourceRange, singleLineRange(nearLine), None))
-        else None
-      }
+          if (nearLine >= 0 && nearLine < maxLine)
+            Some((sourceRange, singleLineRange(nearLine), None))
+          else None
+        }
     }
 
     val rangesOpt: Option[(LineRange, LineRange, Option[PrefixModification])] =
       enclosingAnchoredEntry(element).flatMap {
         case objField: HObjectField =>
-          trySpecializedFieldMove(objField) orElse tryEntryMove(objField)
+          trySpecializedFieldMove(objField).orElse(tryEntryMove(objField))
         case include: HInclude =>
           tryEntryMove(include)
       }
@@ -211,7 +218,7 @@ class HoconObjectEntryMover extends LineMover {
   }
 
   override def beforeMove(editor: Editor, info: MoveInfo, down: Boolean): Unit =
-    info.getUserData(PrefixModKey).foreach { case PrefixModification(offset, length, replacement) =>
+    info.getUserData(PrefixModKey).foreach { case (offset, length, replacement) =>
       // we need to move caret manually when adding prefix exactly at caret position
       val caretModel = editor.getCaretModel
       val shouldMoveCaret = length == 0 && caretModel.getOffset == offset
@@ -224,7 +231,7 @@ class HoconObjectEntryMover extends LineMover {
 
 object HoconObjectEntryMover {
 
-  case class PrefixModification(offset: Int, length: Int, replacement: String)
+  type PrefixModification = (offset: Int, length: Int, replacement: String)
 
   val PrefixModKey = new Key[Option[PrefixModification]]("PrefixMod")
 }

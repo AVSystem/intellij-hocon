@@ -11,23 +11,23 @@ class HoconCommenter extends CodeDocumentationAwareCommenter {
 
   def getLineCommentTokenType: IElementType = HoconTokenType.DoubleSlashComment
 
-  def getBlockCommentSuffix: String = null
+  def getBlockCommentSuffix: String | Null = null
 
-  def getBlockCommentPrefix: String = null
+  def getBlockCommentPrefix: String | Null = null
 
-  def getCommentedBlockCommentPrefix: String = null
+  def getCommentedBlockCommentPrefix: String | Null = null
 
-  def getCommentedBlockCommentSuffix: String = null
+  def getCommentedBlockCommentSuffix: String | Null = null
 
-  def getDocumentationCommentLinePrefix: String = null
+  def getDocumentationCommentLinePrefix: String | Null = null
 
-  def getBlockCommentTokenType: IElementType = null
+  def getBlockCommentTokenType: IElementType | Null = null
 
-  def getDocumentationCommentTokenType: IElementType = null
+  def getDocumentationCommentTokenType: IElementType | Null = null
 
   def isDocumentationComment(element: PsiComment): Boolean = false
 
-  def getDocumentationCommentSuffix: String = null
+  def getDocumentationCommentSuffix: String | Null = null
 
-  def getDocumentationCommentPrefix: String = null
+  def getDocumentationCommentPrefix: String | Null = null
 }

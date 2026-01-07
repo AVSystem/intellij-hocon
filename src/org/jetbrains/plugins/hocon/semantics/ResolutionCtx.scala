@@ -1,63 +1,58 @@
 package org.jetbrains.plugins.hocon
 package semantics
 
+import psi.*
+import ref.{IncludedFileReferenceSet, PackageDirsEnumerator}
+import semantics.SubstitutionKind.SelfReferential
+
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.{FilenameIndex, GlobalSearchScope}
 import com.intellij.psi.{PsiElement, PsiManager}
-import org.jetbrains.plugins.hocon.psi.*
-import org.jetbrains.plugins.hocon.ref.{IncludedFileReferenceSet, PackageDirsEnumerator}
-import org.jetbrains.plugins.hocon.semantics.SubstitutionKind.SelfReferential
 
 import scala.annotation.tailrec
 
-case class ResOpts(
-  reverse: Boolean,
-  resolveIncludes: Boolean = true,
-  resolveSubstitutions: Boolean = true,
-)
+type ResOpts = (reverse: Boolean, resolveIncludes: Boolean, resolveSubstitutions: Boolean)
 
-sealed abstract class SubstitutionKind
-object SubstitutionKind {
-  case class Full(path: List[String]) extends SubstitutionKind
-  case class SelfReferential(path: List[String], selfReferenced: ResolvedField) extends SubstitutionKind
-  case object Circular extends SubstitutionKind
-  case object Invalid extends SubstitutionKind
+def ResOpts(reverse: Boolean, resolveIncludes: Boolean = true, resolveSubstitutions: Boolean = true) =
+  (reverse, resolveIncludes, resolveSubstitutions)
+
+enum SubstitutionKind {
+  case Full(path: List[String])
+  case SelfReferential(path: List[String], selfReferenced: ResolvedField)
+  case Circular
+  case Invalid
 }
 
-case class SubstitutionCtx(
-  ctx: ResolutionCtx,
-  subst: HSubstitution,
-  subsKind: SubstitutionKind,
-)
+type SubstitutionCtx = (ctx: ResolutionCtx, subst: HSubstitution, subsKind: SubstitutionKind)
 
 sealed abstract class ResolutionCtx {
-  val toplevelCtx: ToplevelCtx = this match {
+  lazy val toplevelCtx: ToplevelCtx = this match {
     case tc: ToplevelCtx => tc
     case rf: ResolvedField => rf.parentCtx.toplevelCtx
     case ic: IncludeCtx => ic.parentCtx.toplevelCtx
     case ac: ArrayCtx => ac.parentCtx.toplevelCtx
   }
 
-  val depth: Int = this match {
+  lazy val depth: Int = this match {
     case _: ToplevelCtx => 0
     case rf: ResolvedField => rf.parentCtx.depth + 1
     case ic: IncludeCtx => ic.parentCtx.depth
     case ac: ArrayCtx => ac.parentCtx.depth
   }
 
-  val inArray: Boolean = this match {
+  lazy val inArray: Boolean = this match {
     case _: ToplevelCtx => false
     case rf: ResolvedField => rf.parentCtx.inArray
     case ic: IncludeCtx => ic.parentCtx.inArray
     case _: ArrayCtx => true
   }
 
-  val lastInclude: Option[IncludeCtx] = this match {
-    case _: ToplevelCtx => None
+  lazy val lastInclude: IncludeCtx | Null = this match {
+    case _: ToplevelCtx => null
     case rf: ResolvedField => rf.parentCtx.lastInclude
-    case ic: IncludeCtx => Some(ic)
+    case ic: IncludeCtx => ic
     case ac: ArrayCtx => ac.parentCtx.lastInclude
   }
 
@@ -79,11 +74,11 @@ sealed abstract class ResolutionCtx {
   def localEndOffset: Int = localTextRange._3
 
   // ignores substitutions!
-  final def sameAs(other: ResolutionCtx): Boolean = (this eq other) ||
+  @tailrec final def sameAs(other: ResolutionCtx): Boolean = (this eq other) ||
     depth == other.depth && localTextRange == other.localTextRange &&
     ((lastInclude, other.lastInclude) match {
-      case (Some(inc1), Some(inc2)) => inc1.parentCtx.sameAs(inc2.parentCtx)
-      case (None, None) => true
+      case (inc1: IncludeCtx, inc2: IncludeCtx) => inc1.parentCtx.sameAs(inc2.parentCtx)
+      case (null, null) => true
       case _ => false
     })
 
@@ -95,12 +90,12 @@ sealed abstract class ResolutionCtx {
       case ic: IncludeCtx => loop(ic.parentCtx, suffix)
       case _: ArrayCtx => Nil
     }
-    lastInclude.filterNot(_.inArray).map(loop(_, Nil)).getOrElse(Nil)
+    lastInclude.opt.filterNot(_.inArray).map(loop(_, Nil)).getOrElse(Nil)
   }
 
   @tailrec final def isAlreadyIn(file: HoconPsiFile): Boolean = lastInclude match {
-    case Some(ic) => ic.allFiles.contains(file) || ic.parentCtx.isAlreadyIn(file)
-    case None => false
+    case ic: IncludeCtx => ic.allFiles.contains(file) || ic.parentCtx.isAlreadyIn(file)
+    case null => false
   }
 
   private def pathsInResolution(
@@ -180,14 +175,16 @@ sealed abstract class ResolutionCtx {
   }
 
   def trace: String = {
-    def loop(ic: Option[IncludeCtx], suffix: String): String =
-      ic.fold(suffix) { incCtx =>
+    @tailrec def loop(ic: IncludeCtx | Null, suffix: String): String = ic match {
+      case null => suffix
+      case incCtx =>
         incCtx.source match {
           case IncludeSource.Element(inc) =>
             loop(incCtx.parentCtx.lastInclude, s"${inc.pos}->$suffix")
           case _ => suffix
         }
-      }
+    }
+
     loop(
       lastInclude,
       this match {
@@ -317,8 +314,8 @@ case class ResolvedField(
 
   lazy val includeChain: List[IncludeCtx] = {
     @tailrec def loop(rf: ResolutionCtx, suffix: List[IncludeCtx]): List[IncludeCtx] = rf.lastInclude match {
-      case Some(ic) => loop(ic.parentCtx, ic :: suffix)
-      case None => suffix
+      case ic: IncludeCtx => loop(ic.parentCtx, ic :: suffix)
+      case null => suffix
     }
     loop(this, Nil)
   }
@@ -402,10 +399,9 @@ case class ResolvedField(
   }
 }
 
-sealed trait IncludeSource
-object IncludeSource {
-  case class Element(inc: HInclude) extends IncludeSource
-  case class ToplevelFile(toplevelCtx: ToplevelCtx) extends IncludeSource
+enum IncludeSource {
+  case Element(inc: HInclude)
+  case ToplevelFile(toplevelCtx: ToplevelCtx)
 }
 
 case class IncludeCtx(

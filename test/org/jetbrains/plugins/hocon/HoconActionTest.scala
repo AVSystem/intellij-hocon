@@ -8,6 +8,8 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Assert.assertNotNull
 
+import scala.annotation.unused
+
 /** @author
   *   ghik
   */
@@ -37,7 +39,7 @@ abstract class HoconActionTest protected (protected val actionId: String, subPat
     }
   }
 
-  protected def executeAction(dataContext: DataContext, editor: Editor): Unit = {
+  protected def executeAction(dataContext: DataContext, @unused editor: Editor): Unit = {
     val action = ActionManager.getInstance.getAction(actionId)
     val actionEvent = TestActionEvent.createTestEvent(action, dataContext)
 

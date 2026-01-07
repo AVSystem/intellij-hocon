@@ -14,7 +14,7 @@ class HoconQuoteHandler extends SimpleTokenSetQuoteHandler(HoconTokenType.Quoted
 
   def getConcatenatableStringTokenTypes: TokenSet = TokenSet.EMPTY
 
-  def getStringConcatenationOperatorRepresentation: String = null
+  def getStringConcatenationOperatorRepresentation: String | Null = null
 
   def getStringTokenTypes: TokenSet = myLiteralTokenSet
 

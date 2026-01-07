@@ -14,24 +14,24 @@ object HoconPsiElementFactory {
       .getInstance(manager.getProject)
       .createFileFromText(Dummy + HoconFileType.DefaultExtension, new HoconFileType, text)
       .findElementAt(offset)
-    Iterator.iterate(element)(_.getParent).takeWhile(_ != null).collectFirst { case t: T => t }
+    Iterator.iterateNonNull(element)(_.getParent).collectFirst { case t: T => t }
   }
 
-  def createStringValue(contents: String, manager: PsiManager): HStringValue =
+  def createStringValue(contents: String, manager: PsiManager): HStringValue | Null =
     createElement[HStringValue](manager, s"__k = $contents", 6).orNull
 
-  def createKeyPart(contents: String, manager: PsiManager): HKeyPart =
+  def createKeyPart(contents: String, manager: PsiManager): HKeyPart | Null =
     createElement[HKeyPart](manager, s"$contents = null", 0).orNull
 
-  def createIncludeTarget(contents: String, manager: PsiManager): HIncludeTarget =
+  def createIncludeTarget(contents: String, manager: PsiManager): HIncludeTarget | Null =
     createElement[HIncludeTarget](manager, s"include $contents", 8).orNull
 
-  def createFieldKey(contents: String, manager: PsiManager): HFieldKey =
+  def createFieldKey(contents: String, manager: PsiManager): HFieldKey | Null =
     createElement[HFieldKey](manager, s"$contents = null", 0).orNull
 
-  def createSubstitutionKey(contents: String, manager: PsiManager): HSubstitutionKey =
+  def createSubstitutionKey(contents: String, manager: PsiManager): HSubstitutionKey | Null =
     createElement[HSubstitutionKey](manager, s"__k = $${$contents}}", 8).orNull
 
-  def createPath(path: String, manager: PsiManager): HPath =
+  def createPath(path: String, manager: PsiManager): HPath | Null =
     createElement[HSubstitution](manager, s"__k = $${$path}", 8).flatMap(_.path).orNull
 }

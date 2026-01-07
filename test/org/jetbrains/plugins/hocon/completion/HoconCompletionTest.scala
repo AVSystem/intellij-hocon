@@ -36,7 +36,7 @@ class HoconCompletionTest extends BasePlatformTestCase {
 
   private def testCompletion(expected: String*): Unit = {
     myFixture.configureByFiles(s"${getTestName(true)}.conf", "included.conf")
-    val lookups = myFixture.complete(CompletionType.BASIC) map { case hple: HoconPropertyLookupElement =>
+    val lookups = myFixture.complete(CompletionType.BASIC).map { case hple: HoconPropertyLookupElement =>
       hple.repr
     }
     assertEquals(lookups.toSeq, expected)

@@ -12,19 +12,20 @@ import org.jetbrains.plugins.hocon.lexer.HoconTokenType
 
 import java.net.{MalformedURLException, URI}
 import java.{lang as jl, util as ju}
+import javax.swing.Icon
+import scala.Conversion.into
 import scala.annotation.tailrec
 import scala.collection.AbstractIterator
 import scala.collection.convert.{AsJavaExtensions, AsScalaExtensions}
-import scala.language.implicitConversions
-import scala.reflect.{ClassTag, classTag}
+import scala.reflect.{ClassTag, Typeable, classTag}
 
 package object hocon extends AsJavaExtensions with AsScalaExtensions {
   type JList[T] = java.util.List[T]
   type JCollection[T] = java.util.Collection[T]
   type JMap[K, V] = java.util.Map[K, V]
 
-  final val HoconIcon = AllIcons.FileTypes.Config
-  final val PropertyIcon = IconManager.getInstance.getIcon("/icons/property.svg", getClass.getClassLoader)
+  final val HoconIcon: Icon = AllIcons.FileTypes.Config
+  final val PropertyIcon = IconManager.getInstance.getIcon("/icons/property.svg", this.getClass.getClassLoader)
 
   def notWhiteSpaceSibling(element: PsiElement)(sibling: PsiElement => PsiElement): PsiElement = {
     var result = sibling(element)
@@ -34,7 +35,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
     result
   }
 
-  private[this] def isWhiteSpace(element: PsiElement): Boolean = element match {
+  private def isWhiteSpace(element: PsiElement | Null): Boolean = element match {
     case null => false
     case _: PsiWhiteSpace => true
     case _ =>
@@ -44,27 +45,23 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
       }
   }
 
-  implicit def liftSingleToken(token: IElementType): TokenSet = TokenSet.create(token)
+  given Conversion[IElementType, TokenSet] = TokenSet.create(_)
 
-  implicit class TokenSetOps(tokenSet: TokenSet) {
-    def |(otherTokenSet: TokenSet): TokenSet =
+  extension (tokenSet: into[TokenSet]) {
+    def |(otherTokenSet: into[TokenSet]): TokenSet =
       TokenSet.orSet(tokenSet, otherTokenSet)
 
-    def &(otherTokenSet: TokenSet): TokenSet =
+    def &(otherTokenSet: into[TokenSet]): TokenSet =
       TokenSet.andSet(tokenSet, otherTokenSet)
 
-    def &^(otherTokenSet: TokenSet): TokenSet =
+    def &^(otherTokenSet: into[TokenSet]): TokenSet =
       TokenSet.andNot(tokenSet, otherTokenSet)
 
     def unapply(tokenType: IElementType): Boolean =
       tokenSet.contains(tokenType)
-
-    val extractor: TokenSetOps = this
   }
 
-  implicit def token2TokenSetOps(token: IElementType): TokenSetOps = new TokenSetOps(token)
-
-  implicit class CharSequenceOps(private val cs: CharSequence) extends AnyVal {
+  extension (cs: CharSequence) {
 
     /** Like `subSequence` but makes sure a wrapper is created instead of making a copy */
     def subSeqView(start: Int, end: Int = cs.length): CharSequence =
@@ -87,9 +84,9 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
       Iterator.range(0, cs.length).map(cs.charAt)
   }
 
-  implicit class NodeOps(private val node: ASTNode) extends AnyVal {
+  extension (node: ASTNode) {
     def childrenIterator: Iterator[ASTNode] =
-      Iterator.iterate(node.getFirstChildNode)(_.getTreeNext).takeWhile(_ != null)
+      Iterator.iterateNonNull(node.getFirstChildNode)(_.getTreeNext)
 
     def children: Seq[ASTNode] =
       childrenIterator.toVector: Seq[ASTNode]
@@ -98,7 +95,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
       node.getFirstChildNode != null && node.getFirstChildNode.getTreeNext == null
   }
 
-  implicit class PsiElementOps(private val elem: PsiElement) extends AnyVal {
+  extension (elem: PsiElement) {
     def elementType: IElementType =
       elem.getNode.getElementType
 
@@ -120,14 +117,14 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
   }
 
   private class DepthFirstIterator(root: PsiElement) extends AbstractIterator[PsiElement] {
-    private var _next: PsiElement = root
+    private var _next: PsiElement | Null = root
 
     def hasNext: Boolean = _next ne null
 
     def next(): PsiElement =
       if (!hasNext) throw new NoSuchElementException
       else {
-        val res = _next
+        val res = _next.nn
         _next = res.getFirstChild match {
           case null => findNextSibling(res)
           case child => child
@@ -135,7 +132,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
         res
       }
 
-    @tailrec private def findNextSibling(cur: PsiElement): PsiElement =
+    @tailrec private def findNextSibling(cur: PsiElement): PsiElement | Null =
       if (cur eq root) null
       else
         cur.getNextSibling match {
@@ -144,42 +141,40 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
         }
   }
 
-  implicit class StringOps(private val str: String) extends AnyVal {
+  extension (str: String) {
     def indent(ind: String): String =
       ind + str.replace("\n", "\n" + ind)
   }
 
-  implicit class universalOps[T](private val t: T) extends AnyVal {
-    def opt: Option[T] = Option(t)
+  extension [T](t: T | Null) {
+    inline def opt: Option[T] = Option(t)
 
-    def setup(code: T => Unit): T = {
+    inline def setup(inline code: T | Null => Unit): T | Null = {
       code(t)
       t
     }
 
-    def typedOpt[U: ClassTag]: Option[U] = t match {
+    inline def typedOpt[U]: Option[U] = t match {
       case u: U => Some(u)
       case _ => None
     }
 
-    def debug(msg: T => String): T = {
+    inline def debug(inline msg: T | Null => String): T | Null = {
       println(msg(t))
       t
     }
   }
 
-  implicit class OptionOps[A](private val option: Option[A]) extends AnyVal {
-    def collectOnly[T: ClassTag]: Option[T] = option.collect { case t: T => t }
+  extension [A](option: Option[A]) {
+    inline def collectOnly[T]: Option[T] = option.collect { case t: T => t }
 
-    def nullOr[T >: Null](f: A => T): T = option.fold(null: T)(f)
-
-    def flatMapIt[T](f: A => Iterator[T]): Iterator[T] = option match {
+    inline def flatMapIt[T](inline f: A => Iterator[T]): Iterator[T] = option match {
       case Some(a) => f(a)
       case None => Iterator.empty
     }
   }
 
-  implicit class collectionOps[A](private val coll: IterableOnce[A]) extends AnyVal {
+  extension [A](coll: IterableOnce[A]) {
     def toJList[B >: A]: JList[B] = {
       val result = new ju.ArrayList[B]
       coll.iterator.foreach(result.add)
@@ -187,18 +182,15 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
     }
   }
 
-  implicit class IteratorOps[A](private val it: Iterator[A]) extends AnyVal {
-    def nextOption: Option[A] =
-      if (it.hasNext) Option(it.next()) else None
-
-    def collectOnly[T: ClassTag]: Iterator[T] =
+  extension [A](it: Iterator[A]) {
+    def collectOnly[T: Typeable]: Iterator[T] =
       it.collect { case t: T => t }
 
     def flatCollect[B](f: PartialFunction[A, IterableOnce[B]]): Iterator[B] =
       it.flatMap(a => f.applyOrElse(a, (_: A) => Iterator.empty))
 
     def orElse(other: Iterator[A]): Iterator[A] = new AbstractIterator[A] {
-      private var chosenIt: Iterator[A] = _
+      private var chosenIt: Iterator[A] = compiletime.uninitialized
 
       def hasNext: Boolean =
         if (chosenIt != null) chosenIt.hasNext
@@ -222,7 +214,7 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
     result = quotedCharPattern.replaceAllIn(
       result,
       m =>
-        m.group(0).charAt(1) match {
+        m.group(0).nn.charAt(1) match {
           case '\\' => "\\"
           case '/' => "/"
           case '"' => "\""
@@ -254,4 +246,20 @@ package object hocon extends AsJavaExtensions with AsScalaExtensions {
     } catch {
       case _: MalformedURLException | _: IllegalArgumentException => false
     }
+
+  extension (it: Iterator.type) {
+    def iterateNonNull[T](start: T | Null)(f: T => T | Null): Iterator[T] = new AbstractIterator[T] {
+      private var _next = start
+
+      override def hasNext: Boolean = _next != null
+
+      override def next(): T = {
+        if (!hasNext) Iterator.empty.next()
+
+        val res = _next.nn
+        _next = f(res)
+        res
+      }
+    }
+  }
 }

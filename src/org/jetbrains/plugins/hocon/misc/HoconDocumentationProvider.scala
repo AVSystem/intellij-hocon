@@ -10,7 +10,7 @@ import org.jetbrains.plugins.hocon.semantics.{ResOpts, ResolvedField}
 import scala.annotation.tailrec
 
 class HoconDocumentationProvider extends DocumentationProviderEx {
-  private def key(origElem: PsiElement): Option[HKey] = origElem match {
+  private def key(origElem: PsiElement | Null): Option[HKey] = origElem match {
     case null => None
     case key: HKey => Some(key)
     case _ => origElem.parentOfType[HKey]
@@ -25,37 +25,45 @@ class HoconDocumentationProvider extends DocumentationProviderEx {
     case None => None
   }
 
-  override def getDocumentationElementForLookupItem(psiManager: PsiManager, obj: Any, element: PsiElement): PsiElement =
+  override def getDocumentationElementForLookupItem(
+    psiManager: PsiManager,
+    obj: Any,
+    element: PsiElement,
+  ): PsiElement | Null =
     obj match {
       case rf: ResolvedField => rf.hkey // see HoconPropertyLookupElement.getObject
       case _ => null
     }
 
-  override def getQuickNavigateInfo(element: PsiElement, originalElement: PsiElement): String = {
+  override def getQuickNavigateInfo(element: PsiElement, originalElement: PsiElement): String | Null = {
     val res = for {
-      hkey <- key(originalElement) orElse key(element)
+      hkey <- key(originalElement).orElse(key(element))
       fullPathText <- hkey.fullPathText
     } yield fullPathText + hkey.resolved.fold("")(_.resolveValue.valueHint)
     res.orNull
   }
 
-  override def generateDoc(element: PsiElement, originalElement: PsiElement): String = {
+  override def generateDoc(element: PsiElement, originalElement: PsiElement | Null): String | Null = {
     import DocumentationMarkup.*
     // `element` is already resolved here but it loses context of the `originalElement` so resolving again
-    (key(originalElement) orElse key(element)).flatMap(_.resolved).nullOr { resolved =>
-      val docField = findDocField(Some(resolved)).getOrElse(resolved.field)
-      val fullPath = docField.key.flatMap(_.fullPathText).getOrElse("")
-      val hintString = resolved.resolveValue.valueHint
-      val hintRepr = if (hintString.nonEmpty) s"$GRAYED_START$hintString$GRAYED_END" else ""
-      val definition = s"$DEFINITION_START$fullPath$hintRepr$DEFINITION_END"
-      val docComments = docField.enclosingObjectField.docComments
-      val content =
-        if (docComments.isEmpty) ""
-        else
-          docComments
-            .map(c => StringEscapeUtils.escapeHtml4(c.getText.stripPrefix("#")))
-            .mkString(CONTENT_START, "<br/>", CONTENT_END)
-      definition + content
-    }
+    key(originalElement)
+      .orElse(key(element))
+      .flatMap(_.resolved)
+      .map { resolved =>
+        val docField = findDocField(Some(resolved)).getOrElse(resolved.field)
+        val fullPath = docField.key.flatMap(_.fullPathText).getOrElse("")
+        val hintString = resolved.resolveValue.valueHint
+        val hintRepr = if (hintString.nonEmpty) s"$GRAYED_START$hintString$GRAYED_END" else ""
+        val definition = s"$DEFINITION_START$fullPath$hintRepr$DEFINITION_END"
+        val docComments = docField.enclosingObjectField.docComments
+        val content =
+          if (docComments.isEmpty) ""
+          else
+            docComments
+              .map(c => StringEscapeUtils.escapeHtml4(c.getText.stripPrefix("#")))
+              .mkString(CONTENT_START, "<br/>", CONTENT_END)
+        definition + content
+      }
+      .orNull
   }
 }
