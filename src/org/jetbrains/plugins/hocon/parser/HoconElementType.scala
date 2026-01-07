@@ -112,7 +112,7 @@ enum HoconElementType(debugName: String) extends IElementType(debugName, HoconLa
     */
   case UnquotedString extends HoconElementType("UNQUOTED_STRING")
 
-  /** Encapsulates either an unquoted, quoted or multiline string - in case ue context.
+  /** Encapsulates either an unquoted, quoted or multiline string - in value context.
     */
   case StringValue extends HoconElementType("STRING_VALUE")
 

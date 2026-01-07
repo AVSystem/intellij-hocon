@@ -87,7 +87,7 @@ class HoconLexer extends LexerBase {
 
     tokenStart = tokenEnd
     if (endOffset > tokenStart) {
-      input.charAt(tokenStart) match { // todo: no longer avilable @switch
+      input.charAt(tokenStart) match { // todo: no longer available @switch
         case '$' => setNewToken(Dollar, 1, onDollar(stateAfter))
         case '?' if stateAfter == SubStarted => setNewToken(QMark, 1, Substitution)
         case '{' =>
