@@ -55,7 +55,7 @@ case class HoconGotoSymbolItem(key: HKey) extends PsiElementNavigationItem with 
   override def getLocationString: String | Null =
     key.hoconFile.getVirtualFile.opt.map { vf =>
       val pfi = ProjectFileIndex.getInstance(key.getProject)
-      val rootDir = pfi.getContentRootForFile(vf).opt orElse pfi.getClassRootForFile(vf).opt
+      val rootDir = pfi.getContentRootForFile(vf).opt.orElse(pfi.getClassRootForFile(vf).opt)
       val rootPath = rootDir.fold("")(_.getPath)
       s"(in ${vf.getPath.stripPrefix(rootPath).stripPrefix(File.separator)})"
     }.orNull

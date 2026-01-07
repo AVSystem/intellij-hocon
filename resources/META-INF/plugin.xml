@@ -76,11 +76,11 @@
                              displayName="HOCON"/>
 
         <localInspection language="HOCON"
-                         implementationClass="org.jetbrains.plugins.hocon.ref.HoconIncludeResolutionInspection"
+                         implementationClass="org.jetbrains.plugins.hocon.ref.AbstractHoconIncludeResolutionInspection$HoconIncludeResolutionInspection"
                          displayName="Include resolution" groupName="HOCON" enabledByDefault="true"
                          level="WARNING"/>
         <localInspection language="HOCON"
-                         implementationClass="org.jetbrains.plugins.hocon.ref.HoconRequiredIncludeResolutionInspection"
+                         implementationClass="org.jetbrains.plugins.hocon.ref.AbstractHoconIncludeResolutionInspection$HoconRequiredIncludeResolutionInspection"
                          displayName="Required include resolution" groupName="HOCON" enabledByDefault="true"
                          level="ERROR"/>
 
@@ -108,11 +108,11 @@
     </extensions>
 
     <actions>
-        <action class="org.jetbrains.plugins.hocon.navigation.HoconGotoNextAction" id="HoconGotoNext"
+        <action class="org.jetbrains.plugins.hocon.navigation.HoconGotoPrevNextAction$HoconGotoNextAction" id="HoconGotoNext"
                 text="HOCON: Go to Next Definition"
                 description="Navigates to the next definition of a property in a HOCON file"
                 use-shortcut-of="GotoImplementation"/>
-        <action class="org.jetbrains.plugins.hocon.navigation.HoconGotoPrevAction" id="HoconGotoPrev"
+        <action class="org.jetbrains.plugins.hocon.navigation.HoconGotoPrevNextAction$HoconGotoPrevAction" id="HoconGotoPrev"
                 text="HOCON: Go to Previous Definition"
                 description="Navigates to the previous definition of a property in a HOCON file"
                 use-shortcut-of="GotoSuperMethod"/>

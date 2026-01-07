@@ -1,14 +1,11 @@
 package org.jetbrains.plugins.hocon
 package parser
 
+import lang.HoconLanguage
+
 import com.intellij.psi.tree.{IElementType, IFileElementType}
-import org.jetbrains.plugins.hocon.lang.HoconLanguage
 
-class HoconElementType(debugName: String) extends IElementType(debugName, HoconLanguage)
-
-object HoconElementType {
-
-  val HoconFileElementType = new IFileElementType("HOCON_FILE", HoconLanguage)
+enum HoconElementType(debugName: String) extends IElementType(debugName, HoconLanguage) {
 
   /** Object, i.e. object entries inside braces.
     *
@@ -19,7 +16,7 @@ object HoconElementType {
     *   }
     * }}}
     */
-  val Object = new HoconElementType("OBJECT")
+  case Object extends HoconElementType("OBJECT")
 
   /** Contents of HOCON file or object, contains includes and object fields.
     *
@@ -28,7 +25,7 @@ object HoconElementType {
     *   some.path = value
     * }}}
     */
-  val ObjectEntries = new HoconElementType("OBJECT_ENTRIES")
+  case ObjectEntries extends HoconElementType("OBJECT_ENTRIES")
 
   /** `include` clause
     *
@@ -36,7 +33,7 @@ object HoconElementType {
     *   include file("stuff")
     * }}}
     */
-  val Include = new HoconElementType("INCLUDE")
+  case Include extends HoconElementType("INCLUDE")
 
   /** Thing that comes after `include` keyword, including possible `required` modifier
     *
@@ -44,7 +41,7 @@ object HoconElementType {
     *   required(file("stuff"))
     * }}}
     */
-  val Included = new HoconElementType("INCLUDED")
+  case Included extends HoconElementType("INCLUDED")
 
   /** Thing that comes after `include` keyword but without the enclosing `required` modifier, if any.
     *
@@ -52,7 +49,7 @@ object HoconElementType {
     *   file("stuff")
     * }}}
     */
-  val QualifiedIncluded = new HoconElementType("QUALIFIED_INCLUDED")
+  case QualifiedIncluded extends HoconElementType("QUALIFIED_INCLUDED")
 
   /** Keyed field (i.e. prefixed field or valued field) along with documentation comments.
     *
@@ -64,7 +61,7 @@ object HoconElementType {
     *
     * Even if there are no doc comments, keyed field is always enclosed inside object field.
     */
-  val ObjectField = new HoconElementType("OBJECT_FIELD")
+  case ObjectField extends HoconElementType("OBJECT_FIELD")
 
   /** A path-value field in which path contains more than one key:
     *
@@ -75,7 +72,7 @@ object HoconElementType {
     * Prefixed field divides itself into first key (`prefix` in above example) and rest of the prefixed field which may
     * be another prefixed field or valued field (`key = value` in above example, which is a valued field).
     */
-  val PrefixedField = new HoconElementType("PREFIXED_FIELD")
+  case PrefixedField extends HoconElementType("PREFIXED_FIELD")
 
   /** A key-value association (NOT path-value):
     *
@@ -83,60 +80,64 @@ object HoconElementType {
     *    key = value
     * }}}
     */
-  val ValuedField = new HoconElementType("VALUED_FIELD")
+  case ValuedField extends HoconElementType("VALUED_FIELD")
 
   /** Path inside substitution. Divides into prefix path and last key.
     */
-  val Path = new HoconElementType("PATH")
+  case Path extends HoconElementType("PATH")
 
   /** Key inside field (prefixed field or valued field).
     */
-  val FieldKey = new HoconElementType("FIELD_KEY")
+  case FieldKey extends HoconElementType("FIELD_KEY")
 
   /** Key inside substitution path.
     */
-  val SubstitutionKey = new HoconElementType("SUBSTITUTION_KEY")
+  case SubstitutionKey extends HoconElementType("SUBSTITUTION_KEY")
 
   /** HOCON array, i.e. brackets with sequence of values inside.
     */
-  val Array = new HoconElementType("ARRAY")
+  case Array extends HoconElementType("ARRAY")
 
   /** HOCON substitution, i.e. path enclosed in `${}` (with optional `?` sign)
     */
-  val Substitution = new HoconElementType("SUBSTITUTION")
+  case Substitution extends HoconElementType("SUBSTITUTION")
 
   /** Concatenation of two or more HOCON values.
     */
-  val Concatenation = new HoconElementType("CONCATENATION")
+  case Concatenation extends HoconElementType("CONCATENATION")
 
   /** Unquoted string - a concatenation of whitespace, unquoted chars, parens and periods. This element type exists
     * primarily so that [[String]] element always has exactly one child (unquoted, quoted or multiline string). Unquoted
     * string occurs as a child of [[String]] or [[Key]].
     */
-  val UnquotedString = new HoconElementType("UNQUOTED_STRING")
+  case UnquotedString extends HoconElementType("UNQUOTED_STRING")
 
-  /** Encapsulates either an unquoted, quoted or multiline string - in value context.
+  /** Encapsulates either an unquoted, quoted or multiline string - in case ue context.
     */
-  val StringValue = new HoconElementType("STRING_VALUE")
+  case StringValue extends HoconElementType("STRING_VALUE")
 
   /** Quoted string in `include` clause context.
     */
-  val IncludeTarget = new HoconElementType("INCLUDE_TARGET")
+  case IncludeTarget extends HoconElementType("INCLUDE_TARGET")
 
   /** Encapsulates either an unquoted, quoted or multiline string - in key context.
     */
-  val KeyPart = new HoconElementType("KEY_PART")
+  case KeyPart extends HoconElementType("KEY_PART")
 
   /** Literal numeric value.
     */
-  val Number = new HoconElementType("NUMBER")
+  case Number extends HoconElementType("NUMBER")
 
   /** Literal `null` value.
     */
-  val Null = new HoconElementType("NULL")
+  case Null extends HoconElementType("NULL")
 
   /** Literal boolean value.
     */
-  val Boolean = new HoconElementType("BOOLEAN")
+  case Boolean extends HoconElementType("BOOLEAN")
 
+}
+
+object HoconElementType {
+  val HoconFileElementType = new IFileElementType("HOCON_FILE", HoconLanguage)
 }

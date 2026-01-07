@@ -18,7 +18,11 @@ class HoconGotoDeclarationHandler extends GotoDeclarationHandler {
     sourceElement.parentOfType[HPath].flatMap(_.resolveBest()).map(_.field).toArray[PsiElement]
 }
 
-abstract class HoconGotoPrevNextAction(reverse: Boolean) extends BaseCodeInsightAction with CodeInsightActionHandler {
+enum HoconGotoPrevNextAction(reverse: Boolean) extends BaseCodeInsightAction with CodeInsightActionHandler {
+  case HoconGotoPrevAction extends HoconGotoPrevNextAction(reverse = true)
+
+  case HoconGotoNextAction extends HoconGotoPrevNextAction(reverse = false)
+
   override def isValidForFile(project: Project, editor: Editor, file: PsiFile): Boolean =
     file.getLanguage == HoconLanguage
 
@@ -37,9 +41,6 @@ abstract class HoconGotoPrevNextAction(reverse: Boolean) extends BaseCodeInsight
     desc.navigate(true)
   }
 }
-
-class HoconGotoPrevAction extends HoconGotoPrevNextAction(reverse = true)
-class HoconGotoNextAction extends HoconGotoPrevNextAction(reverse = false)
 
 final class HoconGotoPrevNextPromoter extends ActionPromoter {
   // prioritize HoconGoto{Prev,Next}Action over GotoImplementationAction & GotoSuperAction in HOCON files

@@ -243,7 +243,7 @@ sealed abstract class HKeyedField(ast: ASTNode)
   def hasKeyValue(key: String): Boolean =
     keyString.contains(key)
 
-  def sameKeyAs(other: HKeyedField): Boolean = (key zip other.key).exists { case (k1, k2) =>
+  def sameKeyAs(other: HKeyedField): Boolean = key.zip(other.key).exists { case (k1, k2) =>
     k1.stringValue == k2.stringValue
   }
 
@@ -704,7 +704,7 @@ final class HSubstitution(ast: ASTNode) extends HoconPsiElement(ast) with HValue
     depth: Int,
     backtrace: Boolean,
   ): Iterator[ResolvedField] = {
-    val subsCtx = Some(SubstitutionCtx(resCtx, this, subsKind))
+    val subsCtx = Some((resCtx, this, subsKind))
     val newCtx = resCtx.toplevelCtx.copy(subsCtx = subsCtx)
 
     def addBacktrace(it: Iterator[ResolvedField]): Iterator[ResolvedField] =

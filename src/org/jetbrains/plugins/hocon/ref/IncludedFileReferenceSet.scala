@@ -29,7 +29,7 @@ import java.{util => ju}
   * and .properties files at the end. This reflects the order in which Typesafe Config merges those files.
   */
 object IncludedFileReferenceSet {
-  case class DefaultContexts(
+  type DefaultContexts = (
     scope: GlobalSearchScope,
     contexts: ju.Collection[PsiFileSystemItem],
   )

@@ -1,36 +1,31 @@
 package org.jetbrains.plugins.hocon
 package semantics
 
+import psi.*
+import ref.{IncludedFileReferenceSet, PackageDirsEnumerator}
+import semantics.SubstitutionKind.SelfReferential
+
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.{FilenameIndex, GlobalSearchScope}
 import com.intellij.psi.{PsiElement, PsiManager}
-import org.jetbrains.plugins.hocon.psi.*
-import org.jetbrains.plugins.hocon.ref.{IncludedFileReferenceSet, PackageDirsEnumerator}
-import org.jetbrains.plugins.hocon.semantics.SubstitutionKind.SelfReferential
 
 import scala.annotation.tailrec
 
-case class ResOpts(
-  reverse: Boolean,
-  resolveIncludes: Boolean = true,
-  resolveSubstitutions: Boolean = true,
-)
+type ResOpts = (reverse: Boolean, resolveIncludes: Boolean, resolveSubstitutions: Boolean)
 
-sealed abstract class SubstitutionKind
-object SubstitutionKind {
-  case class Full(path: List[String]) extends SubstitutionKind
-  case class SelfReferential(path: List[String], selfReferenced: ResolvedField) extends SubstitutionKind
-  case object Circular extends SubstitutionKind
-  case object Invalid extends SubstitutionKind
+def ResOpts(reverse: Boolean, resolveIncludes: Boolean = true, resolveSubstitutions: Boolean = true) =
+  (reverse, resolveIncludes, resolveSubstitutions)
+
+enum SubstitutionKind {
+  case Full(path: List[String])
+  case SelfReferential(path: List[String], selfReferenced: ResolvedField)
+  case Circular
+  case Invalid
 }
 
-case class SubstitutionCtx(
-  ctx: ResolutionCtx,
-  subst: HSubstitution,
-  subsKind: SubstitutionKind,
-)
+type SubstitutionCtx = (ctx: ResolutionCtx, subst: HSubstitution, subsKind: SubstitutionKind)
 
 sealed abstract class ResolutionCtx {
   lazy val toplevelCtx: ToplevelCtx = this match {
@@ -404,10 +399,9 @@ case class ResolvedField(
   }
 }
 
-sealed trait IncludeSource
-object IncludeSource {
-  case class Element(inc: HInclude) extends IncludeSource
-  case class ToplevelFile(toplevelCtx: ToplevelCtx) extends IncludeSource
+enum IncludeSource {
+  case Element(inc: HInclude)
+  case ToplevelFile(toplevelCtx: ToplevelCtx)
 }
 
 case class IncludeCtx(
