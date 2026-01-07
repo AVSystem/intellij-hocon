@@ -1,15 +1,15 @@
 package org.jetbrains.plugins.hocon
 package parser
 
-import java.net.{MalformedURLException, URL}
+import lexer.HoconTokenSets.*
+import lexer.HoconTokenType.*
+import parser.HoconElementType.*
 
+import java.net.{MalformedURLException, URI}
+import com.intellij.lang.*
 import com.intellij.lang.PsiBuilder.Marker
 import com.intellij.lang.WhitespacesAndCommentsBinder.TokenTextGetter
-import com.intellij.lang.*
 import com.intellij.psi.tree.IElementType
-import org.jetbrains.plugins.hocon.lexer.HoconTokenSets.*
-import org.jetbrains.plugins.hocon.lexer.HoconTokenType.*
-import org.jetbrains.plugins.hocon.parser.HoconElementType.*
 
 import scala.annotation.tailrec
 import scala.util.matching.Regex
@@ -212,10 +212,10 @@ class HoconPsiParser extends PsiParser {
           if (matches(QuotedString)) {
             if (qualifier == HoconConstants.UrlModifier) {
               try {
-                new URL(unquote(builder.getTokenText))
+                URI.create(unquote(builder.getTokenText)).toURL
                 parseStringLiteral(IncludeTarget)
               } catch {
-                case e: MalformedURLException =>
+                case e @ (_: MalformedURLException | _: IllegalArgumentException) =>
                   tokenError(if (e.getMessage != null) e.getMessage else "malformed URL")
               }
             } else {

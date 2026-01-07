@@ -9,6 +9,6 @@ HOCON_FILE
         HQualifiedIncluded(QUALIFIED_INCLUDED)
           PsiElement(UNQUOTED_CHARS)('url')
           PsiElement(LPAREN)('(')
-          PsiErrorElement:no protocol: unknownProtocol
+          PsiErrorElement:URI is not absolute
             PsiElement(QUOTED_STRING)('"unknownProtocol"')
           PsiElement(RPAREN)(')')
