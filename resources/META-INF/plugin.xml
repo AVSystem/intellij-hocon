@@ -76,11 +76,11 @@
                              displayName="HOCON"/>
 
         <localInspection language="HOCON"
-                         implementationClass="org.jetbrains.plugins.hocon.ref.AbstractHoconIncludeResolutionInspection$HoconIncludeResolutionInspection"
+                         implementationClass="org.jetbrains.plugins.hocon.ref.AbstractHoconIncludeResolutionInspection.HoconIncludeResolutionInspection$"
                          displayName="Include resolution" groupName="HOCON" enabledByDefault="true"
                          level="WARNING"/>
         <localInspection language="HOCON"
-                         implementationClass="org.jetbrains.plugins.hocon.ref.AbstractHoconIncludeResolutionInspection$HoconRequiredIncludeResolutionInspection"
+                         implementationClass="org.jetbrains.plugins.hocon.ref.AbstractHoconIncludeResolutionInspection.HoconRequiredIncludeResolutionInspection$"
                          displayName="Required include resolution" groupName="HOCON" enabledByDefault="true"
                          level="ERROR"/>
 

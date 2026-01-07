@@ -19,9 +19,9 @@ class HoconGotoDeclarationHandler extends GotoDeclarationHandler {
 }
 
 enum HoconGotoPrevNextAction(reverse: Boolean) extends BaseCodeInsightAction with CodeInsightActionHandler {
-  case HoconGotoPrevAction extends HoconGotoPrevNextAction(reverse = true)
+  case HoconGotoPrevAction() extends HoconGotoPrevNextAction(reverse = true)
 
-  case HoconGotoNextAction extends HoconGotoPrevNextAction(reverse = false)
+  case HoconGotoNextAction() extends HoconGotoPrevNextAction(reverse = false)
 
   override def isValidForFile(project: Project, editor: Editor, file: PsiFile): Boolean =
     file.getLanguage == HoconLanguage
