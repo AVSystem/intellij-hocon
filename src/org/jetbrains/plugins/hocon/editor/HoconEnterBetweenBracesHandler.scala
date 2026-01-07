@@ -12,7 +12,7 @@ import org.jetbrains.plugins.hocon.lang.HoconLanguage
 
 import scala.annotation.nowarn
 
-/** Like [[com.intellij.json.formatter.JsonEnterBetweenBracesHandler]]
+/** Like com.intellij.json.formatter.JsonEnterBetweenBracesHandler
   *
   * @author
   *   ghik

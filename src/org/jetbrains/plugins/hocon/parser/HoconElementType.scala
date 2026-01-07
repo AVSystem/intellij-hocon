@@ -107,8 +107,8 @@ enum HoconElementType(debugName: String) extends IElementType(debugName, HoconLa
   case Concatenation extends HoconElementType("CONCATENATION")
 
   /** Unquoted string - a concatenation of whitespace, unquoted chars, parens and periods. This element type exists
-    * primarily so that [[String]] element always has exactly one child (unquoted, quoted or multiline string). Unquoted
-    * string occurs as a child of [[String]] or [[Key]].
+    * primarily so that String element always has exactly one child (unquoted, quoted or multiline string). Unquoted
+    * string occurs as a child of String or Key.
     */
   case UnquotedString extends HoconElementType("UNQUOTED_STRING")
 
