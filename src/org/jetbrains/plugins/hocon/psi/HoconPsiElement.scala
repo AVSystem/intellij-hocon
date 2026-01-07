@@ -24,7 +24,7 @@ import org.jetbrains.plugins.hocon.ref.{HKeyReference, IncludedFileReferenceSet,
 import org.jetbrains.plugins.hocon.semantics.*
 
 import scala.annotation.tailrec
-import scala.reflect.{classTag, ClassTag}
+import scala.reflect.{ClassTag, Typeable, classTag}
 
 sealed trait HoconPsiParent extends PsiElement
 
@@ -125,10 +125,10 @@ sealed abstract class HoconPsiElement(ast: ASTNode) extends ASTWrapperPsiElement
       (HoconTokenSets.Comment | TokenType.WHITE_SPACE).contains(ch.getNode.getElementType)
     )
 
-  def findChildren[T <: HoconPsiElement: ClassTag]: Iterator[T] =
+  def findChildren[T <: HoconPsiElement: Typeable]: Iterator[T] =
     findChildren[T](reverse = false)
 
-  def findChildren[T <: HoconPsiElement: ClassTag](reverse: Boolean): Iterator[T] =
+  def findChildren[T <: HoconPsiElement: Typeable](reverse: Boolean): Iterator[T] =
     allChildren(reverse).collectOnly[T]
 }
 
