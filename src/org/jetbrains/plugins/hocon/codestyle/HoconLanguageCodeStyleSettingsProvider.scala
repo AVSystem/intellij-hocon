@@ -12,7 +12,7 @@ import com.intellij.psi.codeStyle.*
 class HoconLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvider {
   override def getLanguage: Language = HoconLanguage
 
-  override def getDisplayPriority = DisplayPriority.COMMON_SETTINGS
+  override def getPriority = DisplayPriority.COMMON_SETTINGS
 
   private val ObjectsWrap = "Objects"
   private val ListsWrap = "Lists"
@@ -113,13 +113,10 @@ class HoconLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsPr
 
   }
 
-  override def getDefaultCommonSettings: CommonCodeStyleSettings = {
-    val commonCodeStyleSettings = new CommonCodeStyleSettings(getLanguage)
-    val indentOptions = commonCodeStyleSettings.initIndentOptions
+  override def customizeDefaults(commonSettings: CommonCodeStyleSettings, indentOptions: CommonCodeStyleSettings.IndentOptions): Unit = {
     indentOptions.INDENT_SIZE = 2
     indentOptions.TAB_SIZE = 2
     indentOptions.CONTINUATION_INDENT_SIZE = 2
-    commonCodeStyleSettings
   }
 
   override def getIndentOptionsEditor: SmartIndentOptionsEditor = new SmartIndentOptionsEditor
