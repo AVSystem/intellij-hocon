@@ -87,7 +87,8 @@
         <breadcrumbsInfoProvider implementation="org.jetbrains.plugins.hocon.misc.HoconBreadcrumbsInfoProvider"/>
 
         <enterHandlerDelegate implementation="org.jetbrains.plugins.hocon.editor.EnterInHashCommentHandler"/>
-        <enterHandlerDelegate implementation="org.jetbrains.plugins.hocon.editor.HoconEnterBetweenBracesHandler"/>
+        <enterBetweenBracesDelegate language="HOCON"
+                                     implementationClass="org.jetbrains.plugins.hocon.editor.HoconEnterBetweenBracesHandler"/>
         <joinLinesHandler implementation="org.jetbrains.plugins.hocon.editor.HoconCommentJoinLinesHandler"/>
         <statementUpDownMover implementation="org.jetbrains.plugins.hocon.editor.HoconObjectEntryMover"/>
         <gotoDeclarationHandler implementation="org.jetbrains.plugins.hocon.navigation.HoconGotoDeclarationHandler"/>
