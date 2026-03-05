@@ -2,9 +2,9 @@
     <id>org.jetbrains.plugins.hocon</id>
     <name>HOCON</name>
     <description>Standalone HOCON plugin for IntelliJ IDEA</description>
-    <version>2025.1.99-SNAPSHOT</version>
+    <version>2026.1.99-SNAPSHOT</version>
     <vendor>Roman Janusz, AVSystem, JetBrains</vendor>
-    <idea-version since-build="253.0" until-build="260.0"/>
+    <idea-version since-build="253.0" until-build="270.0"/>
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.json</depends>
