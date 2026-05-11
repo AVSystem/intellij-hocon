@@ -113,7 +113,10 @@ class HoconLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsPr
 
   }
 
-  override def customizeDefaults(commonSettings: CommonCodeStyleSettings, indentOptions: CommonCodeStyleSettings.IndentOptions): Unit = {
+  override def customizeDefaults(
+    commonSettings: CommonCodeStyleSettings,
+    indentOptions: CommonCodeStyleSettings.IndentOptions,
+  ): Unit = {
     indentOptions.INDENT_SIZE = 2
     indentOptions.TAB_SIZE = 2
     indentOptions.CONTINUATION_INDENT_SIZE = 2
