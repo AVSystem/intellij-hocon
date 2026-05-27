@@ -27,7 +27,7 @@ class HoconGotoSymbolContributor extends ChooseByNameContributorEx {
 
   def processElementsWithName(name: String, processor: Processor[_ >: NavigationItem], parameters: FindSymbolParameters)
     : Unit =
-    if (enabled(parameters.getProject)) ReadAction.run { () =>
+    if (enabled(parameters.getProject)) ReadAction.runBlocking { () =>
       val project = parameters.getProject
       val scope = parameters.getSearchScope
       val locationsSeen = new mutable.HashSet[(HObjectEntries, List[String])]
