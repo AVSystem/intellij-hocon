@@ -70,7 +70,7 @@ class HoconFindUsagesHandler(element: PsiElement) extends FindUsagesHandler(elem
   ): Boolean = {
     val res = element match {
       case hkey: HKey if options.isUsages =>
-        ReadAction.compute { () =>
+        ReadAction.computeBlocking { () =>
           hkey.fullContainingPath.forall { keyPath =>
             val strPath = keyPath.map(_.stringValue)
 
