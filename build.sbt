@@ -4,8 +4,19 @@ ThisBuild / scalaVersion := "2.13.18"
 ThisBuild / intellijPluginName := "intellij-hocon"
 ThisBuild / intellijBuild := "261.22158.260"
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("21"))
-// Run scalafmt inside the build job rather than as a separate job: loading this build pulls
-// the full IntelliJ SDK, which CI doesn't cache, so a standalone job would re-download it.
+// Cache the IntelliJ SDK (~800MB) that the sbt-idea-plugin downloads on build load; the default
+// sbt cache doesn't cover it. Keyed on build.sbt so an intellijBuild bump invalidates the entry.
+ThisBuild / githubWorkflowBuildPreamble += WorkflowStep.Use(
+  UseRef.Public("actions", "cache", "v4"),
+  name = Some("Cache IntelliJ SDK"),
+  params = Map(
+    "path" -> "~/.intellij-hoconPluginIC",
+    "key" -> "${{ runner.os }}-intellij-sdk-${{ hashFiles('build.sbt') }}",
+    "restore-keys" -> "${{ runner.os }}-intellij-sdk-",
+  ),
+)
+// Run scalafmt inside the build job (not a separate job) so it shares this job's single SDK
+// download/restore instead of needing its own.
 ThisBuild / githubWorkflowBuildPreamble += WorkflowStep.Sbt(
   List("scalafmtCheckAll", "scalafmtSbtCheck"),
   name = Some("Check Scala formatting"),

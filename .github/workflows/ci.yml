@@ -42,6 +42,13 @@ jobs:
       - name: Setup sbt
         uses: sbt/setup-sbt@v1
 
+      - name: Cache IntelliJ SDK
+        uses: actions/cache@v4
+        with:
+          path: ~/.intellij-hoconPluginIC
+          key: ${{ runner.os }}-intellij-sdk-${{ hashFiles('build.sbt') }}
+          restore-keys: ${{ runner.os }}-intellij-sdk-
+
       - name: Check Scala formatting
         run: sbt '++ ${{ matrix.scala }}' scalafmtCheckAll scalafmtSbtCheck
 
