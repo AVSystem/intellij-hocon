@@ -4,6 +4,12 @@ ThisBuild / scalaVersion := "2.13.18"
 ThisBuild / intellijPluginName := "intellij-hocon"
 ThisBuild / intellijBuild := "261.22158.260"
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("21"))
+// Run scalafmt inside the build job rather than as a separate job: loading this build pulls
+// the full IntelliJ SDK, which CI doesn't cache, so a standalone job would re-download it.
+ThisBuild / githubWorkflowBuildPreamble += WorkflowStep.Sbt(
+  List("scalafmtCheckAll", "scalafmtSbtCheck"),
+  name = Some("Check Scala formatting"),
+)
 ThisBuild / autoRemoveOldCachedIntelliJSDK := true
 ThisBuild / autoRemoveOldCachedDownloads := true
 
