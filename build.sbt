@@ -2,7 +2,7 @@ import org.jetbrains.sbtidea.Keys._
 
 ThisBuild / scalaVersion := "2.13.18"
 ThisBuild / intellijPluginName := "intellij-hocon"
-ThisBuild / intellijBuild := "261.22158.260"
+ThisBuild / intellijBuild := "261.22158.414"
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("21"))
 // Cache the IntelliJ SDK (~800MB) that the sbt-idea-plugin downloads on build load; the default
 // sbt cache doesn't cover it. Keyed on build.sbt so an intellijBuild bump invalidates the entry.
