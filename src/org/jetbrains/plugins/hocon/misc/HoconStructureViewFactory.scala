@@ -1,14 +1,15 @@
 package org.jetbrains.plugins.hocon
 package misc
 
+import psi.*
+
 import com.intellij.icons.AllIcons
 import com.intellij.ide.structureView.impl.common.PsiTreeElementBase
-import com.intellij.ide.structureView.{StructureViewBuilder, StructureViewModel, StructureViewModelBase, StructureViewTreeElement, TreeBasedStructureViewBuilder}
+import com.intellij.ide.structureView.*
 import com.intellij.ide.util.treeView.smartTree.{SortableTreeElement, Sorter}
 import com.intellij.lang.PsiStructureViewFactory
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.{PsiElement, PsiFile}
-import org.jetbrains.plugins.hocon.psi.*
 
 import javax.swing.Icon
 
