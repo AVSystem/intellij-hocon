@@ -9,6 +9,7 @@ import com.intellij.ide.structureView.*
 import com.intellij.ide.util.treeView.smartTree.{SortableTreeElement, Sorter}
 import com.intellij.lang.PsiStructureViewFactory
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.{PsiElement, PsiFile}
 
 import javax.swing.Icon
@@ -36,10 +37,7 @@ class HoconStructureViewModel(psiFile: HoconPsiFile, editor: Editor)
 
   override def isAlwaysShowsPlus(element: StructureViewTreeElement): Boolean = false
 
-  override def isAlwaysLeaf(element: StructureViewTreeElement): Boolean = element.getValue match {
-    case _: HInclude => true
-    case _ => false
-  }
+  override def isAlwaysLeaf(element: StructureViewTreeElement): Boolean = element.getValue.isInstanceOf[HInclude]
 }
 
 final class HoconStructureViewElement(element: PsiElement)
@@ -52,14 +50,14 @@ final class HoconStructureViewElement(element: PsiElement)
 
   override def getPresentableText: String = element match {
     case file: HoconPsiFile => file.getName
-    case of: HObjectField => pathText(of)
-    case incl: HInclude => includeText(incl)
+    case objectField: HObjectField => pathText(objectField)
+    case hInclude: HInclude => includeText(hInclude)
     case _ => element.getText
   }
 
   override def getLocationString: String = element match {
-    case of: HObjectField if getChildrenBase.isEmpty =>
-      valueOf(of).map(preview).orNull
+    case objectField: HObjectField if childEntries(element).isEmpty =>
+      valueOf(objectField).map(preview).orNull
     case _ => null
   }
 
@@ -69,8 +67,7 @@ final class HoconStructureViewElement(element: PsiElement)
     case _ => PropertyIcon
   }
 
-  override def getAlphaSortKey: String =
-    Option(getPresentableText).getOrElse("")
+  override def getAlphaSortKey: String = getPresentableText.opt.mkString
 }
 
 object HoconStructureViewElement {
@@ -81,8 +78,8 @@ object HoconStructureViewElement {
   private def childEntries(element: PsiElement): Iterator[HObjectEntry] = element match {
     case file: HoconPsiFile =>
       file.toplevelEntries.iterator.flatMap(_.entries(reverse = false))
-    case of: HObjectField =>
-      valueOf(of).iterator.flatMap(objectEntries)
+    case objectField: HObjectField =>
+      valueOf(objectField).iterator.flatMap(objectEntries)
     case _ =>
       Iterator.empty
   }
@@ -90,7 +87,7 @@ object HoconStructureViewElement {
   /** Object entries directly contained in a value - looking through concatenations (e.g. `a = {...} {...}`). */
   private def objectEntries(value: HValue): Iterator[HObjectEntry] = value match {
     case obj: HObject => obj.entries.entries(reverse = false)
-    case conc: HConcatenation => conc.findChildren[HValue].flatMap(objectEntries)
+    case concat: HConcatenation => concat.findChildren[HValue].flatMap(objectEntries)
     case _ => Iterator.empty
   }
 
@@ -111,7 +108,6 @@ object HoconStructureViewElement {
       case _: HArray => "[…]"
       case other => other.getText
     }
-    val singleLine = text.replaceAll("\\s+", " ").trim
-    if (singleLine.length > 60) singleLine.take(59) + "…" else singleLine
+    StringUtil.shortenTextWithEllipsis(StringUtil.collapseWhiteSpace(text), 60, 0, true)
   }
 }
