@@ -46,6 +46,8 @@
         <lang.braceMatcher language="HOCON" implementationClass="org.jetbrains.plugins.hocon.misc.HoconBraceMatcher"/>
         <lang.foldingBuilder language="HOCON"
                              implementationClass="org.jetbrains.plugins.hocon.misc.HoconFoldingBuilder"/>
+        <lang.psiStructureViewFactory language="HOCON"
+                                      implementationClass="org.jetbrains.plugins.hocon.misc.HoconStructureViewFactory"/>
         <quoteHandler fileType="HOCON" className="org.jetbrains.plugins.hocon.editor.HoconQuoteHandler"/>
         <annotator language="HOCON"
                    implementationClass="org.jetbrains.plugins.hocon.highlight.HoconSyntaxHighlightingAnnotator"/>
