@@ -27,6 +27,16 @@ class HoconProjectSettings extends PersistentStateComponent[HoconProjectSettings
   @BeanProperty var classReferencesOnQuotedStrings = true
   @BeanProperty var propertyReferencesOnStrings = true
   @BeanProperty var searchInGotoSymbol = false
+  @BeanProperty var fileNavigationExtensions: String = ""
+  @BeanProperty var fileNavigationSearchRoots: String = ""
+
+  def fileNavigationExtensionsList: List[String] =
+    if (fileNavigationExtensions.trim.isEmpty) Nil
+    else fileNavigationExtensions.split(",").map(_.trim).filter(_.nonEmpty).toList
+
+  def fileNavigationSearchRootsList: List[String] =
+    if (fileNavigationSearchRoots.trim.isEmpty) Nil
+    else fileNavigationSearchRoots.split(",").map(_.trim).filter(_.nonEmpty).toList
 }
 
 object HoconProjectSettings {
