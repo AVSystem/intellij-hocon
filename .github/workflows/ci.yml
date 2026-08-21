@@ -57,12 +57,3 @@ jobs:
 
       - name: Build project
         run: sbt '++ ${{ matrix.scala }}; test'
-
-      - name: Compress target directories
-        run: tar cf targets.tar target project/target
-
-      - name: Upload target directories
-        uses: actions/upload-artifact@v7
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.scala }}-${{ matrix.java }}
-          path: targets.tar
