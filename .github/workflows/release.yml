@@ -1,0 +1,67 @@
+# Hand-authored workflow (unlike ci.yml/clean.yml, this is NOT managed by sbt-github-actions /
+# githubWorkflowGenerate). Builds the plugin zip and publishes a GitHub Release when a version
+# tag (v*) is pushed. Branch pushes and pull requests never trigger this — they only run tests
+# via ci.yml.
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and release plugin zip
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java (temurin@21)
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: sbt
+
+      - name: Setup sbt
+        uses: sbt/setup-sbt@v1
+
+      - name: Cache IntelliJ SDK
+        uses: actions/cache@v4
+        with:
+          path: ~/.intellij-hoconPluginIC
+          key: ${{ runner.os }}-intellij-sdk-${{ hashFiles('build.sbt') }}
+          restore-keys: ${{ runner.os }}-intellij-sdk-
+
+      - name: Derive plugin version from tag
+        run: echo "PLUGIN_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Run tests
+        run: sbt test
+
+      - name: Build plugin zip
+        run: sbt packageArtifactZip
+
+      - name: Locate plugin zip
+        id: artifact
+        run: |
+          zip_path="$(find target -iname '*.zip' | head -n1)"
+          if [ -z "$zip_path" ]; then
+            echo "no plugin zip found under target/" >&2
+            exit 1
+          fi
+          echo "path=$zip_path" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.artifact.outputs.path }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, 'SNAPSHOT') }}

@@ -23,6 +23,7 @@ ThisBuild / githubWorkflowBuildPreamble += WorkflowStep.Sbt(
 )
 ThisBuild / autoRemoveOldCachedIntelliJSDK := true
 ThisBuild / autoRemoveOldCachedDownloads := true
+ThisBuild / githubWorkflowPublishTargetBranches := Seq.empty
 
 val junitInterfaceVersion = "0.13.3"
 val junitVersion = "4.13.2"
@@ -33,7 +34,7 @@ lazy val hocon = project
   .in(file("."))
   .enablePlugins(SbtIdeaPlugin)
   .settings(
-    version := "2026.1.3-SNAPSHOT",
+    version := sys.env.getOrElse("PLUGIN_VERSION", "oap-2026.2.0"),
     Compile / scalaSource := baseDirectory.value / "src",
     Test / scalaSource := baseDirectory.value / "test",
     Compile / resourceDirectory := baseDirectory.value / "resources",
