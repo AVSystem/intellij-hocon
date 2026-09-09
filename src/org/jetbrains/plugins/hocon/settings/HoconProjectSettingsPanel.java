@@ -12,14 +12,45 @@ public class HoconProjectSettingsPanel {
     private final Project project;
 
     private JPanel mainPanel;
+    private JPanel wrapperPanel;
     private JCheckBox classReferencesUnquotedCheckBox;
     private JCheckBox classReferencesQuotedCheckBox;
     private JCheckBox propertyReferencesCheckBox;
     private JCheckBox searchInGotoSymbol;
+    private JTextField fileNavigationExtensionsField;
+    private JTextField fileNavigationSearchRootsField;
 
     public HoconProjectSettingsPanel(Project project) {
         this.project = project;
+        buildWrapperPanel();
         loadSettings();
+    }
+
+    private void buildWrapperPanel() {
+        fileNavigationExtensionsField = new JTextField();
+        fileNavigationSearchRootsField = new JTextField();
+
+        JPanel fileNavPanel = new JPanel(new GridBagLayout());
+        fileNavPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "File Path Navigation"));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(2, 4, 2, 4);
+
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0; gbc.fill = GridBagConstraints.NONE;
+        fileNavPanel.add(new JLabel("File extensions to navigate (comma-separated, e.g. sql,xml):"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
+        fileNavPanel.add(fileNavigationExtensionsField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0; gbc.fill = GridBagConstraints.NONE;
+        fileNavPanel.add(new JLabel("Search root directories (comma-separated, default: resource directory from project model):"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
+        fileNavPanel.add(fileNavigationSearchRootsField, gbc);
+
+        wrapperPanel = new JPanel(new BorderLayout());
+        wrapperPanel.add(mainPanel, BorderLayout.NORTH);
+        wrapperPanel.add(fileNavPanel, BorderLayout.CENTER);
     }
 
     public void loadSettings() {
@@ -28,10 +59,12 @@ public class HoconProjectSettingsPanel {
         classReferencesQuotedCheckBox.setSelected(settings.getClassReferencesOnQuotedStrings());
         propertyReferencesCheckBox.setSelected(settings.getPropertyReferencesOnStrings());
         searchInGotoSymbol.setSelected(settings.getSearchInGotoSymbol());
+        fileNavigationExtensionsField.setText(settings.getFileNavigationExtensions());
+        fileNavigationSearchRootsField.setText(settings.getFileNavigationSearchRoots());
     }
 
     public JComponent getMainComponent() {
-        return mainPanel;
+        return wrapperPanel;
     }
 
     public boolean isModified() {
@@ -39,7 +72,9 @@ public class HoconProjectSettingsPanel {
         return classReferencesUnquotedCheckBox.isSelected() != settings.getClassReferencesOnUnquotedStrings() ||
                 classReferencesQuotedCheckBox.isSelected() != settings.getClassReferencesOnQuotedStrings() ||
                 propertyReferencesCheckBox.isSelected() != settings.getPropertyReferencesOnStrings() ||
-                searchInGotoSymbol.isSelected() != settings.getSearchInGotoSymbol();
+                searchInGotoSymbol.isSelected() != settings.getSearchInGotoSymbol() ||
+                !fileNavigationExtensionsField.getText().equals(settings.getFileNavigationExtensions()) ||
+                !fileNavigationSearchRootsField.getText().equals(settings.getFileNavigationSearchRoots());
     }
 
     public void apply() {
@@ -48,6 +83,8 @@ public class HoconProjectSettingsPanel {
         settings.setClassReferencesOnQuotedStrings(classReferencesQuotedCheckBox.isSelected());
         settings.setPropertyReferencesOnStrings(propertyReferencesCheckBox.isSelected());
         settings.setSearchInGotoSymbol(searchInGotoSymbol.isSelected());
+        settings.setFileNavigationExtensions(fileNavigationExtensionsField.getText());
+        settings.setFileNavigationSearchRoots(fileNavigationSearchRootsField.getText());
     }
 
     {
