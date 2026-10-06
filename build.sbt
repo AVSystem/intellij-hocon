@@ -47,7 +47,7 @@ lazy val hocon = project
     ),
     ideBasePackages := Seq("org.jetbrains.plugins.hocon"),
     intellijPlugins := Seq("com.intellij.java", "com.intellij.java-i18n", "com.intellij.modules.json").map(_.toPlugin),
-    intellijExtraRuntimePluginsInTests := Seq("org.jetbrains.kotlin").map(_.toPlugin),
+    intellijExtraRuntimePluginsInTests := Seq("org.jetbrains.kotlin", "org.toml.lang").map(_.toPlugin),
     resolvers += "JetBrains Intellij Repository".at("https://www.jetbrains.com/intellij-repository/snapshots"),
     libraryDependencies ++= Seq(
       "org.apache.commons" % "commons-text" % commonsTextVersion,

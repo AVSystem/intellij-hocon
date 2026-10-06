@@ -45,4 +45,15 @@ class JavaLiteralHoconReferenceTest extends HoconSingleModuleTest {
 
     assertTrue(literal.getReferences.collectFirst { case ref: HoconPropertyReference => ref }.isEmpty)
   }
+
+  // https://github.com/AVSystem/intellij-hocon/issues/87
+  def testNoReferencesInTomlStringLiteral(): Unit = {
+    val tomlFile = psiManager.findFile(findVirtualFile("gradle/libs.versions.toml"))
+    // TOML PSI classes are not on the test compile classpath, so make sure the file is really parsed as TOML
+    // and check references of all its elements
+    assertEquals("TOML", tomlFile.getLanguage.getID)
+
+    val hoconRefs = tomlFile.depthFirst.flatMap(_.getReferences).collect { case ref: HoconPropertyReference => ref }
+    assertTrue(hoconRefs.isEmpty)
+  }
 }
