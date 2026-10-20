@@ -14,5 +14,6 @@ class HoconReferenceContributor extends PsiReferenceContributor {
   def registerReferenceProviders(registrar: PsiReferenceRegistrar): Unit = {
     registrar.registerReferenceProvider(pattern[HIncludeTarget], new IncludedFileReferenceProvider)
     registrar.registerReferenceProvider(pattern[HStringValue], new HoconPropertiesReferenceProvider)
+    registrar.registerReferenceProvider(pattern[HStringValue], new HoconFilePathReferenceProvider)
   }
 }
