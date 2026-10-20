@@ -2,7 +2,7 @@ import org.jetbrains.sbtidea.Keys._
 
 ThisBuild / scalaVersion := "2.13.18"
 ThisBuild / intellijPluginName := "intellij-hocon"
-ThisBuild / intellijBuild := "261.25134.121"
+ThisBuild / intellijBuild := "261.27258.48"
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("21"))
 // Cache the IntelliJ SDK (~800MB) that the sbt-idea-plugin downloads on build load; the default
 // sbt cache doesn't cover it. Keyed on build.sbt so an intellijBuild bump invalidates the entry.
@@ -47,7 +47,7 @@ lazy val hocon = project
     ),
     ideBasePackages := Seq("org.jetbrains.plugins.hocon"),
     intellijPlugins := Seq("com.intellij.java", "com.intellij.java-i18n", "com.intellij.modules.json").map(_.toPlugin),
-    intellijExtraRuntimePluginsInTests := Seq("org.jetbrains.kotlin").map(_.toPlugin),
+    intellijExtraRuntimePluginsInTests := Seq("org.jetbrains.kotlin", "org.toml.lang").map(_.toPlugin),
     resolvers += "JetBrains Intellij Repository".at("https://www.jetbrains.com/intellij-repository/snapshots"),
     libraryDependencies ++= Seq(
       "org.apache.commons" % "commons-text" % commonsTextVersion,
