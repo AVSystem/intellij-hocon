@@ -33,7 +33,7 @@ lazy val hocon = project
   .in(file("."))
   .enablePlugins(SbtIdeaPlugin)
   .settings(
-    version := "2026.2.1",
+    version := "2026.2.2-SNAPSHOT",
     Compile / scalaSource := baseDirectory.value / "src",
     Test / scalaSource := baseDirectory.value / "test",
     Compile / resourceDirectory := baseDirectory.value / "resources",
